@@ -2,6 +2,7 @@
 
 #include <Python.h>
 #include "Core/src/Exception.h"
+#include "Deleter.h"
 
 
 namespace pycppconn{
@@ -11,11 +12,11 @@ namespace pycppconn{
     public:
         template<typename... Args>
         CPythonException(PyObject* pyError, const Source& source, const char* format, Args&&... args):
-                core::Exception(source, format, std::forward<Args>(args)...), m_pyError(pyError){
+                core::Exception(source, format, std::forward<Args>(args)...), m_pyError(pyError, &Deleter::Borrow){
         }
         void Raise() const;
 
     private:
-        std::unique_ptr<PyObject> m_pyError;
+        std::unique_ptr<PyObject, Deleter::Func> m_pyError;
     };
 }
