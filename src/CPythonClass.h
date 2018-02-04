@@ -14,11 +14,11 @@ namespace pycppconn{
     public:
         template<typename X, typename std::enable_if<std::__and_<std::is_pointer<X>,
                 std::is_function<typename std::remove_pointer<X>::type>>::value, bool>::type = true>
-        void AddMethod(X&& memberFunction){
-            CPythonFunction<X> function(memberFunction);
+        void AddMethod(const std::string& name, const std::string& doc, X&& memberFunction){
+            m_cPythonFunctions.emplace_back(new CPythonFunction<X>(name, doc, memberFunction));
         }
         std::unique_ptr<PyTypeObject> ToPython() const;
     private:
-        std::vector<PyMethodDef*> m_methods;
+        std::vector<std::unique_ptr<ICPythonFunction>> m_cPythonFunctions;
     };
 }

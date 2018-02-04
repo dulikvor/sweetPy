@@ -5,6 +5,7 @@ namespace pycppconn{
 
     void CPythonException::Raise() const {
        GilLock lock;
-       PyErr_SetString(m_pyError.get(), m_message.c_str());
+        if(!PyErr_Occurred())
+            PyErr_SetString(m_pyError.get(), m_message.c_str());
     }
 }
