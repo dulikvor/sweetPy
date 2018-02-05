@@ -13,7 +13,7 @@ int main( int argc, const char *argv[] )
 
     CPythonClass<int> c;
     c.AddMethod("", "", &foo);
-    CPythonFunction<void(*)(std::string, int)> pyFunc("", "", &foo);
+    CPythonFunction<int, void(*)(std::string, int)> pyFunc("", "", &foo);
     pyFunc.Wrapper(nullptr, nullptr);
 
     Py_Finalize();

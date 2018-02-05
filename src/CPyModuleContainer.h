@@ -6,16 +6,21 @@
 
 namespace pycppconn{
 
-    class CPyModule;
+    class CPythonModule;
+    class ICPythonFunction;
+
 
     class CPyModuleContainer
     {
     public:
         static CPyModuleContainer& Instance();
-        void AddModule(const std::string& key, const std::shared_ptr<CPyModule>& module);
-        CPyModule& GetModule(const std::string& key);
+        void AddModule(const std::string& key, const std::shared_ptr<CPythonModule>& module);
+        CPythonModule& GetModule(const std::string& key);
+        void AddMethod(int key, const std::shared_ptr<ICPythonFunction>& method);
+        ICPythonFunction& GetMethod(int key);
     private:
-        std::unordered_map<std::string, std::shared_ptr<CPyModule>> m_modules;
+        std::unordered_map<std::string, std::shared_ptr<CPythonModule>> m_modules;
+        std::unordered_map<int, std::shared_ptr<ICPythonFunction>> m_methods;
 
     };
 }

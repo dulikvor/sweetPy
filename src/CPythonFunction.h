@@ -5,6 +5,7 @@
 #include <Python.h>
 #include "Lock.h"
 #include "Common.h"
+#include "CPyModuleContainer.h"
 
 namespace pycppconn {
 
@@ -13,7 +14,7 @@ namespace pycppconn {
     struct Argument {
         typedef PyObject* Type;
         static constexpr const char* Format = "o";
-        static T& ToNative(char* data){ return *reinterpret_cast<T*>(nullptr); }
+        static T& ToNative(char* data){ return *reinterpret_cast<T*>(data + sizeof(PyObject)); }
     };
 
     template<>
@@ -74,10 +75,11 @@ namespace pycppconn {
     class CPythonFunction: public ICPythonFunction {
     };
 
-    template<typename Return, typename... Args>
-    class CPythonFunction<Return(*)(Args...)> : public ICPythonFunction{
+    template<typename ClassType, typename Return, typename... Args>
+    class CPythonFunction<ClassType, Return(*)(Args...)> : public ICPythonFunction{
     public:
-        typedef Return (*MemberFunction)(Args...);
+        typedef Return(*MemberFunction)(Args...);
+        typedef CPythonFunction<ClassType, Return(*)(Args...)> Self;
 
         CPythonFunction(const std::string& name, const std::string doc, const MemberFunction &memberFunction)
                 : m_name(name), m_doc(doc), m_memberFunction(memberFunction) {
@@ -108,12 +110,14 @@ namespace pycppconn {
             for (auto &subFormat : formatList)
                 format += subFormat;
 
-            char buffer[ArgumentsPackSize<Args...>::value];
+            char buffer[ArgumentsPackSize<typename base<Args>::Type...>::value];
             {
                 GilLock lock;
-                CPYTHON_VERIFY(!PyArg_ParseTuple(args, format.c_str(), (buffer + ArgumentOffset<Args,Args...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(!PyArg_ParseTuple(args, format.c_str(), (buffer + ArgumentOffset<typename base<Args>::Type,typename base<Args>::Type...>::value)...), "Invalid argument was provided");
             }
-            //(*m_memberFunction)(std::forward<Args>(ArgumentConvertor<typename base<Args>::Type>::ToNative())...);
+            Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
+            (*m_pyFunc.m_memberFunction)(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
+                      buffer + ArgumentOffset<typename base<Args>::Type,typename base<Args>::Type...>::value))...);
         }
 
         PyMethodDef* ToPython() override{
