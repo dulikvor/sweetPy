@@ -18,6 +18,7 @@ namespace pycppconn{
             m_cPythonFunctions.emplace_back(new CPythonFunction<X>(name, doc, memberFunction));
         }
         std::unique_ptr<PyTypeObject> ToPython() const;
+
     private:
         std::vector<std::unique_ptr<ICPythonFunction>> m_cPythonFunctions;
     };

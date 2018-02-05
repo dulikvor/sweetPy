@@ -1,8 +1,9 @@
 #pragma once
 
 #include <string>
-#include <Python.h>
+#include <memory>
 #include <type_traits>
+#include <Python.h>
 #include <structmember.h>
 
 namespace pycppconn{
@@ -43,7 +44,7 @@ namespace pycppconn{
             bool IsNonConst = std::is_same<MemberType, NonConstMemberType>::value>
     class CPythonMember{
     public:
-        CPythonMember(MemberType Type::* member):m_offset(GetOffset(member)),
+        CPythonMember(const std::string& name, MemberType Type::* member):m_offset(GetOffset(member)),
          m_typeId(PyTypeId<MemberType, PyArgumentsTypes>::value){
             static_assert(PyTypeId<short, PyArgumentsTypes>::value, T_SHORT);
             static_assert(PyTypeId<int, PyArgumentsTypes>::value, T_INT;
@@ -58,10 +59,14 @@ namespace pycppconn{
             static_assert(PyTypeId<unsigned int, PyArgumentsTypes>::value, T_UINT);
             static_assert(PyTypeId<unsigned long, PyArgumentsTypes>::value, T_ULONG);
             static_assert(PyTypeId<bool, PyArgumentsTypes>::value, T_BOOL);
+
+            //m_pyMember.reset(new PyMemberDef{m_name.c_str(), m_typeId, m_offset,  }))
         }
 
     private:
+        std::string m_name;
         int m_offset;
         int m_typeId;
+        std::unique_ptr<PyMemberDef> m_pyMember;
     };
 }

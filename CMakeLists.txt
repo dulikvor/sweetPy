@@ -36,4 +36,4 @@ add_subdirectory(${PROJECT_DIR}/Core)
 add_subdirectory(${PROJECT_DIR}/example)
 
 add_definitions(-DA_DLL)
-add_library(pyCppConn SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Common.h src/Exception.cpp src/Exception.h src/CPythonClass.cpp src/CPythonClass.h src/Lock.h src/Deleter.h src/CPythonFunction.cpp src/CPythonFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h)
+add_library(pyCppConn SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Common.h src/Exception.cpp src/Exception.h src/CPythonClass.cpp src/CPythonClass.h src/Lock.h src/Deleter.h src/CPythonFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h)

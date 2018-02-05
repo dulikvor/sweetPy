@@ -27,5 +27,5 @@ set(PROJECT_3RD_LOC ${CMAKE_CURRENT_SOURCE_DIR}/../Third_Party)
 
 include_directories(. .. ${PROJECT_DIR} )
 add_executable(example example.cpp)
-set(TO_LINK_LIBS pyCppConn)
+set(TO_LINK_LIBS pyCppConn Core ${PYTHON_LIBRARIES} util dl pthread)
 target_link_libraries(example ${TO_LINK_LIBS})
