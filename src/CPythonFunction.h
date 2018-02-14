@@ -14,7 +14,7 @@ namespace pycppconn {
     struct Argument {
         typedef PyObject* Type;
         static constexpr const char* Format = "o";
-        static T& ToNative(char* data){ return *reinterpret_cast<T*>(data); }
+        static T& ToNative(char* data){ return *reinterpret_cast<T*>(data + sizeof(PyObject)); } //Non python types representation - PyPbject Header + Native data
     };
 
     template<>

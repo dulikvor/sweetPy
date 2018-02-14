@@ -10,12 +10,6 @@
 #include "CPythonMember.h"
 #include "CPyModuleContainer.h"
 
-namespace axx{
-    extern "C" void printf(int i){}
-}
-
-using namespace axx;
-
 namespace pycppconn{
 
     template<typename T, typename Type = typename std::remove_const<typename std::remove_pointer<
