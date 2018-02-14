@@ -14,7 +14,7 @@ namespace pycppconn {
     struct Argument {
         typedef PyObject* Type;
         static constexpr const char* Format = "o";
-        static T& ToNative(char* data){ return *reinterpret_cast<T*>(data + sizeof(PyObject)); }
+        static T& ToNative(char* data){ return *reinterpret_cast<T*>(data); }
     };
 
     template<>
@@ -67,7 +67,7 @@ namespace pycppconn {
     class ICPythonFunction
     {
     public:
-        virtual PyMethodDef* ToPython() = 0;
+        virtual std::unique_ptr<PyMethodDef> ToPython() const = 0;
     };
 
 
@@ -76,14 +76,13 @@ namespace pycppconn {
     };
 
     template<typename ClassType, typename Return, typename... Args>
-    class CPythonFunction<ClassType, Return(*)(Args...)> : public ICPythonFunction{
+    class CPythonFunction<ClassType, Return(ClassType::*)(Args...)> : public ICPythonFunction{
     public:
-        typedef Return(*MemberFunction)(Args...);
-        typedef CPythonFunction<ClassType, Return(*)(Args...)> Self;
+        typedef Return(ClassType::*MemberFunction)(Args...);
+        typedef CPythonFunction<ClassType, Return(ClassType::*)(Args...)> Self;
 
         CPythonFunction(const std::string& name, const std::string doc, const MemberFunction &memberFunction)
                 : m_name(name), m_doc(doc), m_memberFunction(memberFunction) {
-            m_pyMethod.reset(new PyMethodDef{m_name.c_str(), &Wrapper, METH_VARARGS, m_doc.c_str()});
         }
 
         CPythonFunction(CPythonFunction &) = delete;
@@ -115,13 +114,19 @@ namespace pycppconn {
                 GilLock lock;
                 CPYTHON_VERIFY(!PyArg_ParseTuple(args, format.c_str(), (buffer + ArgumentOffset<typename base<Args>::Type,typename base<Args>::Type...>::value)...), "Invalid argument was provided");
             }
+            ClassType* _this = reinterpret_cast<ClassType*>(self);
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
-            (*m_pyFunc.m_memberFunction)(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
+            (_this->*m_pyFunc.m_memberFunction)(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
                       buffer + ArgumentOffset<typename base<Args>::Type,typename base<Args>::Type...>::value))...);
         }
 
-        PyMethodDef* ToPython() override{
-            return m_pyMethod.get();
+        std::unique_ptr<PyMethodDef> ToPython() const override{
+            return std::unique_ptr<PyMethodDef>(new PyMethodDef{
+                    m_name.c_str(),
+                    &Wrapper,
+                    METH_VARARGS,
+                    m_doc.c_str()
+            });
         }
 
     private:

@@ -18,7 +18,7 @@ namespace pycppconn{
     template<typename X>
     struct PyTypeId<X>
     {
-        const static int value = 6;
+        const static int value = -1;
     };
 
 
@@ -31,42 +31,58 @@ namespace pycppconn{
     template<typename X, typename T, typename... Args>
     struct PyTypeId<X, T, Args...>
     {
-        const static int value = PyTypeId<X, Args...>::value != 6 ? PyTypeId<X, Args...>::value + 1 : 6;
+        const static int value = PyTypeId<X, Args...>::value != -1 ? PyTypeId<X, Args...>::value + 1 : -1;
     };
 
     template<typename Type, typename MemberType>
     inline int GetOffset(MemberType Type::* member){
-        return reinterpret_cast<Type*>(nullptr)->*member- reinterpret_cast<Type*>(nullptr);
+        return (char*)&(((Type*)nullptr)->*member) - (char*)((Type*)nullptr);
     }
+
+    class ICPythonMember{
+    public:
+        virtual std::unique_ptr<PyMemberDef> ToPython() const = 0;
+    };
 
     template<typename Type, typename MemberType,
             typename NonConstMemberType = typename std::remove_const<MemberType>::type,
-            bool IsNonConst = std::is_same<MemberType, NonConstMemberType>::value>
-    class CPythonMember{
+            bool IsNonConst = std::is_same<MemberType, NonConstMemberType>::value,
+            typename std::enable_if<std::__not_<std::is_reference<MemberType>>::value, bool>::type = true>
+    class CPythonMember : public ICPythonMember{
     public:
-        CPythonMember(const std::string& name, MemberType Type::* member):m_offset(GetOffset(member)),
-         m_typeId(PyTypeId<MemberType, PyArgumentsTypes>::value){
-            static_assert(PyTypeId<short, PyArgumentsTypes>::value, T_SHORT);
-            static_assert(PyTypeId<int, PyArgumentsTypes>::value, T_INT;
-            static_assert(PyTypeId<long, PyArgumentsTypes>::value, T_LONG);
-            static_assert(PyTypeId<float, PyArgumentsTypes>::value, T_FLOAT);
-            static_assert(PyTypeId<double, PyArgumentsTypes>::value, T_DOUBLE);
-            static_assert(PyTypeId<char*, PyArgumentsTypes>::value, T_STRING);
-            static_assert(PyTypeId<std::string, PyArgumentsTypes>::value, T_OBJECT);
-            static_assert(PyTypeId<char, PyArgumentsTypes>::value, T_CHAR);
-            static_assert(PyTypeId<unsigned char, PyArgumentsTypes>::value, T_UBYTE);
-            static_assert(PyTypeId<unsigned short, PyArgumentsTypes>::value, T_USHORT);
-            static_assert(PyTypeId<unsigned int, PyArgumentsTypes>::value, T_UINT);
-            static_assert(PyTypeId<unsigned long, PyArgumentsTypes>::value, T_ULONG);
-            static_assert(PyTypeId<bool, PyArgumentsTypes>::value, T_BOOL);
+        CPythonMember(const std::string& name, MemberType Type::* member, const std::string& doc):m_offset(GetOffset(member)),
+         m_typeId(PyTypeId<MemberType, PyArgumentsTypes>::value == -1 ? T_OBJECT : PyTypeId<MemberType, PyArgumentsTypes>::value), m_name(name), m_doc(doc){
+            static_assert(PyTypeId<short, PyArgumentsTypes>::value == T_SHORT, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<int, PyArgumentsTypes>::value == T_INT, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<long, PyArgumentsTypes>::value == T_LONG, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<float, PyArgumentsTypes>::value == T_FLOAT, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<double, PyArgumentsTypes>::value == T_DOUBLE, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<char*, PyArgumentsTypes>::value == T_STRING, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<std::string, PyArgumentsTypes>::value == -1, "Unrelated representation of type id between self and python"); //unsupported native type
+            static_assert(PyTypeId<int*, PyArgumentsTypes>::value == -1, "Unrelated representation of type id between self and python"); //By pointer plain old data
+            static_assert(PyTypeId<char, PyArgumentsTypes>::value == T_CHAR, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<unsigned char, PyArgumentsTypes>::value == T_UBYTE, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<unsigned short, PyArgumentsTypes>::value == T_USHORT, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<unsigned int, PyArgumentsTypes>::value == T_UINT, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<unsigned long, PyArgumentsTypes>::value ==T_ULONG, "Unrelated representation of type id between self and python");
+            static_assert(PyTypeId<bool, PyArgumentsTypes>::value == T_BOOL, "Unrelated representation of type id between self and python");
 
-            //m_pyMember.reset(new PyMemberDef{m_name.c_str(), m_typeId, m_offset,  }))
+        }
+
+        std::unique_ptr<PyMemberDef> ToPython() const {
+            return std::unique_ptr<PyMemberDef>(new PyMemberDef{
+                                                        const_cast<char *>(m_name.c_str()),
+                                                        m_typeId,
+                                                        m_offset,
+                                                        IsNonConst ? 0 : READONLY,
+                                                        const_cast<char *>(m_doc.c_str())
+            }); //Python emphasis the use of implicit conversion of C++ string literals to prvalue of char*, so const_cast is safe.
         }
 
     private:
         std::string m_name;
+        std::string m_doc;
         int m_offset;
         int m_typeId;
-        std::unique_ptr<PyMemberDef> m_pyMember;
     };
 }
