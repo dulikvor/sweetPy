@@ -7,7 +7,7 @@
 #include "Exception.h"
 
 namespace pycppconn{
-#define CPYTHON_VERIFY(expression, reason) do{ if(!expression) throw CPythonException(PyExc_StandardError, SOURCE, reason); }while(0)
+#define CPYTHON_VERIFY(expression, reason) do{ if(!(expression)) throw CPythonException(PyExc_StandardError, SOURCE, reason); }while(0)
 
 //Partial version of decay, functions and array are excluded
 template<typename T, typename std::enable_if<std::__and_<

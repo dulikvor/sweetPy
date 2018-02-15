@@ -9,19 +9,35 @@
 #include "CPythonFunction.h"
 #include "CPythonMember.h"
 #include "CPyModuleContainer.h"
+#include "CPythonModule.h"
 
 namespace pycppconn{
 
+
+    struct TypeState{
+    public:
+        TypeState(const std::string& name, const std::string& doc):
+                Name(name), Doc(doc), PyType(nullptr){}
+        ~TypeState(){
+            delete[] PyType->tp_methods;
+            delete[] PyType->tp_members;
+        }
+    public:
+        std::string Name;
+        std::string Doc;
+        std::unique_ptr<PyTypeObject> PyType;
+    };
+
     template<typename T, typename Type = typename std::remove_const<typename std::remove_pointer<
             typename std::remove_reference<T>::type>::type>::type>
-    class CPythonClass {
+    class CPythonClass{
     public:
-        CPythonClass(const std::string& name, const std::string& doc)
-        :m_name(name), m_doc(doc){
-            m_pyType.reset(new PyTypeObject{
+        CPythonClass(CPythonModule& module, const std::string& name, const std::string& doc)
+        :m_module(module), m_typeState(new TypeState(name, doc)){
+            m_typeState->PyType.reset(new PyTypeObject{
                     PyVarObject_HEAD_INIT(NULL, 0)
-                    m_name.c_str(),            /* tp_name */
-                    sizeof(Type),                 /* tp_basicsize */
+                    m_typeState->Name.c_str(), /* tp_name */
+                    sizeof(Type),              /* tp_basicsize */
                     0,                         /* tp_itemsize */
                     NULL,                      /* tp_dealloc */
                     0,                         /* tp_print */
@@ -39,7 +55,7 @@ namespace pycppconn{
                     0,                         /* tp_setattro */
                     0,                         /* tp_as_buffer */
                     Py_TPFLAGS_HAVE_CLASS,     /* tp_flags */
-                    m_doc.c_str(),             /* tp_doc */
+                    m_typeState->Doc.c_str(),  /* tp_doc */
                     0,                         /* tp_traverse */
                     0,                         /* tp_clear */
                     0,                         /* tp_richcompare */
@@ -58,12 +74,18 @@ namespace pycppconn{
                     0,                         /* tp_alloc */
                     NULL                       /* tp_new */
             });
-            Py_IncRef((PyObject*)m_pyType.get()); //Making sure the true owner of the type is CPythonClass
+            Py_IncRef((PyObject*)m_typeState->PyType.get()); //Making sure the true owner of the type is CPythonClass
         }
         ~CPythonClass(){
-            delete[] m_pyType->tp_methods;
-            delete[] m_pyType->tp_members;
+            AddMembers();
+            AddMethods();
+            {
+                GilLock lock;
+                PyType_Ready(m_typeState->PyType.get());
+            }
+            m_module.AddType(std::move(m_typeState));
         }
+
         template<typename X, typename std::enable_if<std::is_member_function_pointer<X>::value, bool>::type = true>
         void AddMethod(const std::string& name, const std::string& doc, X&& memberFunction){
             typedef CPythonFunction<Type, X> CPyFuncType;
@@ -75,16 +97,6 @@ namespace pycppconn{
         void AddMember(const std::string& name, MemberType Type::* member, const std::string& doc){
             m_cPythonMembers.emplace_back( new CPythonMember<Type, MemberType>(name, member, doc));
         }
-        PyTypeObject& ToPython(){
-            assert(m_pyType->tp_methods == NULL && m_pyType->tp_members == NULL && !(m_pyType->tp_flags & Py_TPFLAGS_READY));
-            AddMembers();
-            AddMethods();
-            {
-                GilLock lock;
-                PyType_Ready(m_pyType.get());
-            }
-            return *m_pyType;
-        }
 
     private:
         template<typename CPythonFunctionType>
@@ -94,24 +106,22 @@ namespace pycppconn{
 
         void AddMethods(){
             PyMethodDef* methods = new PyMethodDef[m_cPythonFunctions.size() + 1]; //spare space for sentinal
-            auto methodsPtr = methods;
+            m_typeState->PyType->tp_methods = methods;
             for(const auto& method : m_cPythonFunctions){
-                *methodsPtr = *method->ToPython();
-                methodsPtr++;
+                *methods = *method->ToPython();
+                methods++;
             }
-            *methodsPtr = {NULL, NULL, 0, NULL};
-            m_pyType->tp_methods = methods;
+            *methods = {NULL, NULL, 0, NULL};
         }
 
         void AddMembers(){
             PyMemberDef* members = new PyMemberDef[m_cPythonMembers.size() + 1]; //spare space for sentinal
-            auto membersPtr = members;
+            m_typeState->PyType->tp_members = members;
             for(const auto& member : m_cPythonMembers){
-                *membersPtr = *member->ToPython();
-                membersPtr++;
+                *members = *member->ToPython();
+                members++;
             }
-            *membersPtr = {NULL, 0, 0, 0, NULL};
-            m_pyType->tp_members = members;
+            *members = {NULL, 0, 0, 0, NULL};
         }
 
         static int SetAttribute(PyObject *, PyObject *, PyObject *){
@@ -121,8 +131,7 @@ namespace pycppconn{
     private:
         std::vector<std::shared_ptr<ICPythonFunction>> m_cPythonFunctions;
         std::vector<std::unique_ptr<ICPythonMember>> m_cPythonMembers;
-        std::unique_ptr<PyTypeObject> m_pyType;
-        std::string m_name;
-        std::string m_doc;
+        std::unique_ptr<TypeState> m_typeState;
+        CPythonModule& m_module;
     };
 }

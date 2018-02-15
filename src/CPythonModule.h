@@ -3,25 +3,31 @@
 #include <string>
 #include <type_traits>
 #include <memory>
+#include <vector>
 #include <Python.h>
 #include "Common.h"
+#include "CPyModuleContainer.h"
 
 namespace pycppconn {
+    class TypeState;
     class CPythonModule {
     public:
-        explicit CPythonModule(const std::string &name, const std::string &docString);
-
+        explicit CPythonModule(const std::string &name, const std::string &doc);
+        void AddType(std::unique_ptr<TypeState>&& type);
     private:
         std::unique_ptr<PyObject, Deleter::Func> m_module;
+        std::vector<std::unique_ptr<TypeState>> m_types;
+        std::string m_name;
+        std::string m_doc;
     };
 
 
 #define INIT_MODULE(name, doc) \
     void InitializeModule(CPythonModule& module); \
     PyMODINIT_FUNC init##name() { \
-        static_assert(std::is_same<typeof(doc), const char*>::value); \
-        CPythonModule module("name", doc); \
-        InitializeModule(module); \
+        auto module = std::make_shared<CPythonModule>(#name, doc); \
+        CPyModuleContainer::Instance().AddModule(#name, module); \
+        InitializeModule(*module); \
     } \
     void InitializeModule(CPythonModule& module)
 }

@@ -8,7 +8,7 @@ namespace pycppconn{
 
     class CPythonModule;
     class ICPythonFunction;
-
+    class ICPythonClass;
 
     class CPyModuleContainer
     {
@@ -18,9 +18,9 @@ namespace pycppconn{
         CPythonModule& GetModule(const std::string& key);
         void AddMethod(int key, const std::shared_ptr<ICPythonFunction>& method);
         ICPythonFunction& GetMethod(int key);
+
     private:
         std::unordered_map<std::string, std::shared_ptr<CPythonModule>> m_modules;
         std::unordered_map<int, std::shared_ptr<ICPythonFunction>> m_methods;
-
     };
 }
