@@ -36,7 +36,7 @@ namespace pycppconn{
 
     template<typename Type, typename MemberType>
     inline int GetOffset(MemberType Type::* member){
-        return (char*)&(((Type*)nullptr)->*member) - (char*)((Type*)nullptr);
+        return (char*)&(((Type*)nullptr)->*member) - (char*)((Type*)nullptr) + sizeof(PyObject);
     }
 
     class ICPythonMember{

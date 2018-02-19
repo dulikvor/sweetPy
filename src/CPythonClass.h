@@ -10,6 +10,7 @@
 #include "CPythonMember.h"
 #include "CPyModuleContainer.h"
 #include "CPythonModule.h"
+#include "CPythonMetaClass.h"
 
 namespace pycppconn{
 
@@ -28,6 +29,8 @@ namespace pycppconn{
         std::unique_ptr<PyTypeObject> PyType;
     };
 
+
+
     template<typename T, typename Type = typename std::remove_const<typename std::remove_pointer<
             typename std::remove_reference<T>::type>::type>::type>
     class CPythonClass{
@@ -35,9 +38,9 @@ namespace pycppconn{
         CPythonClass(CPythonModule& module, const std::string& name, const std::string& doc)
         :m_module(module), m_typeState(new TypeState(name, doc)){
             m_typeState->PyType.reset(new PyTypeObject{
-                    PyVarObject_HEAD_INIT(NULL, 0)
+                    PyVarObject_HEAD_INIT(&CPythonMetaClass::GetMetaType(), 0)
                     m_typeState->Name.c_str(), /* tp_name */
-                    sizeof(Type),              /* tp_basicsize */
+                    sizeof(Type) + sizeof(PyObject),/* tp_basicsize */
                     0,                         /* tp_itemsize */
                     NULL,                      /* tp_dealloc */
                     0,                         /* tp_print */
@@ -54,7 +57,8 @@ namespace pycppconn{
                     0,                         /* tp_getattro */
                     0,                         /* tp_setattro */
                     0,                         /* tp_as_buffer */
-                    Py_TPFLAGS_HAVE_CLASS,     /* tp_flags */
+                    Py_TPFLAGS_HAVE_CLASS |
+                    Py_TPFLAGS_HEAPTYPE,       /* tp_flags */
                     m_typeState->Doc.c_str(),  /* tp_doc */
                     0,                         /* tp_traverse */
                     0,                         /* tp_clear */
@@ -72,7 +76,7 @@ namespace pycppconn{
                     0,                         /* tp_dictoffset */
                     NULL,                      /* tp_init */
                     0,                         /* tp_alloc */
-                    NULL                       /* tp_new */
+                    NULL,                      /* tp_new */
             });
             Py_IncRef((PyObject*)m_typeState->PyType.get()); //Making sure the true owner of the type is CPythonClass
         }
