@@ -7,7 +7,9 @@ using namespace pycppconn;
 
 class A{
 public:
-    void foo(int i){}
+    void foo(int i, int y){
+        int b = i + y;
+    }
 public:
     int i;
 };
