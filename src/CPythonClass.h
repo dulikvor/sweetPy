@@ -11,6 +11,7 @@
 #include "CPyModuleContainer.h"
 #include "CPythonModule.h"
 #include "CPythonMetaClass.h"
+#include "CPythonConstructor.h"
 
 namespace pycppconn{
 
@@ -95,6 +96,11 @@ namespace pycppconn{
             typedef CPythonFunction<Type, X> CPyFuncType;
             m_cPythonFunctions.emplace_back(new CPyFuncType(name, doc, memberFunction));
             CPyModuleContainer::Instance().AddMethod(GenerateMethodId<CPyFuncType>(), m_cPythonFunctions.back());
+        }
+
+        template<typename... Args>
+        void AddConstructor(){
+            m_typeState->PyType->tp_init = &CPythonConstructor<Type, Args...>::Wrapper;
         }
 
         template<typename MemberType>
