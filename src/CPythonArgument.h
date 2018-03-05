@@ -61,5 +61,12 @@ namespace pycppconn{
     struct ArgumentWrapper
     {
         typedef typename Argument<T>::Type Type;
+        template<typename... Args>
+        static void MultiDestructors(Args&&...){}
+        static void* Destructor(char* buffer){
+            T* typedPtr = reinterpret_cast<T*>(buffer);
+            typedPtr->~T();
+            return nullptr;
+        }
     };
 }

@@ -8,21 +8,25 @@ using namespace pycppconn;
 
 class A{
 public:
-    A(int i):m_i(i){}
+    A(int&& i, const char* str):m_i(i), m_str(str){}
     void foo(int i, int y){
-        int b = i + y;
-        std::cout<<b<<std::endl;
+        int b = i + y + m_i;
+        auto tempStr = const_cast<char*>(m_str);
+        tempStr[0] = 'a';
+        std::cout<<m_str<<b<<std::endl;
     }
 public:
     int m_i;
+    const char* m_str;
 };
 
 INIT_MODULE(example, "Example doc")
 {
     CPythonClass<A> c(module, "A", "doc");
-    c.AddConstructor<int>();
+    c.AddConstructor<int&&,const char*>();
     c.AddMethod("foo", "foo-doc", &A::foo);
     c.AddMember("i", &A::m_i, "i-doc");
+    c.AddMember("str", &A::m_str, "python string type member");
 }
 
 int main( int argc, const char *argv[] )

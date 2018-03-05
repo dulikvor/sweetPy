@@ -61,10 +61,14 @@ namespace pycppconn {
                 GilLock lock;
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
-            ClassType* _this = reinterpret_cast<ClassType*>(self);
+            ClassType* _this = reinterpret_cast<ClassType*>((char*)self + sizeof(PyObject));
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             (_this->*m_pyFunc.m_memberFunction)(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
                     buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
+
+            ArgumentWrapper<void*, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(buffer +
+                    ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,
+                            ArgumentWrapper<typename base<Args>::Type, I>...>::value)...);
         }
 
         static PyObject* Wrapper(PyObject *self, PyObject *args) {

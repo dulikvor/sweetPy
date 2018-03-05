@@ -35,6 +35,11 @@ namespace pycppconn {
             new((char*)self + sizeof(PyObject))ClassType(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
                     buffer +
                     ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>, ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
+
+
+            ArgumentWrapper<void*, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(
+                    buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,
+                                                                                                                          ArgumentWrapper<typename base<Args>::Type, I>...>::value)...);
             return 0;
         }
 
