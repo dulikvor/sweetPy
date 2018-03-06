@@ -1,0 +1,11 @@
+find_path(GOOGLE_TEST_INCLUDE_DIR NAMES benchmark PATHS ${PROJECT_DIR}/Third_Party/include NO_DEFAULT_PATH)
+find_library(GOOGLE_TEST_LIBRARY_DIR NAMES benchmark PATHS ${PROJECT_DIR}/Third_Party/lib NO_DEFAULT_PATH)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(benchmark REQUIRED_VARS GOOGLE_TEST_INCLUDE_DIR GOOGLE_TEST_LIBRARY_DIR)
+
+if(GOOGLE_TEST_FOUND)
+    message(STATUS "Found Google Test include dir - ${GOOGLE_TEST_INCLUDE_DIR}")
+    message(STATUS "Found Google Test library dir - ${GOOGLE_TEST_LIBRARY_DIR}")
+else()
+    message(WARNING "Google Test not found")
+endif()
