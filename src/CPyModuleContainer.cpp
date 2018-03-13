@@ -28,9 +28,21 @@ namespace pycppconn{
         m_methods.insert(std::make_pair(key, method));
     }
 
+    void CPyModuleContainer::AddStaticMethod(int key, const std::shared_ptr<ICPythonFunction>& staticMethod){
+        if( m_staticMethods.find(key) != m_staticMethods.end())
+            throw CPythonException(PyExc_KeyError, SOURCE, "Key already exists - %d", key);
+        m_staticMethods.insert(std::make_pair(key, staticMethod));
+    }
+
     ICPythonFunction& CPyModuleContainer::GetMethod(int key){
         if( m_methods.find(key) == m_methods.end())
             throw CPythonException(PyExc_KeyError, SOURCE, "Key related entry dosn't exists - %d", key);
         return *m_methods[key];
+    }
+
+    ICPythonFunction& CPyModuleContainer::GetStaticMethod(int key){
+        if( m_staticMethods.find(key) == m_staticMethods.end())
+            throw CPythonException(PyExc_KeyError, SOURCE, "Key related entry dosn't exists - %d", key);
+        return *m_staticMethods[key];
     }
 }

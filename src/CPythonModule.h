@@ -28,7 +28,7 @@ namespace pycppconn {
     PyMODINIT_FUNC init##name() { \
         auto module = std::make_shared<CPythonModule>(#name, doc); \
         CPyModuleContainer::Instance().AddModule(#name, module); \
-        CPythonMetaClass::InitType(); \
+        CPythonMetaClass::InitStaticType(); \
         InitializeModule(*module); \
     } \
     void InitializeModule(CPythonModule& module)
