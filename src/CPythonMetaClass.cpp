@@ -51,7 +51,7 @@ namespace pycppconn {
     CPythonMetaClass::CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc)
     :m_module(module), m_typeState(new TypeState(name, doc)){
         m_typeState->PyType.reset(new PyTypeObject{
-                PyVarObject_HEAD_INIT(&m_staticType, 0)
+                PyVarObject_HEAD_INIT(&PyType_Type, 0)
                 m_typeState->Name.c_str(), /* tp_name */
                 sizeof(PyHeapTypeObject),  /* tp_basicsize */
                 0,                         /* tp_itemsize */
@@ -71,7 +71,7 @@ namespace pycppconn {
                 0,                         /* tp_setattro */
                 0,                         /* tp_as_buffer */
                 Py_TPFLAGS_HAVE_CLASS |
-                Py_TPFLAGS_HEAPTYPE,       /* tp_flags */
+                Py_TPFLAGS_HAVE_WEAKREFS,  /* tp_flags */
                 m_typeState->Doc.c_str(),  /* tp_doc */
                 0,                         /* tp_traverse */
                 0,                         /* tp_clear */
@@ -82,7 +82,7 @@ namespace pycppconn {
                 NULL,                      /* tp_methods */
                 NULL,                      /* tp_members */
                 0,                         /* tp_getset */
-                0,                         /* tp_base */
+                &PyType_Type,              /* tp_base */
                 0,                         /* tp_dict */
                 0,                         /* tp_descr_get */
                 0,                         /* tp_descr_set */

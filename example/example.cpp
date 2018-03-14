@@ -15,6 +15,9 @@ public:
         tempStr[0] = 'a';
         std::cout<<m_str<<b<<std::endl;
     }
+    static void boo(){
+        std::cout<<"static method"<<std::endl;
+    }
 public:
     int m_i;
     const char* m_str;
@@ -27,6 +30,7 @@ INIT_MODULE(example, "Example doc")
     c.AddMethod("foo", "foo-doc", &A::foo);
     c.AddMember("i", &A::m_i, "i-doc");
     c.AddMember("str", &A::m_str, "python string type member");
+    c.AddStaticMethod("boo", "boo-doc", &A::boo);
 }
 
 int main( int argc, const char *argv[] )
