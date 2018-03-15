@@ -15,8 +15,7 @@ int main(int argc, char **argv) {
 namespace pycppconnTest {
     TEST(CPythonClassTest, StaticMethod) {
         const char* testingScript = "from CPythonClassTestModule import TestClass\n"
-                                    "TestClass.Setter()\n"
-                                    "print('Tammer hello')";
+                                    "TestClass.Setter()\n";
         PythonEmbeder embeder("CPythonClassTest_StaticMethod_Test", _argc, _argv, testingScript);
         embeder.Run();
     }
