@@ -19,7 +19,6 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Python REQUIRED)
 
 if(pyCppConn_Test_Support)
-    option(pyCppConn_STAND_ALONE "pyCppConn is compiled as a sole project" ON)
     set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
     list(APPEND CMAKE_PREFIX_PATH ${CURRENT_PROJECT_3RD_LOC})
     find_package(GoogleTest)
@@ -39,7 +38,7 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
 #Pre build step
 
 set(CORE_COMPILE True)
-set(CORE_SPDLOG_SUPPORT False)
+set(CORE_SPDLOG_SUPPORT OFF)
 add_subdirectory(${PROJECT_DIR}/Core)
 add_subdirectory(${PROJECT_DIR}/example)
 if(pyCppConn_Test_Support)
@@ -47,4 +46,4 @@ if(pyCppConn_Test_Support)
 endif()
 
 add_definitions(-DA_DLL)
-add_library(pyCppConn SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Common.h src/Exception.cpp src/Exception.h src/CPythonClass.h src/Lock.h src/Deleter.h src/CPythonFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h src/CPythonMetaClass.cpp src/CPythonMetaClass.h src/CPythonConstructor.h src/CPythonArgument.h)
+add_library(pyCppConn SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Common.h src/Exception.cpp src/Exception.h src/CPythonClass.h src/Lock.h src/Deleter.h src/CPythonFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h src/CPythonMetaClass.cpp src/CPythonMetaClass.h src/CPythonConstructor.h src/CPythonArgument.h Tests/EmbededPython.h)
