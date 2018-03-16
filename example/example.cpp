@@ -29,7 +29,6 @@ INIT_MODULE(example, "Example doc")
     c.AddConstructor<int&&,const char*>();
     c.AddMethod("foo", "foo-doc", &A::foo);
     c.AddMember("i", &A::m_i, "i-doc");
-    c.AddMember("str", &A::m_str, "python string type member");
     c.AddStaticMethod("boo", "boo-doc", &A::boo);
 }
 

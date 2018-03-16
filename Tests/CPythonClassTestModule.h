@@ -2,7 +2,7 @@
 
 class CPythonClassTestSubject{
 public:
-    CPythonClassTestSubject(){}
+    CPythonClassTestSubject(int& valueInt):m_byValueInt(valueInt){}
     static void Setter(){
         m_valid = true;
     }
@@ -12,5 +12,6 @@ public:
 
 public:
     static bool m_valid;
+    int m_byValueInt;
 };
 

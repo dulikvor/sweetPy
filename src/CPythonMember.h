@@ -47,7 +47,7 @@ namespace pycppconn{
     template<typename Type, typename MemberType,
             typename NonConstMemberType = typename std::remove_const<MemberType>::type,
             bool IsNonConst = std::is_same<MemberType, NonConstMemberType>::value,
-            typename std::enable_if<std::__not_<std::is_reference<MemberType>>::value, bool>::type = true>
+            typename std::enable_if<std::__not_<std::__or_<std::is_reference<MemberType>, std::is_pointer<MemberType>>>::value, bool>::type = true>
     class CPythonMember : public ICPythonMember{
     public:
         CPythonMember(const std::string& name, MemberType Type::* member, const std::string& doc):m_offset(GetOffset(member)),
