@@ -1,50 +1,55 @@
 #include "gtest/gtest.h"
 #include <Python.h>
+#include "PythonEmbedder.h"
 #include "CPythonClassTestModule.h"
 
-
 static int _argc;
-static char** _argv;
-
-
-bool CPythonClassTestSubject::m_valid = false;
-
-class CPythonClassTest : public ::testing::Environment{
-public:
-    CPythonClassTest(){}
-    void SetUp() override{
-        Py_SetProgramName("CPythonClassTest");
-        Py_Initialize();
-        PySys_SetArgv(_argc, _argv);
-        const char* testingScript = "from CPythonClassTestModule import TestClass\n";
-        PyRun_SimpleString(testingScript);
-    }
-    void TearDown() override{
-        Py_Finalize();
-    }
-};
-
-int main(int argc, char **argv) {
-    _argc = argc;
-    _argv = argv;
-    ::testing::AddGlobalTestEnvironment(new CPythonClassTest);
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
-
+static char **_argv;
 
 namespace pycppconnTest {
+
+    bool CPythonClassTestSubject::m_valid = false;
+
+    class CPythonClassTest : public ::testing::Environment {
+    public:
+        CPythonClassTest() {}
+
+        void SetUp() override {
+            PythonEmbedder::InitiateInterperter("CPythonClassTest", _argc, _argv);
+            const char *testingScript = "from CPythonClassTestModule import TestClass\n";
+            PyRun_SimpleString(testingScript);
+        }
+
+        void TearDown() override {
+            PythonEmbedder::TerminateInterperter();
+        }
+    };
+
+
     TEST(CPythonClassTest, StaticMethod) {
-        const char* testingScript = "TestClass.Setter()\n";
+        const char *testingScript = "TestClass.Setter()\n";
         PyRun_SimpleString(testingScript);
         ASSERT_EQ(CPythonClassTestSubject::Getter(), true);
     }
 
+
+    TEST(CPythonClassTest, PODByValueArgumentConstructor) {
+        const char *testingScript = "a = TestClass(7)";
+        PyRun_SimpleString(testingScript);
+
+    }
+
     TEST(CPythonClassTest, PODByValueMember) {
-        const char* testingScript = "a = TestClass(7)\n"
-                                    "print a.byValueInt\n"
-                                    "a.byValueInt = 5\n"
-                                    "print(a.byValueInt)";
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "a.byValueInt = 5\n";
         PyRun_SimpleString(testingScript);
     }
+}
+
+int main(int argc, char **argv) {
+    _argc = argc;
+    _argv = argv;
+    ::testing::AddGlobalTestEnvironment(new pycppconnTest::CPythonClassTest);
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }

@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <Python.h>
+#include <structmember.h>
 #include <CPythonFunction.h>
 
 namespace pycppconn {

@@ -66,7 +66,7 @@ namespace pycppconn {
             (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
                     buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
 
-            ArgumentWrapper<void*, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(buffer +
+            ArgumentWrapper<int, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(buffer +
                     ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,
                             ArgumentWrapper<typename base<Args>::Type, I>...>::value)...);
         }
@@ -135,7 +135,7 @@ namespace pycppconn {
             (*m_pyFunc.m_staticMethod)(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
                     buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
 
-            ArgumentWrapper<void*, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(buffer +
+            ArgumentWrapper<int, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(buffer +
                                                                                                                   ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,
                                                                                                                           ArgumentWrapper<typename base<Args>::Type, I>...>::value)...);
         }

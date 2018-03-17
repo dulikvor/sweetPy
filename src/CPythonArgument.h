@@ -1,9 +1,10 @@
 #pragma once
 
+#include <type_traits>
 #include <Python.h>
 
 namespace pycppconn{
-    template<typename T>
+    template<typename T, typename std::enable_if<std::__or_<std::__not_<std::is_pointer<T>>,std::is_same<T, const char*>>::value, bool>::type = true>
     struct Argument {
         typedef PyObject* Type;
         static constexpr const char* Format = "o";

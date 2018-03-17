@@ -37,7 +37,7 @@ namespace pycppconn {
                     ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>, ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
 
 
-            ArgumentWrapper<void*, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(
+            ArgumentWrapper<int, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(
                     buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,
                                                                                                                           ArgumentWrapper<typename base<Args>::Type, I>...>::value)...);
             return 0;
