@@ -63,7 +63,7 @@ namespace pycppconn {
             }
             ClassType* _this = reinterpret_cast<ClassType*>((char*)self + sizeof(PyObject));
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
-            (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
+            (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Argument<typename base<Args>::Type>::GetTyped(
                     buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ArgumentWrapper<int, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(buffer +
@@ -132,7 +132,7 @@ namespace pycppconn {
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetStaticMethod(typeid(Self).hash_code()));
-            (*m_pyFunc.m_staticMethod)(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
+            (*m_pyFunc.m_staticMethod)(std::forward<Args>(Argument<typename base<Args>::Type>::GetTyped(
                     buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ArgumentWrapper<int, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(buffer +

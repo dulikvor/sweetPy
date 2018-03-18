@@ -32,7 +32,7 @@ namespace pycppconn {
                                                                        ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>, ArgumentWrapper<typename base<Args>::Type, I>...>::value)...),
                                "Invalid argument was provided");
             }
-            new((char*)self + sizeof(PyObject))ClassType(std::forward<Args>(Argument<typename base<Args>::Type>::ToNative(
+            new((char*)self + sizeof(PyObject))ClassType(std::forward<Args>(Argument<typename base<Args>::Type>::GetTyped(
                     buffer +
                     ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>, ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
 

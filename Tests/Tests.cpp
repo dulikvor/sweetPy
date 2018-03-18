@@ -43,6 +43,7 @@ namespace pycppconnTest {
         const char *testingScript = "a = TestClass(7)\n"
                                     "a.byValueInt = 5\n";
         PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), 5);
     }
 }
 
