@@ -27,9 +27,11 @@ namespace pycppconnTest {
 
 
     TEST(CPythonClassTest, StaticMethod) {
-        const char *testingScript = "TestClass.Setter()\n";
+        const char *testingScript = "TestClass.Setter()\n"
+                                    "value = TestClass.Getter()";
         PyRun_SimpleString(testingScript);
         ASSERT_EQ(CPythonClassTestSubject::Getter(), true);
+        ASSERT_EQ(CPythonClassTestSubject::Getter(), PythonEmbedder::GetAttribute<bool>("value"));
     }
 
 

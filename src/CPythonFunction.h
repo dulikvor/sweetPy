@@ -6,7 +6,7 @@
 #include "Lock.h"
 #include "Common.h"
 #include "CPyModuleContainer.h"
-#include "CPythonArgument.h"
+#include "CPythonObject.h"
 
 namespace pycppconn {
 
@@ -49,26 +49,51 @@ namespace pycppconn {
             std::swap(m_pyMethod, obj.m_pyMethod);
         }
 
-        template<std::size_t... I>
-        static PyObject* WrapperImpl(PyObject *self, PyObject *args, std::index_sequence<I...>) {
-            std::initializer_list<const char *> formatList = {Argument<typename base<Args>::Type>::Format...};
+        template<bool Enable = true, std::size_t... I>
+        static typename std::enable_if<std::__not_<std::is_same<Return, void>>::value && Enable, PyObject*>::type WrapperImpl(PyObject *self, PyObject *args, std::index_sequence<I...>) {
+            std::initializer_list<const char *> formatList = {Object<typename base<Args>::Type>::Format...};
             std::string format;
             for (auto &subFormat : formatList)
                 format += subFormat;
 
-            char buffer[ArgumentsPackSize<typename base<Args>::Type...>::value];
+            char buffer[ObjectsPackSize<typename base<Args>::Type...>::value];
             {
                 GilLock lock;
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
             ClassType* _this = reinterpret_cast<ClassType*>((char*)self + sizeof(PyObject));
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
-            (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Argument<typename base<Args>::Type>::GetTyped(
-                    buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
+            Return returnValue = (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
+                    buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
-            ArgumentWrapper<int, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(buffer +
-                    ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,
-                            ArgumentWrapper<typename base<Args>::Type, I>...>::value)...);
+            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(buffer +
+                    ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                            ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+
+            return Object<Return>::ToPython(returnValue);
+        }
+
+        template<bool Enable = true, std::size_t... I>
+        static typename std::enable_if<std::is_same<Return, void>::value && Enable, PyObject*>::type WrapperImpl(PyObject *self, PyObject *args, std::index_sequence<I...>) {
+            std::initializer_list<const char *> formatList = {Object<typename base<Args>::Type>::Format...};
+            std::string format;
+            for (auto &subFormat : formatList)
+                format += subFormat;
+
+            char buffer[ObjectsPackSize<typename base<Args>::Type...>::value];
+            {
+                GilLock lock;
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+            }
+            ClassType* _this = reinterpret_cast<ClassType*>((char*)self + sizeof(PyObject));
+            Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
+            (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
+                    buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
+
+            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(buffer +
+                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            return Py_None;
         }
 
         static PyObject* Wrapper(PyObject *self, PyObject *args) {
@@ -119,25 +144,48 @@ namespace pycppconn {
             std::swap(m_pyMethod, obj.m_pyMethod);
         }
 
-        template<std::size_t... I>
-        static PyObject* WrapperImpl(PyObject *self, PyObject *args, std::index_sequence<I...>) {
-            std::initializer_list<const char *> formatList = {Argument<typename base<Args>::Type>::Format...};
+        template<bool Enable = true, std::size_t... I>
+        static typename std::enable_if<std::__not_<std::is_same<Return, void>>::value && Enable, PyObject*>::type WrapperImpl(PyObject *self, PyObject *args, std::index_sequence<I...>) {
+            std::initializer_list<const char *> formatList = {Object<typename base<Args>::Type>::Format...};
             std::string format;
             for (auto &subFormat : formatList)
                 format += subFormat;
 
-            char buffer[ArgumentsPackSize<typename base<Args>::Type...>::value];
+            char buffer[ObjectsPackSize<typename base<Args>::Type...>::value];
             {
                 GilLock lock;
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetStaticMethod(typeid(Self).hash_code()));
-            (*m_pyFunc.m_staticMethod)(std::forward<Args>(Argument<typename base<Args>::Type>::GetTyped(
-                    buffer + ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,ArgumentWrapper<typename base<Args>::Type, I>...>::value))...);
+            Return returnValue = (*m_pyFunc.m_staticMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
+                    buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
-            ArgumentWrapper<int, 0>::MultiDestructors(ArgumentWrapper<typename base<Args>::Type, I>::Destructor(buffer +
-                                                                                                                  ArgumentOffset<ArgumentWrapper<typename base<Args>::Type, I>,
-                                                                                                                          ArgumentWrapper<typename base<Args>::Type, I>...>::value)...);
+            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(buffer +
+                                                                                                                  ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                          ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            return Object<Return>::ToPython(returnValue);
+        }
+
+        template<bool Enable = true, std::size_t... I>
+        static typename std::enable_if<std::is_same<Return, void>::value && Enable, PyObject*>::type WrapperImpl(PyObject *self, PyObject *args, std::index_sequence<I...>) {
+            std::initializer_list<const char *> formatList = {Object<typename base<Args>::Type>::Format...};
+            std::string format;
+            for (auto &subFormat : formatList)
+                format += subFormat;
+
+            char buffer[ObjectsPackSize<typename base<Args>::Type...>::value];
+            {
+                GilLock lock;
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+            }
+            Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetStaticMethod(typeid(Self).hash_code()));
+            (*m_pyFunc.m_staticMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
+                    buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
+
+            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(buffer +
+                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            return Py_None;
         }
 
         static PyObject* Wrapper(PyObject *self, PyObject *args) {

@@ -6,7 +6,7 @@
 #include <memory>
 #include "Lock.h"
 #include "Deleter.h"
-#include "CPythonArgument.h"
+#include "CPythonObject.h"
 
 namespace pycppconnTest{
 
