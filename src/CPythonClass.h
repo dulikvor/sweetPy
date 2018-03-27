@@ -43,9 +43,10 @@ namespace pycppconn{
                     0,                         /* tp_setattro */
                     0,                         /* tp_as_buffer */
                     Py_TPFLAGS_HAVE_CLASS |
+                    Py_TPFLAGS_HAVE_GC |
                     Py_TPFLAGS_HEAPTYPE,       /* tp_flags */
                     m_typeState->Doc.c_str(),  /* tp_doc */
-                    0,                         /* tp_traverse */
+                    &Traverse,                 /* tp_traverse */
                     0,                         /* tp_clear */
                     0,                         /* tp_richcompare */
                     0,                         /* tp_weaklistoffset */
@@ -101,6 +102,16 @@ namespace pycppconn{
         }
 
     private:
+        static int Traverse(PyObject *self, visitproc visit, void *arg)
+        {
+            //Instance members are kept out of the instance dictionary, they are part of the continuous memory of the instance, kept in C POD form.
+            //the descriptors are placed with the type it self, a descriptor per member.
+            PyTypeObject * type = Py_TYPE(self);
+            if (type->tp_flags & Py_TPFLAGS_HEAPTYPE)
+                Py_VISIT(type);
+
+            return 0;
+        }
         template<typename CPythonFunctionType>
         static int GenerateMethodId(){
             return typeid(CPythonFunctionType).hash_code();

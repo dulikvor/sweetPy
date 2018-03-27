@@ -31,7 +31,7 @@ namespace pycppconnTest{
                     std::unique_ptr<PyObject, pycppconn::Deleter::Func> attributeName(PyString_FromString(token.c_str()), &pycppconn::Deleter::Owner);
                     context = PyObject_GetAttr(context, attributeName.get());
                 }
-                return pycppconn::Argument<T>::FromPython(context);
+                return pycppconn::Object<T>::FromPython(context);
             }
         }
     private:
