@@ -27,7 +27,7 @@ namespace pycppconn{
                     m_typeState->Name.c_str(), /* tp_name */
                     sizeof(Type) + sizeof(PyObject),/* tp_basicsize */
                     0,                         /* tp_itemsize */
-                    NULL,                      /* tp_dealloc */
+                    &Dealloc,                  /* tp_dealloc */
                     0,                         /* tp_print */
                     0,                         /* tp_getattr */
                     0,                         /* tp_setattr */
@@ -102,8 +102,12 @@ namespace pycppconn{
         }
 
     private:
-        static int Traverse(PyObject *self, visitproc visit, void *arg)
-        {
+        template<typename CPythonFunctionType>
+        static int GenerateMethodId(){
+            return typeid(CPythonFunctionType).hash_code();
+        }
+
+        static int Traverse(PyObject *self, visitproc visit, void *arg) {
             //Instance members are kept out of the instance dictionary, they are part of the continuous memory of the instance, kept in C POD form.
             //the descriptors are placed with the type it self, a descriptor per member.
             PyTypeObject * type = Py_TYPE(self);
@@ -112,9 +116,11 @@ namespace pycppconn{
 
             return 0;
         }
-        template<typename CPythonFunctionType>
-        static int GenerateMethodId(){
-            return typeid(CPythonFunctionType).hash_code();
+
+        static void Dealloc(PyObject* self){
+            Type* _this = reinterpret_cast<Type*>((char*)self + sizeof(PyObject));
+            _this->~Type();
+            Py_TYPE(self)->tp_free(self);
         }
 
         void InitMethods(){

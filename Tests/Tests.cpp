@@ -9,6 +9,7 @@ static char **_argv;
 namespace pycppconnTest {
 
     bool CPythonClassTestSubject::m_valid = false;
+    bool CPythonClassTestSubject::m_instanceDestroyed = false;
 
     class CPythonClassTest : public ::testing::Environment {
     public:
@@ -43,9 +44,27 @@ namespace pycppconnTest {
 
     TEST(CPythonClassTest, PODByValueMember) {
         const char *testingScript = "a = TestClass(7)\n"
-                                    "a.byValueInt = 5\n";
+                                    "a.byValueInt = 5";
         PyRun_SimpleString(testingScript);
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), 5);
+    }
+
+    TEST(CPythonClassTest, DestructorCall) {
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "del a";
+        CPythonClassTestSubject::m_instanceDestroyed = false;
+        ASSERT_EQ(CPythonClassTestSubject::m_instanceDestroyed, false);
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(CPythonClassTestSubject::m_instanceDestroyed, true);
+    }
+
+    TEST(CPythonClassTest, VirtualFunctionCall) {
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "a.byValueInt = 5\n"
+                                    "b = a.GetValue()";
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), 5);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), PythonEmbedder::GetAttribute<int>("b"));
     }
 }
 
