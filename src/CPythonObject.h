@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <type_traits>
 #include <Python.h>
 #include "Lock.h"
@@ -26,6 +27,26 @@ namespace pycppconn{
             GilLock lock;
             return PyString_FromString(data);
         }
+    };
+
+    template<>
+    struct Object<std::string> {
+    public:
+        typedef const char* Type;
+        static constexpr const char *Format = "z";
+        static std::string& GetTyped(char* data){
+            return m_value = *reinterpret_cast<char**>(data); }
+        static std::string FromPython(PyObject* obj){
+            GilLock lock;
+            char* data = PyString_AsString(obj); // Providing its underline buffer, a copy is in need.
+            return std::string(data);
+        }
+        static PyObject* ToPython(const std::string& data){
+            GilLock lock;
+            return PyString_FromString(data.c_str());
+        }
+    private:
+        thread_local static std::string m_value; //Due to python/OS context switching its different threads (even in the presence of GIL).
     };
 
     template<>
@@ -98,8 +119,8 @@ namespace pycppconn{
         template<typename... Args>
         static void MultiDestructors(Args&&...){}
         static void* Destructor(char* buffer){
-            T* typedPtr = reinterpret_cast<T*>(buffer);
-            typedPtr->~T();
+            Type* typedPtr = reinterpret_cast<Type*>(buffer);
+            typedPtr->~Type();
             return nullptr;
         }
     };

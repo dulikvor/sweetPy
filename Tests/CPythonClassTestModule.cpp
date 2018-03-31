@@ -14,6 +14,7 @@ namespace pycppconnTest {
                                                       "A subject usertype for the CPythonClass static method property");
         subject.AddConstructor<int &>();
         subject.AddMethod("GetValue", "GetValue - Will retrive m_intValue", &CPythonClassTestSubject::GetValue);
+        subject.AddMethod("SetString", "SetStr - Will modify the internal m_str", &CPythonClassTestSubject::SetString);
         subject.AddStaticMethod("Setter", "Setter - will change the value of m_valid into true",
                                 &CPythonClassTestSubject::Setter);
         subject.AddStaticMethod("Getter", "Getter - will retrieve m_valid", &CPythonClassTestSubject::Getter);

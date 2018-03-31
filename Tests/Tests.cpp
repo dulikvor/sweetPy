@@ -66,6 +66,15 @@ namespace pycppconnTest {
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), 5);
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), PythonEmbedder::GetAttribute<int>("b"));
     }
+
+    TEST(CPythonClassTest, HandleArgumentConversionofNonPythonType) {
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "s = 'Hello World'\n"
+                                    "newS = a.SetString(s)";
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("s"), std::string("Hello World"));
+        ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("newS"), std::string("Hello World Temp"));
+    }
 }
 
 int main(int argc, char **argv) {
