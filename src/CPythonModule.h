@@ -8,6 +8,7 @@
 #include "Common.h"
 #include "CPyModuleContainer.h"
 #include "CPythonMetaClass.h"
+#include "CPythonRefObject.h"
 
 namespace pycppconn {
     class TypeState;
@@ -29,6 +30,7 @@ namespace pycppconn {
         auto module = std::make_shared<CPythonModule>(#name, doc); \
         CPyModuleContainer::Instance().AddModule(#name, module); \
         CPythonMetaClass::InitStaticType(); \
+        CPythonRefType::InitStaticType(); \
         InitializeModule(*module); \
     } \
     void InitializeModule(CPythonModule& module)

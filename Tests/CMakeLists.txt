@@ -33,5 +33,5 @@ target_link_libraries(CPythonClassTestModule pyCppConn Core pthread )
 set_target_properties(CPythonClassTestModule PROPERTIES PREFIX "")
 
 add_executable(pycppconnTests Tests.cpp CPythonClassTestModule.h)
-set(TO_LINK_LIBS gtest ${PYTHON_LIBRARIES} util dl pthread)
+set(TO_LINK_LIBS gtest ${PYTHON_LIBRARIES} util dl CPythonClassTestModule pthread)
 target_link_libraries(pycppconnTests ${TO_LINK_LIBS})

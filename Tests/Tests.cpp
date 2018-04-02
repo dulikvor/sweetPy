@@ -8,9 +8,6 @@ static char **_argv;
 
 namespace pycppconnTest {
 
-    bool CPythonClassTestSubject::m_valid = false;
-    bool CPythonClassTestSubject::m_instanceDestroyed = false;
-
     class CPythonClassTest : public ::testing::Environment {
     public:
         CPythonClassTest() {}
@@ -31,8 +28,8 @@ namespace pycppconnTest {
         const char *testingScript = "TestClass.Setter()\n"
                                     "value = TestClass.Getter()";
         PyRun_SimpleString(testingScript);
-        ASSERT_EQ(CPythonClassTestSubject::Getter(), true);
-        ASSERT_EQ(CPythonClassTestSubject::Getter(), PythonEmbedder::GetAttribute<bool>("value"));
+        ASSERT_EQ(TestSubjectA::Getter(), true);
+        ASSERT_EQ(TestSubjectA::Getter(), PythonEmbedder::GetAttribute<bool>("value"));
     }
 
 
@@ -52,10 +49,10 @@ namespace pycppconnTest {
     TEST(CPythonClassTest, DestructorCall) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "del a";
-        CPythonClassTestSubject::m_instanceDestroyed = false;
-        ASSERT_EQ(CPythonClassTestSubject::m_instanceDestroyed, false);
+        TestSubjectA::m_instanceDestroyed = false;
+        ASSERT_EQ(TestSubjectA::m_instanceDestroyed, false);
         PyRun_SimpleString(testingScript);
-        ASSERT_EQ(CPythonClassTestSubject::m_instanceDestroyed, true);
+        ASSERT_EQ(TestSubjectA::m_instanceDestroyed, true);
     }
 
     TEST(CPythonClassTest, VirtualFunctionCall) {
@@ -75,6 +72,15 @@ namespace pycppconnTest {
         ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("s"), std::string("Hello World"));
         ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("newS"), std::string("Hello World Temp"));
     }
+
+    TEST(CPythonClassTest, LvalueReferenceArgumentReturnPassing) {
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "b = a.GetB()\n"
+                                    "TestClass.BMutator(b)";
+        PyRun_SimpleString(testingScript);
+        TestSubjectB& b = PythonEmbedder::GetAttribute<TestSubjectB&>("b");
+        ASSERT_EQ(b.GetValue(), 1);
+    }
 }
 
 int main(int argc, char **argv) {
@@ -84,3 +90,4 @@ int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
+

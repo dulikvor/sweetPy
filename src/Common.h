@@ -9,11 +9,14 @@
 namespace pycppconn{
 #define CPYTHON_VERIFY(expression, reason) do{ if(!(expression)) throw CPythonException(PyExc_StandardError, SOURCE, reason); }while(0)
 
-//Partial version of decay, functions and array are excluded
+//Will not accept array, function pointers types, will remove const from - T const/T const&, will retain the value category.
 template<typename T, typename std::enable_if<std::__and_<
         std::__not_<std::is_array<T>>, std::__not_<std::is_function<T>>>::value, bool>::type = true>
 struct base{
-    typedef typename std::remove_const<typename std::remove_reference<T>::type>::type Type;
+    typedef typename std::remove_const<typename std::remove_reference<T>::type>::type NonConst;
+    typedef typename std::conditional<std::is_lvalue_reference<T>::value, typename std::add_lvalue_reference<NonConst>::type,
+            typename std::conditional<std::is_rvalue_reference<T>::value, typename std::add_rvalue_reference<NonConst>::type,
+            NonConst>::type>::type Type;
 };
 
 

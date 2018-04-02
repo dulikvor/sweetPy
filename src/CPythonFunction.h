@@ -7,6 +7,7 @@
 #include "Common.h"
 #include "CPyModuleContainer.h"
 #include "CPythonObject.h"
+#include "Exception.h"
 
 namespace pycppconn {
 
@@ -56,19 +57,22 @@ namespace pycppconn {
             for (auto &subFormat : formatList)
                 format += subFormat;
 
-            char buffer[ObjectsPackSize<typename base<Args>::Type...>::value];
+            char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
+            char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
                 GilLock lock;
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
+                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
             ClassType* _this = reinterpret_cast<ClassType*>((char*)self + sizeof(PyObject));
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             Return returnValue = (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
+                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
+                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(buffer +
-                    ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
-                            ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+                    ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
+                            typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
 
             return Object<Return>::ToPython(returnValue);
         }
@@ -80,24 +84,34 @@ namespace pycppconn {
             for (auto &subFormat : formatList)
                 format += subFormat;
 
-            char buffer[ObjectsPackSize<typename base<Args>::Type...>::value];
+            char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
+            char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
                 GilLock lock;
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
+                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
             ClassType* _this = reinterpret_cast<ClassType*>((char*)self + sizeof(PyObject));
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
+                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
+                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(buffer +
-                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
-                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+                                                                                                            ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
+                                                                                                                    typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
             return Py_None;
         }
 
         static PyObject* Wrapper(PyObject *self, PyObject *args) {
-            WrapperImpl(self, args, std::make_index_sequence<sizeof...(Args)>{});
+            try {
+                return WrapperImpl(self, args, std::make_index_sequence<sizeof...(Args)>{});
+            }
+            catch(const CPythonException& exc){
+                exc.Raise();
+                return NULL;
+            }
+
         }
 
         std::unique_ptr<PyMethodDef> ToPython() const override{
@@ -151,18 +165,21 @@ namespace pycppconn {
             for (auto &subFormat : formatList)
                 format += subFormat;
 
-            char buffer[ObjectsPackSize<typename base<Args>::Type...>::value];
+            char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
+            char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
                 GilLock lock;
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
+                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetStaticMethod(typeid(Self).hash_code()));
             Return returnValue = (*m_pyFunc.m_staticMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
+                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
+                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(buffer +
-                                                                                                                  ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
-                                                                                                                          ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+                                                                                                            ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
+                                                                                                                    typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
             return Object<Return>::ToPython(returnValue);
         }
 
@@ -173,23 +190,32 @@ namespace pycppconn {
             for (auto &subFormat : formatList)
                 format += subFormat;
 
-            char buffer[ObjectsPackSize<typename base<Args>::Type...>::value];
+            char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
+            char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
                 GilLock lock;
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
+                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetStaticMethod(typeid(Self).hash_code()));
             (*m_pyFunc.m_staticMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    buffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
+                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
+                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(buffer +
-                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
-                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+                                                                                                            ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
+                                                                                                                    typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
             return Py_None;
         }
 
         static PyObject* Wrapper(PyObject *self, PyObject *args) {
-            WrapperImpl(self, args, std::make_index_sequence<sizeof...(Args)>{});
+            try{
+                return WrapperImpl(self, args, std::make_index_sequence<sizeof...(Args)>{});
+            }
+            catch(const CPythonException& exc){
+                exc.Raise();
+                return NULL;
+            }
         }
 
         std::unique_ptr<PyMethodDef> ToPython() const override{
