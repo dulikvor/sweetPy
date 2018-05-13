@@ -78,7 +78,7 @@ namespace pycppconnTest {
                                     "b = a.GetB()\n"
                                     "TestClass.BMutator(b)";
         PyRun_SimpleString(testingScript);
-        TestSubjectB& b = PythonEmbedder::GetAttribute<TestSubjectB&>("b");
+        const TestSubjectB& b = PythonEmbedder::GetAttribute<const TestSubjectB&>("b");
         ASSERT_EQ(b.GetValue(), 1);
     }
 }

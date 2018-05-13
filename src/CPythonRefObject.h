@@ -3,10 +3,11 @@
 #include <type_traits>
 #include <utility>
 #include <Python.h>
+#include "CPyModuleContainer.h"
 
 namespace pycppconn {
 
-    template<typename T, typename Type = typename std::decay<T>::type, typename std::enable_if<std::__not_<std::is_pointer<Type>>::value,bool>::type = true>
+    template<typename T, typename Type = typename std::remove_reference<T>::type, typename std::enable_if<std::__not_<std::is_pointer<Type>>::value,bool>::type = true>
     class CPythonRefObject {
     public:
         CPythonRefObject(Type& object) : m_object(object){}
@@ -22,7 +23,6 @@ namespace pycppconn {
 
             return 0;
         }
-
     private:
         Type& m_object;
     };
@@ -38,6 +38,11 @@ namespace pycppconn {
         }
         static PyTypeObject& GetType();
 
+    private:
+        template<typename Type>
+       void InitType(){
+
+       }
     private:
         static PyTypeObject m_staticType;
     };

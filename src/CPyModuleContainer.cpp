@@ -21,6 +21,12 @@ namespace pycppconn{
         return *m_modules[key];
     }
 
+    void CPyModuleContainer::AddType(size_t key, PyTypeObject *const type){
+        if( m_types.find(key) != m_types.end())
+            throw CPythonException(PyExc_KeyError, SOURCE, "Key already exists - %d", key);
+        m_types.insert(std::make_pair(key, type));
+    }
+
 
     void CPyModuleContainer::AddMethod(int key, const std::shared_ptr<ICPythonFunction>& method){
         if( m_methods.find(key) != m_methods.end())
@@ -44,5 +50,11 @@ namespace pycppconn{
         if( m_staticMethods.find(key) == m_staticMethods.end())
             throw CPythonException(PyExc_KeyError, SOURCE, "Key related entry dosn't exists - %d", key);
         return *m_staticMethods[key];
+    }
+
+    PyTypeObject* const CPyModuleContainer::GetType(size_t key){
+        if( m_types.find(key) == m_types.end())
+            return nullptr;
+        return m_types[key];
     }
 }

@@ -71,10 +71,8 @@ namespace pycppconn {
             InitMembers();
             InitMethods();
             InitStaticMethods();
-            {
-                GilLock lock;
-                PyType_Ready(m_typeState->PyType.get());
-            }
+            PyType_Ready(m_typeState->PyType.get());
+            CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<CPythonClass<Type>>(), m_typeState->PyType.get());
             m_module.AddType(std::move(m_typeState));
         }
 

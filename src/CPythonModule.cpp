@@ -21,4 +21,9 @@ namespace pycppconn{
         CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), type->Name.c_str(), (PyObject*)type->PyType.operator->()) == 0, "Type registration with module failed");
         m_types.emplace_back(std::move(type));
     }
+
+    PyObject* CPythonModule::GetModule() const
+    {
+        return m_module.get();
+    }
 }

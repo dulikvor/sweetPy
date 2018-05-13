@@ -5,6 +5,7 @@
 #include <Python.h>
 #include <structmember.h>
 #include <CPythonFunction.h>
+#include <CPythonEnumValue.h>
 
 namespace pycppconn {
 
@@ -29,22 +30,23 @@ namespace pycppconn {
             True = 1
         };
 
-        CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc);
+        CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc, int extendedSize = 0);
         ~CPythonMetaClass();
         void InitType();
         void AddMethod(const std::shared_ptr<ICPythonFunction>& method);
+        void AddEnumValue(std::unique_ptr<CPythonEnumValue>&& enumValue);
         PyTypeObject& ToPython() const;
-
-
         static PyTypeObject &GetStaticMetaType();
         static void InitStaticType();
         static int IsCollectable(PyObject *obj);
 
     private:
         void InitMethods();
+        void InitEnumValues();
 
     private:
         std::vector<std::shared_ptr<ICPythonFunction>> m_cPythonMemberFunctions;
+        std::vector<std::unique_ptr<CPythonEnumValue>> m_cPythonEnumVales;
         std::unique_ptr<TypeState> m_typeState;
         static PyTypeObject m_staticType;
         CPythonModule& m_module;

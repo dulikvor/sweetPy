@@ -48,12 +48,12 @@ namespace pycppconn {
     };
 
 
-    CPythonMetaClass::CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc)
-    :m_module(module), m_typeState(new TypeState(name, doc)){
+    CPythonMetaClass::CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc, int extendedSize)
+            :m_module(module), m_typeState(new TypeState(name, doc)){
         m_typeState->PyType.reset(new PyTypeObject{
                 PyVarObject_HEAD_INIT(&PyType_Type, 0)
                 m_typeState->Name.c_str(), /* tp_name */
-                sizeof(PyHeapTypeObject),  /* tp_basicsize */
+                sizeof(PyHeapTypeObject) + extendedSize,  /* tp_basicsize */
                 0,                         /* tp_itemsize */
                 NULL,                      /* tp_dealloc */
                 0,                         /* tp_print */
@@ -107,10 +107,8 @@ namespace pycppconn {
 
     void CPythonMetaClass::InitType(){
         InitMethods();
-        {
-            GilLock lock;
-            PyType_Ready(m_typeState->PyType.get());
-        }
+        InitEnumValues();
+        PyType_Ready(m_typeState->PyType.get());
         m_module.AddType(std::move(m_typeState));
     }
 
@@ -122,6 +120,11 @@ namespace pycppconn {
         m_cPythonMemberFunctions.emplace_back(method);
     }
 
+    void CPythonMetaClass::AddEnumValue(std::unique_ptr<CPythonEnumValue>&& enumValue)
+    {
+        m_cPythonEnumVales.emplace_back(std::move(enumValue));
+    }
+
     void CPythonMetaClass::InitMethods(){
         PyMethodDef* methods = new PyMethodDef[m_cPythonMemberFunctions.size() + 1]; //spare space for sentinal
         m_typeState->PyType->tp_methods = methods;
@@ -130,6 +133,16 @@ namespace pycppconn {
             methods++;
         }
         *methods = {NULL, NULL, 0, NULL};
+    }
+
+    void CPythonMetaClass::InitEnumValues() {
+        PyMemberDef *enumValues = new PyMemberDef[m_cPythonEnumVales.size() + 1]; //spare space for sentinal
+        m_typeState->PyType->tp_members = enumValues;
+        for (const auto &enumValue : m_cPythonEnumVales) {
+            *enumValues = *enumValue->ToPython();
+            enumValues++;
+        }
+        *enumValues = {NULL, 0, 0, 0, NULL};
     }
 
     void CPythonMetaClass::InitStaticType() {

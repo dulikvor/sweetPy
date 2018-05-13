@@ -22,7 +22,8 @@ namespace pycppconnTest {
         std::string SetString(const std::string& str){
             return m_str = str + " Temp";
         }
-        TestSubjectB& GetB(){
+
+        const TestSubjectB& GetB() const{
             return m_b;
         }
 
