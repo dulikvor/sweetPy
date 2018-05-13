@@ -39,11 +39,6 @@ namespace pycppconn {
         static PyTypeObject& GetType();
 
     private:
-        template<typename Type>
-       void InitType(){
-
-       }
-    private:
         static PyTypeObject m_staticType;
     };
 }
