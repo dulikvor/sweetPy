@@ -146,6 +146,7 @@ namespace pycppconn {
                     type->AddMethod(staticFunction);
                 }
                 type->InitType();
+                type->AddToModule();
             }
         }
 

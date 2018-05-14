@@ -49,5 +49,11 @@ namespace pycppconnTest {
         TestSubjectB m_b;
         std::string m_str;
     };
+
+    enum class Python
+    {
+        Good = 1,
+        Bad = 3
+    };
 }
 

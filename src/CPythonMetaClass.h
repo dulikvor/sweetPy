@@ -33,9 +33,11 @@ namespace pycppconn {
         CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc, int extendedSize = 0);
         ~CPythonMetaClass();
         void InitType();
+        void AddToModule();
         void AddMethod(const std::shared_ptr<ICPythonFunction>& method);
         void AddEnumValue(std::unique_ptr<CPythonEnumValue>&& enumValue);
         PyTypeObject& ToPython() const;
+        PyObject* InitializeSubType(const std::string& name, const std::string& doc) const;
         static PyTypeObject &GetStaticMetaType();
         static void InitStaticType();
         static int IsCollectable(PyObject *obj);

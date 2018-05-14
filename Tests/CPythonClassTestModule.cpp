@@ -1,6 +1,7 @@
 #include "CPythonClassTestModule.h"
 #include "CPythonModule.h"
 #include "CPythonClass.h"
+#include "CPythonEnum.h"
 
 using namespace pycppconn;
 
@@ -19,6 +20,10 @@ namespace pycppconnTest {
         subject.AddStaticMethod("Getter", "Getter - will retrieve m_valid", &TestSubjectA::Getter);
         subject.AddStaticMethod("BMutator", "Mutates received TestSubjectB instance", &TestSubjectA::BMutator);
         subject.AddMember("byValueInt", &TestSubjectA::m_byValueInt, "int by value member support");
+
+        CPythonEnum enumSubject(module, "Enum_Python", "What we think about python in general");
+        enumSubject.AddEnumValue("Good", (int)Python::Good, "We are pretty sure, python is great");
+        enumSubject.AddEnumValue("Bad", (int)Python::Bad, "Lets be honest, cpp is the best :)");
     }
 
 }

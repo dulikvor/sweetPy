@@ -11,11 +11,12 @@ namespace pycppconn
         for(auto& enumValue :  m_enumValues)
             m_metaClass->AddEnumValue(std::move(enumValue));
         m_metaClass->InitType();
-        PyTypeObject* typeInstance = (PyTypeObject*)m_metaClass->ToPython().tp_alloc(&m_metaClass->ToPython(), 0);
-        CPYTHON_VERIFY(PyModule_AddObject(m_module.GetModule(), typeInstance->tp_name, (PyObject*)typeInstance) == 0, "Type registration with module failed");
+        m_metaClass->InitializeSubType(m_name, m_doc);
+        m_metaClass->AddToModule();
     }
     void CPythonEnum::AddEnumValue(const std::string &name, int value, const std::string &doc) {
         static int enumValuesCount = 0;
-        m_enumValues.emplace_back(new CPythonEnumValue(m_name, sizeof(int) * enumValuesCount, m_doc));
+        m_enumValues.emplace_back(new CPythonEnumValue(name, (sizeof(int) * enumValuesCount) + sizeof(PyTypeObject), value, doc));
+        enumValuesCount++;
     }
 }

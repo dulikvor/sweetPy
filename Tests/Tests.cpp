@@ -14,7 +14,7 @@ namespace pycppconnTest {
 
         void SetUp() override {
             PythonEmbedder::InitiateInterperter("CPythonClassTest", _argc, _argv);
-            const char *testingScript = "from CPythonClassTestModule import TestClass\n";
+            const char *testingScript = "from CPythonClassTestModule import TestClass, Enum_Python\n";
             PyRun_SimpleString(testingScript);
         }
 
@@ -80,6 +80,10 @@ namespace pycppconnTest {
         PyRun_SimpleString(testingScript);
         const TestSubjectB& b = PythonEmbedder::GetAttribute<const TestSubjectB&>("b");
         ASSERT_EQ(b.GetValue(), 1);
+    }
+    TEST(CPythonClassTest, Enum) {
+        const char *testingScript = "print 'enum value - {0}'.format(Enum_Python.Good)";
+        PyRun_SimpleString(testingScript);
     }
 }
 
