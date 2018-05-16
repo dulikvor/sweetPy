@@ -197,7 +197,7 @@ namespace pycppconn {
         };
         PyType_Ready(typeInstance);
         for(auto& enumValue : m_cPythonEnumVales)
-            *(int*)((char*)typeInstance + sizeof(PyTypeObject) + enumValue->GetOffset()) = enumValue->GetValue();
+            *(int*)((char*)typeInstance + enumValue->GetOffset()) = enumValue->GetValue();
 
         CPYTHON_VERIFY(PyModule_AddObject(m_module.GetModule(), name.c_str(), (PyObject*)typeInstance) == 0, "Type registration with module failed");
     }

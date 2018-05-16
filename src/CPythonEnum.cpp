@@ -16,7 +16,7 @@ namespace pycppconn
     }
     void CPythonEnum::AddEnumValue(const std::string &name, int value, const std::string &doc) {
         static int enumValuesCount = 0;
-        m_enumValues.emplace_back(new CPythonEnumValue(name, (sizeof(int) * enumValuesCount) + sizeof(PyTypeObject), value, doc));
-        enumValuesCount++;
+        int offset = (sizeof(int) * enumValuesCount++) + sizeof(PyTypeObject);
+        m_enumValues.emplace_back(new CPythonEnumValue(name, offset, value, doc));
     }
 }
