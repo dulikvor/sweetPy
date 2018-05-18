@@ -85,6 +85,8 @@ namespace pycppconnTest {
         const char *testingScript = "a = TestClass(7)\n"
                                     "a.SetPython(Enum_Python.Bad)";
         PyRun_SimpleString(testingScript);
+        TestSubjectA& a = PythonEmbedder::GetAttribute<TestSubjectA&>("a");
+        ASSERT_EQ(a.m_enumValue, Python::Bad);
     }
 }
 

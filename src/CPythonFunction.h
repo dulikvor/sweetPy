@@ -60,7 +60,6 @@ namespace pycppconn {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                GilLock lock;
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
@@ -87,7 +86,6 @@ namespace pycppconn {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                GilLock lock;
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
@@ -168,7 +166,6 @@ namespace pycppconn {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                GilLock lock;
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
@@ -195,7 +192,6 @@ namespace pycppconn {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                GilLock lock;
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }

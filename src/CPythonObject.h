@@ -115,7 +115,6 @@ namespace pycppconn{
             return PyString_AsString(obj);
         }
         static PyObject* ToPython(const char* data){
-            GilLock lock;
             return PyString_FromString(data);
         }
     };
@@ -136,7 +135,6 @@ namespace pycppconn{
             return std::string(data);
         }
         static PyObject* ToPython(const std::string& data){
-            GilLock lock;
             return PyString_FromString(data.c_str());
         }
     };
@@ -180,7 +178,6 @@ namespace pycppconn{
             return (bool)PyLong_AsLong(obj);
         }
         static PyObject* ToPython(const bool& data){
-            GilLock lock;
             return PyBool_FromLong(data);
         }
     };
@@ -200,7 +197,6 @@ namespace pycppconn{
             return (int)PyLong_AsLong(obj);
         }
         static PyObject* ToPython(const int& data){
-            GilLock lock;
             return PyInt_FromLong(data);
         }
     };
