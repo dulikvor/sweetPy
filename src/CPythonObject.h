@@ -31,13 +31,12 @@ namespace pycppconn{
     template<typename T>
     struct Object<T, typename std::enable_if<std::is_enum<T>::value>::type> {
     public:
-        typedef PyObject* FromPythonType;
+        typedef int FromPythonType;
         typedef T Type;
-        static constexpr const char* Format = "O";
+        static constexpr const char* Format = "i";
         static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
-            CPythonEnumValue* obj = (CPythonEnumValue*)(fromBuffer + sizeof(PyObject));
-            new(toBuffer)T((T)(int)*obj);
+            new(toBuffer)T((T)*reinterpret_cast<int*>(fromBuffer));
             return *reinterpret_cast<T*>(toBuffer);
         }
     };

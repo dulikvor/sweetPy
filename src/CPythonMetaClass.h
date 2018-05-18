@@ -35,7 +35,7 @@ namespace pycppconn {
         void InitType();
         void AddToModule();
         void AddMethod(const std::shared_ptr<ICPythonFunction>& method);
-        void AddEnumValue(std::unique_ptr<CPythonEnumValueDescriptor>&& enumValueDescriptor);
+        void AddEnumValue(std::unique_ptr<CPythonEnumValue>&& enumValue);
         PyTypeObject& ToPython() const;
         PyObject* InitializeSubType(const std::string& name, const std::string& doc) const;
         static PyTypeObject &GetStaticMetaType();
@@ -48,7 +48,7 @@ namespace pycppconn {
 
     private:
         std::vector<std::shared_ptr<ICPythonFunction>> m_cPythonMemberFunctions;
-        std::vector<std::unique_ptr<CPythonEnumValueDescriptor>> m_cPythonEnumValuesDescriptors;
+        std::vector<std::unique_ptr<CPythonEnumValue>> m_cPythonEnumValues;
         std::unique_ptr<TypeState> m_typeState;
         static PyTypeObject m_staticType;
         CPythonModule& m_module;

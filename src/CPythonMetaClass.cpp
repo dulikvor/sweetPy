@@ -123,9 +123,9 @@ namespace pycppconn {
         m_cPythonMemberFunctions.emplace_back(method);
     }
 
-    void CPythonMetaClass::AddEnumValue(std::unique_ptr<CPythonEnumValueDescriptor>&& enumValueDescriptor)
+    void CPythonMetaClass::AddEnumValue(std::unique_ptr<CPythonEnumValue>&& enumValue)
     {
-        m_cPythonEnumValuesDescriptors.emplace_back(std::move(enumValueDescriptor));
+        m_cPythonEnumValues.emplace_back(std::move(enumValue));
     }
 
     void CPythonMetaClass::InitMethods(){
@@ -139,10 +139,10 @@ namespace pycppconn {
     }
 
     void CPythonMetaClass::InitEnumValues() {
-        PyMemberDef *enumValues = new PyMemberDef[m_cPythonEnumValuesDescriptors.size() + 1]; //spare space for sentinal
+        PyMemberDef *enumValues = new PyMemberDef[m_cPythonEnumValues.size() + 1]; //spare space for sentinal
         m_typeState->PyType->tp_members = enumValues;
-        for (const auto &descriptor : m_cPythonEnumValuesDescriptors) {
-            *enumValues = *descriptor->ToPython();
+        for (const auto &enumValue : m_cPythonEnumValues) {
+            *enumValues = *enumValue->ToPython();
             enumValues++;
         }
         *enumValues = {NULL, 0, 0, 0, NULL};
@@ -195,12 +195,8 @@ namespace pycppconn {
                 &CPythonMetaClass::IsCollectable, /* For PyObject_IS_GC */
         };
         PyType_Ready(typeInstance);
-        for(auto& descriptor : m_cPythonEnumValuesDescriptors)
-        {
-            char* enumInstanceAddress = (char*)typeInstance + descriptor->GetOffset();
-            new(enumInstanceAddress)PyObject();
-            new(enumInstanceAddress + sizeof(PyObject))CPythonEnumValue(descriptor->GetValue());
-        }
+        for(auto& enumValue : m_cPythonEnumValues)
+            *(int*)((char*)typeInstance + enumValue->GetOffset()) = enumValue->GetValue();
 
         CPYTHON_VERIFY(PyModule_AddObject(m_module.GetModule(), name.c_str(), (PyObject*)typeInstance) == 0, "Type registration with module failed");
     }

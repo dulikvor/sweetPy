@@ -7,7 +7,7 @@ namespace pycppconn
 
     CPythonEnum::~CPythonEnum() {
         m_metaClass.reset(new CPythonMetaClass(m_module, std::string(m_name) + "_MetaClass",
-                                               std::string(m_doc) + "_MetaClass", (CPythonEnumValueDescriptor::Size * m_enumValues.size())));
+                                               std::string(m_doc) + "_MetaClass", (sizeof(int) * m_enumValues.size())));
         for(auto& enumValue :  m_enumValues)
             m_metaClass->AddEnumValue(std::move(enumValue));
         m_metaClass->InitType();
