@@ -82,7 +82,8 @@ namespace pycppconnTest {
         ASSERT_EQ(b.GetValue(), 1);
     }
     TEST(CPythonClassTest, Enum) {
-        const char *testingScript = "print 'enum value - {0}'.format(Enum_Python.Good)";
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "a.SetPython(Enum_Python.Bad)";
         PyRun_SimpleString(testingScript);
     }
 }

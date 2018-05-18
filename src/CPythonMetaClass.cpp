@@ -1,6 +1,5 @@
 #include "CPythonMetaClass.h"
 #include "CPythonModule.h"
-#include "Lock.h"
 
 namespace pycppconn {
     PyTypeObject CPythonMetaClass::m_staticType = {
@@ -53,7 +52,7 @@ namespace pycppconn {
         m_typeState->PyType.reset(new PyTypeObject{
                 PyVarObject_HEAD_INIT(&PyType_Type, 0)
                 m_typeState->Name.c_str(), /* tp_name */
-                sizeof(PyHeapTypeObject) + extendedSize,  /* tp_basicsize */
+                (Py_ssize_t)(sizeof(PyHeapTypeObject) + extendedSize),  /* tp_basicsize */
                 0,                         /* tp_itemsize */
                 NULL,                      /* tp_dealloc */
                 0,                         /* tp_print */
@@ -124,9 +123,9 @@ namespace pycppconn {
         m_cPythonMemberFunctions.emplace_back(method);
     }
 
-    void CPythonMetaClass::AddEnumValue(std::unique_ptr<CPythonEnumValue>&& enumValue)
+    void CPythonMetaClass::AddEnumValue(std::unique_ptr<CPythonEnumValueDescriptor>&& enumValueDescriptor)
     {
-        m_cPythonEnumVales.emplace_back(std::move(enumValue));
+        m_cPythonEnumValuesDescriptors.emplace_back(std::move(enumValueDescriptor));
     }
 
     void CPythonMetaClass::InitMethods(){
@@ -140,10 +139,10 @@ namespace pycppconn {
     }
 
     void CPythonMetaClass::InitEnumValues() {
-        PyMemberDef *enumValues = new PyMemberDef[m_cPythonEnumVales.size() + 1]; //spare space for sentinal
+        PyMemberDef *enumValues = new PyMemberDef[m_cPythonEnumValuesDescriptors.size() + 1]; //spare space for sentinal
         m_typeState->PyType->tp_members = enumValues;
-        for (const auto &enumValue : m_cPythonEnumVales) {
-            *enumValues = *enumValue->ToPython();
+        for (const auto &descriptor : m_cPythonEnumValuesDescriptors) {
+            *enumValues = *descriptor->ToPython();
             enumValues++;
         }
         *enumValues = {NULL, 0, 0, 0, NULL};
@@ -196,8 +195,12 @@ namespace pycppconn {
                 &CPythonMetaClass::IsCollectable, /* For PyObject_IS_GC */
         };
         PyType_Ready(typeInstance);
-        for(auto& enumValue : m_cPythonEnumVales)
-            *(int*)((char*)typeInstance + enumValue->GetOffset()) = enumValue->GetValue();
+        for(auto& descriptor : m_cPythonEnumValuesDescriptors)
+        {
+            char* enumInstanceAddress = (char*)typeInstance + descriptor->GetOffset();
+            new(enumInstanceAddress)PyObject();
+            new(enumInstanceAddress + sizeof(PyObject))CPythonEnumValue(descriptor->GetValue());
+        }
 
         CPYTHON_VERIFY(PyModule_AddObject(m_module.GetModule(), name.c_str(), (PyObject*)typeInstance) == 0, "Type registration with module failed");
     }

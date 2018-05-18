@@ -11,24 +11,32 @@ namespace pycppconn{
     class CPythonEnumValue
     {
     public:
-        CPythonEnumValue(const std::string& name, int offset, int value, const std::string& doc)
+        CPythonEnumValue(int value): m_value(value){}
+        operator int() const{ return m_value; }
+    private:
+        int m_value;
+    };
+
+    class CPythonEnumValueDescriptor
+    {
+    public:
+        CPythonEnumValueDescriptor(const std::string& name, int offset, int value, const std::string& doc)
                 :m_offset(offset), m_name(name), m_doc(doc), m_value(value){}
 
         std::unique_ptr<PyMemberDef> ToPython() const {
             return std::unique_ptr<PyMemberDef>(new PyMemberDef{
                     const_cast<char *>(m_name.c_str()),
-                    T_INT,
+                    T_OBJECT,
                     m_offset,
                     READONLY,
                     const_cast<char *>(m_doc.c_str())
-            }); //Python emphasis the use of implicit conversion of C++ string literals to prvalue of char*, so const_cast is safe.
+            });
         }
-        int GetOffset() const{
-            return m_offset;
-        }
-        int GetValue() const{
-            return m_value;
-        }
+        int GetOffset() const { return m_offset; }
+        int GetValue() const { return m_value; }
+
+    public:
+        static const size_t Size = sizeof(PyObject) + sizeof(CPythonEnumValue);
 
     private:
         std::string m_name;

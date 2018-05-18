@@ -20,6 +20,7 @@ namespace pycppconnTest {
         subject.AddStaticMethod("Getter", "Getter - will retrieve m_valid", &TestSubjectA::Getter);
         subject.AddStaticMethod("BMutator", "Mutates received TestSubjectB instance", &TestSubjectA::BMutator);
         subject.AddMember("byValueInt", &TestSubjectA::m_byValueInt, "int by value member support");
+        subject.AddMethod("SetPython", "Will set the python enum value", &TestSubjectA::SetPython);
 
         CPythonEnum enumSubject(module, "Enum_Python", "What we think about python in general");
         enumSubject.AddEnumValue("Good", (int)Python::Good, "We are pretty sure, python is great");

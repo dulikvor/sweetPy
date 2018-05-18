@@ -4,6 +4,12 @@
 
 namespace pycppconnTest {
 
+    enum Python
+    {
+        Good = 1,
+        Bad = 3
+    };
+
     class TestSubjectB{
     public:
         TestSubjectB():m_value(0){}
@@ -16,11 +22,15 @@ namespace pycppconnTest {
 
     class TestSubjectA {
     public:
-        TestSubjectA(int &valueInt) : m_byValueInt(valueInt) {}
+        TestSubjectA(int &valueInt) : m_byValueInt(valueInt), m_enumValue(Python::Good) {}
         ~TestSubjectA(){ m_instanceDestroyed = true; }
         virtual int GetValue(){ return m_byValueInt;}
         std::string SetString(const std::string& str){
             return m_str = str + " Temp";
+        }
+
+        void SetPython(Python enumValue){
+            m_enumValue = enumValue;
         }
 
         const TestSubjectB& GetB() const{
@@ -48,12 +58,8 @@ namespace pycppconnTest {
         int m_byValueInt;
         TestSubjectB m_b;
         std::string m_str;
+        Python m_enumValue;
     };
 
-    enum class Python
-    {
-        Good = 1,
-        Bad = 3
-    };
 }
 

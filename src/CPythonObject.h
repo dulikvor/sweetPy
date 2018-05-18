@@ -5,16 +5,41 @@
 #include <Python.h>
 #include "Lock.h"
 #include "CPythonRefObject.h"
+#include "CPythonEnumValue.h"
 #include "Exception.h"
 
 namespace pycppconn{
-    template<typename T, typename std::enable_if<std::__or_<std::__not_<std::is_pointer<T>>,std::is_same<T, const char*>>::value, bool>::type = true>
-    struct Object {
+
+    template<typename T, typename = void>
+    struct Object{};
+
+    template<typename T>
+    struct Object<T, typename std::enable_if<!std::is_pointer<T>::value && std::is_copy_constructible<T>::value &&
+            !std::is_enum<T>::value && !std::is_reference<T>::value>::type> {
     public:
         typedef PyObject* FromPythonType;
         typedef T Type;
         static constexpr const char* Format = "O";
-        static T& GetTyped(char* data){ return *reinterpret_cast<T*>(data + sizeof(PyObject)); } //Non python types representation - PyPbject Header + Native data
+        static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
+        {
+            T* obj = (T*)(fromBuffer + sizeof(PyObject));
+            new(toBuffer)T(*obj);
+            return *reinterpret_cast<T*>(toBuffer);
+        }
+    };
+
+    template<typename T>
+    struct Object<T, typename std::enable_if<std::is_enum<T>::value>::type> {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef T Type;
+        static constexpr const char* Format = "O";
+        static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
+        {
+            CPythonEnumValue* obj = (CPythonEnumValue*)(fromBuffer + sizeof(PyObject));
+            new(toBuffer)T((T)(int)*obj);
+            return *reinterpret_cast<T*>(toBuffer);
+        }
     };
 
     template<typename T>
