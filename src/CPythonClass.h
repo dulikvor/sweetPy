@@ -13,6 +13,7 @@
 #include "CPythonModule.h"
 #include "CPythonMetaClass.h"
 #include "CPythonConstructor.h"
+#include "CPythonRefObject.h"
 
 namespace pycppconn {
 
@@ -73,6 +74,11 @@ namespace pycppconn {
             InitStaticMethods();
             PyType_Ready(m_typeState->PyType.get());
             CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<CPythonClass<Type>>(), m_typeState->PyType.get());
+            //Init ref type
+            CPythonRefType<Type> refType(m_module, std::string(m_typeState->Name) + "_ref", std::string(m_typeState->Doc) + "_ref");
+            refType.AddMethods(m_cPythonMemberFunctions);
+            refType.AddMembers(m_cPythonMembers);
+
             m_module.AddType(std::move(m_typeState));
         }
 
@@ -167,7 +173,7 @@ namespace pycppconn {
     private:
         std::vector<std::shared_ptr<ICPythonFunction>> m_cPythonMemberFunctions;
         std::vector<std::shared_ptr<ICPythonFunction>> m_cPythonMemberStaticFunctions;
-        std::vector<std::unique_ptr<ICPythonMember>> m_cPythonMembers;
+        std::vector<std::shared_ptr<ICPythonMember>> m_cPythonMembers;
         std::unique_ptr<TypeState> m_typeState;
         CPythonModule &m_module;
     };

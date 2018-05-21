@@ -1,8 +1,7 @@
 #include <string>
 #include <iostream>
-#include "src/CPythonModule.h"
+#include "src/InitModule.h"
 #include "src/CPythonClass.h"
-#include <Python.h>
 
 using namespace pycppconn;
 

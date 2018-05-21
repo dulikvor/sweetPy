@@ -8,15 +8,9 @@
 #include "CPyModuleContainer.h"
 #include "CPythonObject.h"
 #include "Exception.h"
+#include "ICPythonFunction.h"
 
 namespace pycppconn {
-
-    class ICPythonFunction
-    {
-    public:
-        virtual std::unique_ptr<PyMethodDef> ToPython() const = 0;
-    };
-
 
     template<typename Return, typename... Args>
     class CPythonFunction: public ICPythonFunction {

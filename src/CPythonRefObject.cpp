@@ -1,8 +1,9 @@
 #include "CPythonRefObject.h"
-#include "Lock.h"
 
 namespace pycppconn{
-    PyTypeObject CPythonRefType::m_staticType = {
+
+    template<>
+    PyTypeObject CPythonRefType<>::m_staticType = {
             PyVarObject_HEAD_INIT(&PyType_Type, 0)
             "CPythonRefType",          /* tp_name */
             sizeof(PyObject) + sizeof(CPythonRefObject<int>),/* tp_basicsize */
@@ -46,14 +47,5 @@ namespace pycppconn{
             NULL,                      /* Low-level free-memory routine */
             NULL,                      /* For PyObject_IS_GC */
     };
-
-    void CPythonRefType::InitStaticType() {
-        GilLock lock;
-        PyType_Ready(&m_staticType);
-    }
-
-    PyTypeObject& CPythonRefType::GetType() {
-        return m_staticType;
-    }
 }
 

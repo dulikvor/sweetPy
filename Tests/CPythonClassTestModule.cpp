@@ -2,6 +2,7 @@
 #include "CPythonModule.h"
 #include "CPythonClass.h"
 #include "CPythonEnum.h"
+#include "InitModule.h"
 
 using namespace pycppconn;
 

@@ -49,7 +49,7 @@ namespace pycppconn{
         static constexpr const char *Format = "O";
         static T& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* obj = *reinterpret_cast<PyObject**>(fromBuffer);
-            if(obj->ob_type == &CPythonRefType::GetType()){
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
                 CPythonRefObject<T&>* refObject = reinterpret_cast<CPythonRefObject<T&>*>(obj + 1);
                 return refObject->GetRef();
             }
@@ -58,7 +58,7 @@ namespace pycppconn{
             }
         }
         static T& FromPython(PyObject* obj){
-            if(obj->ob_type == &CPythonRefType::GetType()){
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
                 CPythonRefObject<T&>* refObject = reinterpret_cast<CPythonRefObject<T&>*>(obj + 1);
                 return refObject->GetRef();
             }
@@ -67,7 +67,7 @@ namespace pycppconn{
             }
         }
         static PyObject* ToPython(T& instance){
-            return CPythonRefType::Alloc(instance);
+            return CPythonRefType<>::StaticTypeAlloc(instance);
         }
     };
 
@@ -80,7 +80,7 @@ namespace pycppconn{
         static constexpr const char *Format = "O";
         static T&& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* obj = *reinterpret_cast<PyObject**>(fromBuffer);
-            if(obj->ob_type == &CPythonRefType::GetType()){
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
                 CPythonRefObject<T&>* refObject = reinterpret_cast<CPythonRefObject<T&>*>(obj + 1);
                 return std::move(refObject->GetRef());
             }
@@ -89,7 +89,7 @@ namespace pycppconn{
             }
         }
         static T&& FromPython(PyObject* obj){
-            if(obj->ob_type == &CPythonRefType::GetType()){
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
                 CPythonRefObject<T&>* refObject = reinterpret_cast<CPythonRefObject<T&>*>(obj + 1);
                 return std::move(refObject->GetRef());
             }
@@ -150,7 +150,7 @@ namespace pycppconn{
             return *reinterpret_cast<std::string*>(toBuffer);
         }
         static std::string& FromPython(PyObject* obj){
-            if(obj->ob_type == &CPythonRefType::GetType()){
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
                 CPythonRefObject<std::string&>* refObject = reinterpret_cast<CPythonRefObject<std::string&>*>(obj + 1);
                 return refObject->GetRef();
             }
@@ -159,7 +159,7 @@ namespace pycppconn{
             }
         }
         static PyObject* ToPython(std::string& data){
-            return CPythonRefType::Alloc(data);
+            return CPythonRefType<>::StaticTypeAlloc(data);
         }
     };
 

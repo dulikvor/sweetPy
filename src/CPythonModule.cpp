@@ -1,7 +1,6 @@
 #include "CPythonModule.h"
-#include "Common.h"
-#include "Lock.h"
 #include "CPythonClass.h"
+#include "TypeState.h"
 
 using namespace std;
 

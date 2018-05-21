@@ -1,5 +1,7 @@
 #include "CPythonMetaClass.h"
 #include "CPythonModule.h"
+#include "ICPythonFunction.h"
+#include "CPythonEnumValue.h"
 
 namespace pycppconn {
     PyTypeObject CPythonMetaClass::m_staticType = {
