@@ -49,7 +49,8 @@ namespace pycppconn{
         static constexpr const char *Format = "O";
         static T& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* obj = *reinterpret_cast<PyObject**>(fromBuffer);
-            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<Type>>();
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType() || obj->ob_type == CPyModuleContainer::Instance().GetType(key)){
                 CPythonRefObject<T&>* refObject = reinterpret_cast<CPythonRefObject<T&>*>(obj + 1);
                 return refObject->GetRef();
             }
@@ -58,7 +59,8 @@ namespace pycppconn{
             }
         }
         static T& FromPython(PyObject* obj){
-            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<Type>>();
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType() || obj->ob_type == CPyModuleContainer::Instance().GetType(key)){
                 CPythonRefObject<T&>* refObject = reinterpret_cast<CPythonRefObject<T&>*>(obj + 1);
                 return refObject->GetRef();
             }
@@ -67,7 +69,11 @@ namespace pycppconn{
             }
         }
         static PyObject* ToPython(T& instance){
-            return CPythonRefType<>::StaticTypeAlloc(instance);
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<Type>>();
+            auto& container = CPyModuleContainer::Instance();
+            CPyModuleContainer::Instance().GetType(key);
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRefType<>::GetStaticType();
+            return CPythonRefType<>::Alloc(type, instance);
         }
     };
 
@@ -80,7 +86,8 @@ namespace pycppconn{
         static constexpr const char *Format = "O";
         static T&& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* obj = *reinterpret_cast<PyObject**>(fromBuffer);
-            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<Type>>();
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType() || obj->ob_type == CPyModuleContainer::Instance().GetType(key)){
                 CPythonRefObject<T&>* refObject = reinterpret_cast<CPythonRefObject<T&>*>(obj + 1);
                 return std::move(refObject->GetRef());
             }
@@ -89,7 +96,8 @@ namespace pycppconn{
             }
         }
         static T&& FromPython(PyObject* obj){
-            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<Type>>();
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType() || obj->ob_type == CPyModuleContainer::Instance().GetType(key)){
                 CPythonRefObject<T&>* refObject = reinterpret_cast<CPythonRefObject<T&>*>(obj + 1);
                 return std::move(refObject->GetRef());
             }
@@ -150,7 +158,8 @@ namespace pycppconn{
             return *reinterpret_cast<std::string*>(toBuffer);
         }
         static std::string& FromPython(PyObject* obj){
-            if(obj->ob_type == &CPythonRefType<>::GetStaticType()){
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<std::string&>>();
+            if(obj->ob_type == &CPythonRefType<>::GetStaticType() || obj->ob_type == CPyModuleContainer::Instance().GetType(key)){
                 CPythonRefObject<std::string&>* refObject = reinterpret_cast<CPythonRefObject<std::string&>*>(obj + 1);
                 return refObject->GetRef();
             }
@@ -159,7 +168,11 @@ namespace pycppconn{
             }
         }
         static PyObject* ToPython(std::string& data){
-            return CPythonRefType<>::StaticTypeAlloc(data);
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<Type>>();
+            auto& container = CPyModuleContainer::Instance();
+            CPyModuleContainer::Instance().GetType(key);
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRefType<>::GetStaticType();
+            return CPythonRefType<>::Alloc(type, data);
         }
     };
 

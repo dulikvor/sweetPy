@@ -18,8 +18,6 @@ namespace pycppconn {
     class CPythonRefObject {
     public:
         CPythonRefObject(Type& object) : m_object(object){}
-        Type* operator->(){ return &m_object; } //for this usage by CPythonFunction
-        const Type* operator->() const { return &m_object; } //for this usage by CPythonFunction
         Type& GetRef(){ return m_object; }
         static int Traverse(PyObject *self, visitproc visit, void *arg)
         {
@@ -110,17 +108,10 @@ namespace pycppconn {
         }
 
         template<typename T>
-        static PyObject* StaticTypeAlloc(T&& reference)
+        static PyObject* Alloc(PyTypeObject* type, T&& reference)
         {
-            PyObject* instance = m_staticType.tp_alloc(&m_staticType, 0);
+            PyObject* instance = type->tp_alloc(&m_staticType, 0);
             new(instance + 1)CPythonRefObject<T>(std::forward<T>(reference));
-            return instance;
-        }
-
-        PyObject* Alloc(Type&& reference)
-        {
-            PyObject* instance = m_typeState->PyType->tp_alloc(m_typeState->PyType.get(), 0);
-            new(instance + 1)CPythonRefObject<Type>(std::forward<Type>(reference));
             return instance;
         }
 

@@ -52,6 +52,12 @@ namespace pycppconn{
         return *m_staticMethods[key];
     }
 
+    bool CPyModuleContainer::Exists(size_t key){
+        if( m_types.find(key) == m_types.end())
+            return false;
+        return true;
+    }
+
     PyTypeObject* const CPyModuleContainer::GetType(size_t key){
         if( m_types.find(key) == m_types.end())
             return nullptr;

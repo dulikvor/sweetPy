@@ -22,6 +22,7 @@ namespace pycppconn{
         void AddStaticMethod(int key, const std::shared_ptr<ICPythonFunction>& staticMethod);
         ICPythonFunction& GetMethod(int key);
         ICPythonFunction& GetStaticMethod(int key);
+        bool Exists(size_t key);
         PyTypeObject* const GetType(size_t key);
         template<typename T>
         static size_t TypeHash(){
