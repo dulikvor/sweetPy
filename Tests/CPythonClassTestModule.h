@@ -29,6 +29,10 @@ namespace pycppconnTest {
             return m_str = str + " Temp";
         }
 
+        TestSubjectA& GetMe(){
+            return *this;
+        }
+
         void SetPython(Python enumValue){
             m_enumValue = enumValue;
         }

@@ -14,6 +14,7 @@ namespace pycppconnTest {
     INIT_MODULE(CPythonClassTestModule, "A testing module for CPythonClass static method property") {
         CPythonClass<TestSubjectA> subject(module, "TestClass", "A subject usertype for the CPythonClass static method property");
         subject.AddConstructor<int &>();
+        subject.AddMethod("GetMe", "GetMe - Will return a reference to my self", &TestSubjectA::GetMe);
         subject.AddMethod("GetValue", "GetValue - Will retrive m_intValue", &TestSubjectA::GetValue);
         subject.AddMethod("SetString", "SetStr - Will modify the internal m_str", &TestSubjectA::SetString);
         subject.AddMethod("GetB", "Return an lvalue reference to TestSubjectB instance", &TestSubjectA::GetB);

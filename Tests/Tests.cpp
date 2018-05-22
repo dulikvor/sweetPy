@@ -88,6 +88,16 @@ namespace pycppconnTest {
         TestSubjectA& a = PythonEmbedder::GetAttribute<TestSubjectA&>("a");
         ASSERT_EQ(a.m_enumValue, Python::Bad);
     }
+
+    TEST(CPythonClassTest, InvocationViaReference) {
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "aRef = a.GetMe()\n"
+                                    "s = 'Hello World'\n"
+                                    "newS = aRef.SetString(s)";
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("s"), std::string("Hello World"));
+        ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("newS"), std::string("Hello World Temp"));
+    }
 }
 
 int main(int argc, char **argv) {

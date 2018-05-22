@@ -14,7 +14,7 @@
 
 namespace pycppconn {
 
-    template<typename T, typename Type = typename std::remove_reference<T>::type, typename std::enable_if<std::__not_<std::is_pointer<Type>>::value,bool>::type = true>
+    template<typename Type, typename std::enable_if<!std::is_pointer<Type>::value && !std::is_reference<Type>::value,bool>::type = true>
     class CPythonRefObject {
     public:
         CPythonRefObject(Type& object) : m_object(object){}
@@ -108,10 +108,17 @@ namespace pycppconn {
         }
 
         template<typename T>
+        static bool IsReferenceType(PyObject* obj)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<T>>();
+            return obj->ob_type == &CPythonRefType<>::GetStaticType() || obj->ob_type == CPyModuleContainer::Instance().GetType(key);
+        }
+
+        template<typename T>
         static PyObject* Alloc(PyTypeObject* type, T&& reference)
         {
-            PyObject* instance = type->tp_alloc(&m_staticType, 0);
-            new(instance + 1)CPythonRefObject<T>(std::forward<T>(reference));
+            PyObject* instance = type->tp_alloc(type, 0);
+            new(instance + 1)CPythonRefObject<typename std::remove_reference<T>::type>(std::forward<T>(reference));
             return instance;
         }
 

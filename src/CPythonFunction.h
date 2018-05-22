@@ -9,6 +9,7 @@
 #include "CPythonObject.h"
 #include "Exception.h"
 #include "ICPythonFunction.h"
+#include "CPythonRefObject.h"
 
 namespace pycppconn {
 
@@ -34,7 +35,7 @@ namespace pycppconn {
             std::swap(m_memberMethod, obj.m_memberMethod);
             std::swap(m_name, obj.m_name);
             std::swap(m_doc, obj.m_doc);
-            std::swap(m_pyMethod, obj.m_pyMethod);
+            std::swap(m_pyMethod,obj.m_pyMethod);
         }
 
         CPythonFunction &operator=(CPythonFunction &&obj) {
@@ -57,7 +58,13 @@ namespace pycppconn {
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
-            ClassType* _this = reinterpret_cast<ClassType*>((char*)self + sizeof(PyObject));
+
+            ClassType* _this;
+            if(CPythonRefType<>::IsReferenceType<ClassType>(self))
+                _this = &reinterpret_cast<CPythonRefObject<ClassType>*>(self + 1)->GetRef();
+            else
+                 _this = reinterpret_cast<ClassType*>(self + 1);
+
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             Return returnValue = (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
@@ -83,7 +90,13 @@ namespace pycppconn {
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
-            ClassType* _this = reinterpret_cast<ClassType*>((char*)self + sizeof(PyObject));
+
+            ClassType* _this;
+            if(CPythonRefType<>::IsReferenceType<ClassType>(self))
+                _this = &reinterpret_cast<CPythonRefObject<ClassType>*>(self + 1)->GetRef();
+            else
+                _this = reinterpret_cast<ClassType*>(self + 1);
+
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
@@ -163,7 +176,13 @@ namespace pycppconn {
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
-            const ClassType* _this = reinterpret_cast<const ClassType*>((char*)self + sizeof(PyObject));
+
+            const ClassType* _this;
+            if(CPythonRefType<>::IsReferenceType<ClassType>(self))
+                _this = &reinterpret_cast<CPythonRefObject<ClassType>*>(self + 1)->GetRef();
+            else
+                _this = reinterpret_cast<const ClassType*>(self + 1);
+
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             Return returnValue = (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
@@ -189,7 +208,13 @@ namespace pycppconn {
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
-            const ClassType* _this = reinterpret_cast<const ClassType*>((char*)self + sizeof(PyObject));
+
+            const ClassType* _this;
+            if(CPythonRefType<>::IsReferenceType<ClassType>(self))
+                _this = &reinterpret_cast<CPythonRefObject<ClassType>*>(self + 1)->GetRef();
+            else
+                _this = reinterpret_cast<const ClassType*>(self + 1);
+
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
@@ -266,7 +291,6 @@ namespace pycppconn {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                GilLock lock;
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
@@ -291,7 +315,6 @@ namespace pycppconn {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                GilLock lock;
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
                         typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
             }
