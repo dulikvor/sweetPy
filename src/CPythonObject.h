@@ -3,6 +3,7 @@
 #include <string>
 #include <type_traits>
 #include <Python.h>
+#include "core/Source.h"
 #include "Lock.h"
 #include "CPythonRefObject.h"
 #include "CPythonEnumValue.h"
@@ -158,7 +159,7 @@ namespace pycppconn{
                 return refObject->GetRef();
             }
             else{
-                throw CPythonException(PyExc_TypeError, SOURCE, "conversion between python string to string& is not possible");
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "conversion between python string to string& is not possible");
             }
         }
         static PyObject* ToPython(std::string& data){

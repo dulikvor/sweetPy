@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <Python.h>
+#include "core/Source.h"
 #include "CPyModuleContainer.h"
 #include "CPythonMember.h"
 #include "ICPythonFunction.h"
@@ -96,14 +97,14 @@ namespace pycppconn {
         static void InitStaticType()
         {
             if(std::is_same<Type, void*>::value == false)
-                throw CPythonException(PyExc_TypeError, SOURCE, "InitStaticType is not support by current type");
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "InitStaticType is not support by current type");
             PyType_Ready(&m_staticType);
         }
 
         static PyTypeObject& GetStaticType()
         {
             if(std::is_same<Type, void*>::value == false)
-                throw CPythonException(PyExc_TypeError, SOURCE, "GetStaticType is not support by current type");
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "GetStaticType is not support by current type");
             return m_staticType;
         }
 

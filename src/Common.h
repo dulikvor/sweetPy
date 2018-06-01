@@ -3,11 +3,12 @@
 #include <functional>
 #include <type_traits>
 #include <Python.h>
+#include "core/Source.h"
 #include "Lock.h"
 #include "Exception.h"
 
 namespace pycppconn{
-#define CPYTHON_VERIFY(expression, reason) do{ if(!(expression)) throw CPythonException(PyExc_StandardError, SOURCE, reason); }while(0)
+#define CPYTHON_VERIFY(expression, reason) do{ if(!(expression)) throw CPythonException(PyExc_StandardError, __CORE_SOURCE, reason); }while(0)
 
 //Will not accept array, function pointers types, will remove const from - T const/T const&, will retain the value category.
 template<typename T, typename std::enable_if<std::__and_<

@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <Python.h>
 #include "src/InitModule.h"
 #include "src/CPythonClass.h"
 

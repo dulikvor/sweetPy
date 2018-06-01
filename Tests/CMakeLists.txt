@@ -23,13 +23,12 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
 set(CMAKE_BINARY_DIR ${PROJECT_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
-set(PROJECT_3RD_LOC ${CMAKE_CURRENT_SOURCE_DIR}/../Third_Party)
 
-include_directories(. ..  ${PROJECT_DIR} ${PROJECT_3RD_LOC}/include)
-link_directories(${PROJECT_3RD_LOC}/lib ${PROJECT_DIR}/../bin)
+include_directories(. ..  ${PROJECT_DIR} ${pyCppConn_3RD_PARTY_DIR}/include)
+link_directories(${pyCppConn_3RD_PARTY_DIR}/lib ${PROJECT_DIR}/../bin)
 
 add_library(CPythonClassTestModule SHARED CPythonClassTestModule.cpp)
-target_link_libraries(CPythonClassTestModule pyCppConn Core pthread )
+target_link_libraries(CPythonClassTestModule pyCppConn ${pyCppConn_3RD_PARTY_DIR}/lib/libCore.so pthread )
 set_target_properties(CPythonClassTestModule PROPERTIES PREFIX "")
 
 add_executable(pycppconnTests Tests.cpp CPythonClassTestModule.h)
