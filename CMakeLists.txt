@@ -22,7 +22,9 @@ else()
 endif()
 
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(pyCppConn_3RD_PARTY_DIR ${PROJECT_DIR}/Third_Party/)
+if(NOT pyCppConn_3RD_PARTY_DIR)
+    set(pyCppConn_3RD_PARTY_DIR ${PROJECT_DIR}/Third_Party/)
+endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_PREFIX_PATH ${pyCppConn_3RD_PARTY_DIR})
 
