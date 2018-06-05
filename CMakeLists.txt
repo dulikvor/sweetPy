@@ -33,16 +33,18 @@ find_package(Python REQUIRED)
 find_package(Core)
 
 option(pyCppConn_Test_Support "Test support" OFF)
+option(pyCppConn_3RD_PARTY_INSTALL_STEP "3rd parties installation step" OFF)
+option(pyCppConn_COMPILATION_STEP "Compilation step" OFF)
 if(pyCppConn_Test_Support)
     find_package(GoogleTest)
 endif()
 
-if(3RD_PARTY_INSTALL_STEP)
+if(pyCppConn_3RD_PARTY_INSTALL_STEP)
     include(installThirdParty)
 endif()
 
 
-if(COMPILATION_STEP)
+if(pyCppConn_COMPILE_STEP)
     include_directories( ${PROJECT_DIR} ${PROJECT_DIR}/src ${pyCppConn_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 
     set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC -DSPDLOG_FOUND=${SPDLOG_FOUND} -DTHRIFT_FOUND=${THRIFT_FOUND}")
