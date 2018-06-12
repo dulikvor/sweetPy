@@ -63,6 +63,7 @@ namespace pycppconnTest {
         TestSubjectB m_b;
         std::string m_str;
         Python m_enumValue;
+        const char* m_ctypeStr;
     };
 
 }

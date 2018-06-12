@@ -44,13 +44,18 @@ namespace pycppconn{
         virtual std::unique_ptr<PyMemberDef> ToPython() const = 0;
     };
 
-    template<typename Type, typename MemberType,
-            typename NonConstMemberType = typename std::remove_const<MemberType>::type,
-            bool IsNonConst = std::is_same<MemberType, NonConstMemberType>::value,
-            typename std::enable_if<std::__not_<std::__or_<std::is_reference<MemberType>, std::is_pointer<MemberType>>>::value, bool>::type = true>
-    class CPythonMember : public ICPythonMember{
+
+    template<typename Type, typename MemberType, typename = void>
+    class CPythonMember : public ICPythonMember
+    {
+        std::unique_ptr<PyMemberDef> ToPython() const override{}
+    };
+
+    template<typename Type, typename MemberType>
+    class CPythonMember<Type, MemberType, typename std::enable_if<!(std::is_reference<MemberType>::value || std::is_pointer<MemberType>::value)>::type> : public ICPythonMember{
     public:
-        CPythonMember(const std::string& name, MemberType Type::* member, const std::string& doc):m_offset(GetOffset(member)),
+        static constexpr bool IsNonConst = std::is_same<MemberType, typename std::remove_const<MemberType>::type>::value;
+        CPythonMember(const std::string& name, MemberType Type::*& member, const std::string& doc):m_offset(GetOffset(member)),
          m_typeId(PyTypeId<MemberType, PyArgumentsTypes>::value == -1 ? T_OBJECT : PyTypeId<MemberType, PyArgumentsTypes>::value), m_name(name), m_doc(doc){
             static_assert(PyTypeId<short, PyArgumentsTypes>::value == T_SHORT, "Unrelated representation of type id between self and python");
             static_assert(PyTypeId<int, PyArgumentsTypes>::value == T_INT, "Unrelated representation of type id between self and python");
@@ -68,8 +73,7 @@ namespace pycppconn{
             static_assert(PyTypeId<bool, PyArgumentsTypes>::value == T_BOOL, "Unrelated representation of type id between self and python");
 
         }
-
-        std::unique_ptr<PyMemberDef> ToPython() const {
+        std::unique_ptr<PyMemberDef> ToPython() const override{
             return std::unique_ptr<PyMemberDef>(new PyMemberDef{
                                                         const_cast<char *>(m_name.c_str()),
                                                         m_typeId,
@@ -84,5 +88,27 @@ namespace pycppconn{
         std::string m_doc;
         int m_offset;
         int m_typeId;
+    };
+
+
+    template<typename Type, typename MemberType>
+    class CPythonMember<Type, MemberType, typename std::enable_if<std::is_same<MemberType, const char*>::value || std::is_same<MemberType, char*>::value>::type> : public ICPythonMember{
+    public:
+        static constexpr bool IsNonConst = std::is_same<MemberType, typename std::remove_const<MemberType>::type>::value;
+        CPythonMember(const std::string& name, MemberType Type::*& member, const std::string& doc):m_offset(GetOffset(member)), m_name(name), m_doc(doc){}
+        std::unique_ptr<PyMemberDef> ToPython() const override{
+            return std::unique_ptr<PyMemberDef>(new PyMemberDef{
+                    const_cast<char *>(m_name.c_str()),
+                    T_STRING,
+                    m_offset,
+                    IsNonConst ? 0 : READONLY,
+                    const_cast<char *>(m_doc.c_str())
+            }); //Python emphasis the use of implicit conversion of C++ string literals to prvalue of char*, so const_cast is safe.
+        }
+
+    private:
+        std::string m_name;
+        std::string m_doc;
+        int m_offset;
     };
 }
