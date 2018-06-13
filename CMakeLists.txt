@@ -57,8 +57,6 @@ if(pyCppConn_COMPILE_STEP)
     set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
     #Pre build step
 
-    set(CORE_COMPILE True)
-    set(CORE_SPDLOG_SUPPORT OFF)
     add_subdirectory(${PROJECT_DIR}/example)
     if(pyCppConn_Test_Support)
         add_subdirectory(${PROJECT_DIR}/Tests)

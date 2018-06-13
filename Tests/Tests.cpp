@@ -81,6 +81,13 @@ namespace pycppconnTest {
         const TestSubjectB& b = PythonEmbedder::GetAttribute<const TestSubjectB&>("b");
         ASSERT_EQ(b.GetValue(), 1);
     }
+
+    TEST(CPythonClassTest, NativeReturn) {
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "b = a.GetBByValue()";
+        PyRun_SimpleString(testingScript);
+    }
+
     TEST(CPythonClassTest, Enum) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "a.SetPython(Enum_Python.Bad)";

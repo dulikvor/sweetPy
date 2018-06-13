@@ -133,6 +133,7 @@ namespace pycppconn {
             PyMethodDef *methods = new PyMethodDef[m_cPythonMemberFunctions.size() + 1]; //spare space for sentinal
             m_typeState->PyType->tp_methods = methods;
             for (const auto &method : m_cPythonMemberFunctions) {
+                method->AllocateObjectsTypes(m_module);
                 *methods = *method->ToPython();
                 methods++;
             }
@@ -149,6 +150,7 @@ namespace pycppconn {
                                                                                    "MetaClass"));
                 m_typeState->PyType.get()->ob_type = &type->ToPython();
                 for (auto &staticFunction : m_cPythonMemberStaticFunctions) {
+                    staticFunction->AllocateObjectsTypes(m_module);
                     type->AddMethod(staticFunction);
                 }
                 type->InitType();

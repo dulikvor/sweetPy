@@ -5,11 +5,99 @@
 #include <Python.h>
 #include "core/Source.h"
 #include "Lock.h"
+#include "CPyModuleContainer.h"
+#include "CPythonModule.h"
 #include "CPythonRefObject.h"
 #include "CPythonEnumValue.h"
 #include "Exception.h"
 
 namespace pycppconn{
+
+
+    template<typename Type>
+    class CPythonObjectType {
+    public:
+        typedef CPythonObjectType<Type> Self;
+
+        CPythonObjectType(CPythonModule &module)
+                : m_module(module), m_typeState(new TypeState(std::to_string((int)CPyModuleContainer::TypeHash<Self>()) + "-GenericObjectType",
+                                      std::to_string((int)CPyModuleContainer::TypeHash<Self>()) + "-GenericObjectType"))
+        {
+            m_typeState->PyType.reset(new PyTypeObject{
+                    PyVarObject_HEAD_INIT(&CPythonMetaClass::GetStaticMetaType(), 0)
+                    m_typeState->Name.c_str(), /* tp_name */
+                    sizeof(Type) + sizeof(PyObject),/* tp_basicsize */
+                    0,                         /* tp_itemsize */
+                    0,                          /* tp_dealloc */
+                    0,                         /* tp_print */
+                    0,                         /* tp_getattr */
+                    0,                         /* tp_setattr */
+                    0,                         /* tp_compare */
+                    0,                         /* tp_repr */
+                    0,                         /* tp_as_number */
+                    0,                         /* tp_as_sequence */
+                    0,                         /* tp_as_mapping */
+                    0,                         /* tp_hash */
+                    0,                         /* tp_call */
+                    0,                         /* tp_str */
+                    0,                         /* tp_getattro */
+                    0,                         /* tp_setattro */
+                    0,                         /* tp_as_buffer */
+                    Py_TPFLAGS_HAVE_CLASS |
+                    Py_TPFLAGS_HAVE_GC |
+                    Py_TPFLAGS_HEAPTYPE,       /* tp_flags */
+                    m_typeState->Doc.c_str(),  /* tp_doc */
+                    &Traverse,                 /* tp_traverse */
+                    0,                         /* tp_clear */
+                    0,                         /* tp_richcompare */
+                    0,                         /* tp_weaklistoffset */
+                    0,                         /* tp_iter */
+                    0,                         /* tp_iternext */
+                    NULL,                      /* tp_methods */
+                    NULL,                      /* tp_members */
+                    0,                         /* tp_getset */
+                    0,                         /* tp_base */
+                    0,                         /* tp_dict */
+                    0,                         /* tp_descr_get */
+                    0,                         /* tp_descr_set */
+                    0,                         /* tp_dictoffset */
+                    NULL,                      /* tp_init */
+                    0,                         /* tp_alloc */
+                    NULL,                      /* tp_new */
+            });
+            Py_IncRef((PyObject *) m_typeState->PyType.get()); //Making sure the true owner of the type is CPythonClass
+        }
+
+        ~CPythonObjectType()
+        {
+            PyType_Ready(m_typeState->PyType.get());
+            CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<Self>(), m_typeState->PyType.get());
+            m_module.AddType(std::move(m_typeState));
+        }
+
+        static PyObject* Alloc(PyTypeObject* type, const Type& obj)
+        {
+            PyObject* newObj = type->tp_alloc(type, 0);
+            new(newObj + 1)Type(obj);
+            return newObj;
+        }
+
+    private:
+        static int Traverse(PyObject *self, visitproc visit, void *arg)
+        {
+            //Instance members are kept out of the instance dictionary, they are part of the continuous memory of the instance, kept in C POD form.
+            //the descriptors are placed with the type it self, a descriptor per member.
+            PyTypeObject *type = Py_TYPE(self);
+            if (type->tp_flags & Py_TPFLAGS_HEAPTYPE)
+                Py_VISIT(type);
+
+            return 0;
+        }
+
+    private:
+        std::unique_ptr<TypeState> m_typeState;
+        CPythonModule &m_module;
+    };
 
     template<typename T, typename = void>
     struct Object{};
@@ -21,11 +109,26 @@ namespace pycppconn{
         typedef PyObject* FromPythonType;
         typedef T Type;
         static constexpr const char* Format = "O";
+        static const bool IsSimpleObjectType = true;
         static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
             T* obj = (T*)(fromBuffer + sizeof(PyObject));
             new(toBuffer)T(*obj);
             return *reinterpret_cast<T*>(toBuffer);
+        }
+
+        static T& FromPython(PyObject* obj)
+        {
+            return *reinterpret_cast<T*>(obj + 1);
+        }
+
+        static PyObject* ToPython(T& obj)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonObjectType<T>>();
+            auto& container = CPyModuleContainer::Instance();
+            CPYTHON_VERIFY(container.Exists(key) == true, "Requested PyObjectType does not exists");
+            PyTypeObject* type = container.GetType(key);
+            return CPythonObjectType<T>::Alloc(type, obj);
         }
     };
 
@@ -35,6 +138,7 @@ namespace pycppconn{
         typedef int FromPythonType;
         typedef T Type;
         static constexpr const char* Format = "i";
+        static const bool IsSimpleObjectType = false;
         static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
             new(toBuffer)T((T)*reinterpret_cast<int*>(fromBuffer));
@@ -48,6 +152,7 @@ namespace pycppconn{
         typedef PyObject* FromPythonType;
         typedef typename std::enable_if<!std::is_same<T&, std::string&>::value, T>::type Type;
         static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
         static T& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* obj = *reinterpret_cast<PyObject**>(fromBuffer);
             if(CPythonRefType<>::IsReferenceType<T>(obj)){
@@ -82,6 +187,7 @@ namespace pycppconn{
         typedef PyObject* FromPythonType;
         typedef typename std::enable_if<std::__not_<std::is_same<T&&, std::string&&>>::value, T>::type Type;
         static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
         static T&& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* obj = *reinterpret_cast<PyObject**>(fromBuffer);
             if(CPythonRefType<>::IsReferenceType<T>(obj)){
@@ -109,6 +215,7 @@ namespace pycppconn{
     public:
         typedef const char* FromPythonType;
         typedef const char* Type;
+        static const bool IsSimpleObjectType = false;
         static constexpr const char *Format = "z";
         static const char*& GetTyped(char* fromBuffer, char* toBuffer){
             new(toBuffer)const char*(*reinterpret_cast<char**>(fromBuffer));
@@ -129,6 +236,7 @@ namespace pycppconn{
         typedef const char* FromPythonType;
         typedef std::string Type;
         static constexpr const char *Format = "z";
+        static const bool IsSimpleObjectType = false;
         static std::string& GetTyped(char* fromBuffer, char* toBuffer){
             new(toBuffer)std::string(*reinterpret_cast<char**>(fromBuffer));
             return *reinterpret_cast<std::string*>(toBuffer);
@@ -149,6 +257,7 @@ namespace pycppconn{
         typedef const char* FromPythonType;
         typedef std::string Type;
         static constexpr const char *Format = "z";
+        static const bool IsSimpleObjectType = false;
         static std::string& GetTyped(char* fromBuffer, char* toBuffer){
             new(toBuffer)std::string(*reinterpret_cast<char**>(fromBuffer));
             return *reinterpret_cast<std::string*>(toBuffer);
@@ -176,6 +285,7 @@ namespace pycppconn{
         typedef long FromPythonType;
         typedef bool Type;
         static constexpr const char *Format = "l";
+        static const bool IsSimpleObjectType = false;
         static bool& GetTyped(char* fromBuffer, char* toBuffer){
             new(toBuffer)bool(*reinterpret_cast<bool*>(fromBuffer));
             return *reinterpret_cast<bool*>(toBuffer);
@@ -195,6 +305,7 @@ namespace pycppconn{
         typedef long FromPythonType;
         typedef int Type;
         static constexpr const char *Format = "l";
+        static const bool IsSimpleObjectType = false;
         static int& GetTyped(char* fromBuffer, char* toBuffer){
             new(toBuffer)int(*reinterpret_cast<int*>(fromBuffer));
             return *reinterpret_cast<int*>(toBuffer);
@@ -245,8 +356,12 @@ namespace pycppconn{
 
         typedef typename Object<T>::FromPythonType FromPythonType;
         typedef typename Object<T>::Type Type;
+        static void* AllocateObjectType(CPythonModule& module) {
+            if(Object<T>::IsSimpleObjectType == true)
+               CPythonObjectType<T> type(module);
+        }
         template<typename... Args>
-        static void MultiDestructors(Args&&...){}
+        static void MultiInvoker(Args&&...){}
         static void* Destructor(char* buffer){
             Type* typedPtr = reinterpret_cast<Type*>(buffer);
             typedPtr->~Type();

@@ -35,7 +35,7 @@ namespace pycppconn {
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
                     nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
                                                                                                                     typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
             return 0;

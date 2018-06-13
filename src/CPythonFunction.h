@@ -70,7 +70,7 @@ namespace pycppconn {
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
                     nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                     ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
                             typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
 
@@ -102,14 +102,15 @@ namespace pycppconn {
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
                     nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
                                                                                                                     typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
             return Py_None;
         }
 
         static PyObject* Wrapper(PyObject *self, PyObject *args) {
-            try {
+            try
+            {
                 return WrapperImpl(self, args, std::make_index_sequence<sizeof...(Args)>{});
             }
             catch(const CPythonException& exc){
@@ -126,6 +127,11 @@ namespace pycppconn {
                     METH_VARARGS,
                     m_doc.c_str()
             });
+        }
+
+        void AllocateObjectsTypes(CPythonModule& module) const override
+        {
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
         }
 
     private:
@@ -188,7 +194,7 @@ namespace pycppconn {
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
                     nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
                                                                                                                     typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
 
@@ -220,7 +226,7 @@ namespace pycppconn {
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
                     nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
                                                                                                                     typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
             return Py_None;
@@ -244,6 +250,12 @@ namespace pycppconn {
                     METH_VARARGS,
                     m_doc.c_str()
             });
+        }
+
+        void AllocateObjectsTypes(CPythonModule& module) const override
+        {
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
         }
 
     private:
@@ -299,7 +311,7 @@ namespace pycppconn {
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
                     nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
                                                                                                                     typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
             return Object<Return>::ToPython(returnValue);
@@ -323,7 +335,7 @@ namespace pycppconn {
                     pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
                     nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
 
-            ObjectWrapper<int, 0>::MultiDestructors(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
                                                                                                                     typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
             return Py_None;
@@ -346,6 +358,11 @@ namespace pycppconn {
                     METH_VARARGS,
                     m_doc.c_str()
             });
+        }
+
+        void AllocateObjectsTypes(CPythonModule& module) const override
+        {
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
         }
 
     private:

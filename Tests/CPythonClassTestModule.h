@@ -41,6 +41,10 @@ namespace pycppconnTest {
             return m_b;
         }
 
+        TestSubjectB GetBByValue() const{
+            return m_b;
+        }
+
         static void BMutator(TestSubjectB& obj){
             obj.IncValue();
         }
