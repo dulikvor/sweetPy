@@ -24,7 +24,7 @@ namespace pycppconn{
 
     void CPyModuleContainer::AddType(size_t key, PyTypeObject *const type){
         if( m_types.find(key) != m_types.end())
-            throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
+            return; //types may return due repeating CPythonObjectTypes.
         m_types.insert(std::make_pair(key, type));
     }
 

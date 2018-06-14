@@ -197,7 +197,6 @@ namespace pycppconn {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
                                                                                                                     typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
-
             return Object<Return>::ToPython(returnValue);
         }
 

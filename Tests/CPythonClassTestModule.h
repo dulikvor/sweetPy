@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 namespace pycppconnTest {
 
@@ -43,6 +44,10 @@ namespace pycppconnTest {
 
         TestSubjectB GetBByValue() const{
             return m_b;
+        }
+
+        std::unique_ptr<TestSubjectB> GetBNonCopyConstructable() const{
+            return std::unique_ptr<TestSubjectB>(new TestSubjectB(m_b));
         }
 
         static void BMutator(TestSubjectB& obj){

@@ -14,7 +14,7 @@
 namespace pycppconn{
 
 
-    template<typename Type>
+    template<typename T, typename Type= typename std::remove_reference<T>::type>
     class CPythonObjectType {
     public:
         typedef CPythonObjectType<Type> Self;
@@ -75,10 +75,11 @@ namespace pycppconn{
             m_module.AddType(std::move(m_typeState));
         }
 
-        static PyObject* Alloc(PyTypeObject* type, const Type& obj)
+        template<typename Y>
+        static PyObject* Alloc(PyTypeObject* type, Y&& obj)
         {
             PyObject* newObj = type->tp_alloc(type, 0);
-            new(newObj + 1)Type(obj);
+            new(newObj + 1)Type(std::forward<Y>(obj));
             return newObj;
         }
 
@@ -104,7 +105,7 @@ namespace pycppconn{
 
     template<typename T>
     struct Object<T, typename std::enable_if<!std::is_pointer<T>::value && std::is_copy_constructible<T>::value &&
-            !std::is_enum<T>::value && !std::is_reference<T>::value>::type> {
+                                             !std::is_enum<T>::value && !std::is_reference<T>::value>::type> {
     public:
         typedef PyObject* FromPythonType;
         typedef T Type;
@@ -129,6 +130,37 @@ namespace pycppconn{
             CPYTHON_VERIFY(container.Exists(key) == true, "Requested PyObjectType does not exists");
             PyTypeObject* type = container.GetType(key);
             return CPythonObjectType<T>::Alloc(type, obj);
+        }
+    };
+
+    template<typename T>
+    struct Object<T, typename std::enable_if<!std::is_pointer<T>::value && !std::is_copy_constructible<T>::value &&
+                                             !std::is_enum<T>::value && !std::is_reference<T>::value &&
+                                             std::is_move_constructible<T>::value>::type> {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef T Type;
+        static constexpr const char* Format = "O";
+        static const bool IsSimpleObjectType = true;
+        static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
+        {
+            T* obj = (T*)(fromBuffer + sizeof(PyObject));
+            new(toBuffer)T(std::move(*obj));
+            return *reinterpret_cast<T*>(toBuffer);
+        }
+
+        static T& FromPython(PyObject* obj)
+        {
+            return *reinterpret_cast<T*>(obj + 1);
+        }
+
+        static PyObject* ToPython(T& obj)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonObjectType<typename std::remove_reference<T>::type>>();
+            auto& container = CPyModuleContainer::Instance();
+            CPYTHON_VERIFY(container.Exists(key) == true, "Requested PyObjectType does not exists");
+            PyTypeObject* type = container.GetType(key);
+            return CPythonObjectType<T>::Alloc(type, std::move(obj));
         }
     };
 
@@ -357,8 +389,8 @@ namespace pycppconn{
         typedef typename Object<T>::FromPythonType FromPythonType;
         typedef typename Object<T>::Type Type;
         static void* AllocateObjectType(CPythonModule& module) {
-            if(Object<T>::IsSimpleObjectType == true)
-               CPythonObjectType<T> type(module);
+            if(Object<Type>::IsSimpleObjectType == true)
+               CPythonObjectType<Type> type(module);
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
