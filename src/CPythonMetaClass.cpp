@@ -134,6 +134,7 @@ namespace pycppconn {
         PyMethodDef* methods = new PyMethodDef[m_cPythonMemberFunctions.size() + 1]; //spare space for sentinal
         m_typeState->PyType->tp_methods = methods;
         for(const auto& method : m_cPythonMemberFunctions){
+            method->AllocateObjectsTypes(m_module);
             *methods = *method->ToPython();
             methods++;
         }

@@ -30,6 +30,11 @@ namespace pycppconnTest {
             return m_str = str + " Temp";
         }
 
+        static std::unique_ptr<TestSubjectA> GetUniqueMe(){
+            static int i = 5;
+            return std::unique_ptr<TestSubjectA>(new TestSubjectA(i));
+        }
+
         TestSubjectA& GetMe(){
             return *this;
         }

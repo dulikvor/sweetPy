@@ -20,6 +20,7 @@ namespace pycppconnTest {
         subject.AddMethod("GetB", "Return an lvalue reference to TestSubjectB instance", &TestSubjectA::GetB);
         subject.AddMethod("GetBByValue", "Return a rvalue instance of TestSubjectB being copied from TestSubjectA internal instance", &TestSubjectA::GetBByValue);
         subject.AddMethod("GetBByNoCopyConstructable", "Return a rvalue instance of non copy constructable type", &TestSubjectA::GetBNonCopyConstructable);
+        subject.AddStaticMethod("GetUniqueMe", "GetUniqueMe - Return an rvalue reference of non supported type", &TestSubjectA::GetUniqueMe);
         subject.AddStaticMethod("Setter", "Setter - will change the value of m_valid into true", &TestSubjectA::Setter);
         subject.AddStaticMethod("Getter", "Getter - will retrieve m_valid", &TestSubjectA::Getter);
         subject.AddStaticMethod("BMutator", "Mutates received TestSubjectB instance", &TestSubjectA::BMutator);

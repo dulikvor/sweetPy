@@ -1,5 +1,6 @@
 #include "gtest/gtest.h"
 #include <Python.h>
+#include "core/Logger.h"
 #include "PythonEmbedder.h"
 #include "CPythonClassTestModule.h"
 
@@ -13,6 +14,7 @@ namespace pycppconnTest {
         CPythonClassTest() {}
 
         void SetUp() override {
+            core::Logger::Instance().Start(core::TraceSeverity::Info);
             PythonEmbedder::InitiateInterperter("CPythonClassTest", _argc, _argv);
             const char *testingScript = "from CPythonClassTestModule import TestClass, Enum_Python\n";
             PyRun_SimpleString(testingScript);
@@ -84,7 +86,8 @@ namespace pycppconnTest {
 
     TEST(CPythonClassTest, NativeReturn) {
         const char *testingScript = "a = TestClass(7)\n"
-                                    "b = a.GetBByValue()";
+                                    "b = a.GetBByValue()\n";
+                                    "c = TestClass.GetUniqueMe()";
         PyRun_SimpleString(testingScript);
     }
 
