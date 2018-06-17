@@ -400,4 +400,10 @@ namespace pycppconn{
             return nullptr;
         }
     };
+
+    template<std::size_t I>
+    struct ObjectWrapper<void, I>
+    {
+        static void* AllocateObjectType(CPythonModule& module) {}
+    };
 }

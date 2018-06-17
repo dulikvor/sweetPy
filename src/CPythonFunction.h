@@ -132,6 +132,7 @@ namespace pycppconn {
         void AllocateObjectsTypes(CPythonModule& module) const override
         {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
         }
 
     private:
@@ -362,6 +363,7 @@ namespace pycppconn {
         void AllocateObjectsTypes(CPythonModule& module) const override
         {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
         }
 
     private:
