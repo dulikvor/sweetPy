@@ -389,8 +389,8 @@ namespace pycppconn{
         typedef typename Object<T>::FromPythonType FromPythonType;
         typedef typename Object<T>::Type Type;
         static void* AllocateObjectType(CPythonModule& module) {
-            if(Object<Type>::IsSimpleObjectType == true)
-               CPythonObjectType<Type> type(module);
+            if(Object<T>::IsSimpleObjectType == true)
+               CPythonObjectType<T> type(module);
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
