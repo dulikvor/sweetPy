@@ -51,6 +51,16 @@ namespace pycppconnTest {
             return m_b;
         }
 
+        void IncBByRef(std::unique_ptr<TestSubjectB>& b) const
+        {
+            b->IncValue();
+        }
+
+        void IncB(std::unique_ptr<TestSubjectB> b) const
+        {
+            b->IncValue();
+        }
+
         std::unique_ptr<TestSubjectB> GetBNonCopyConstructable() const{
             return std::unique_ptr<TestSubjectB>(new TestSubjectB(m_b));
         }

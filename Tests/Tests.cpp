@@ -86,9 +86,15 @@ namespace pycppconnTest {
 
     TEST(CPythonClassTest, NativeReturn) {
         const char *testingScript = "a = TestClass(7)\n"
-                                    "b = a.GetBByValue()\n";
-                                    "c = TestClass.GetUniqueMe()";
+                                    "b = a.GetBByNoCopyConstructible()\n"
+                                    "a.IncBByRef(b)\n"
+                                    "b_2 = a.GetBByNoCopyConstructible()\n"
+                                    "a.IncB(b_2)";
         PyRun_SimpleString(testingScript);
+        std::unique_ptr<TestSubjectB>& b = PythonEmbedder::GetAttribute<std::unique_ptr<TestSubjectB>&>("b");
+        ASSERT_EQ(b->GetValue(), 1);
+        std::unique_ptr<TestSubjectB>& b_2 = PythonEmbedder::GetAttribute<std::unique_ptr<TestSubjectB>&>("b_2");
+        ASSERT_EQ(b_2.get(), nullptr);
     }
 
     TEST(CPythonClassTest, Enum) {

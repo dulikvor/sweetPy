@@ -113,7 +113,7 @@ namespace pycppconn{
         static const bool IsSimpleObjectType = true;
         static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
-            T* obj = (T*)(fromBuffer + sizeof(PyObject));
+            T* obj = (T*)(reinterpret_cast<PyObject*>(*reinterpret_cast<PyObject**>(fromBuffer)) + 1);
             new(toBuffer)T(*obj);
             return *reinterpret_cast<T*>(toBuffer);
         }
@@ -144,7 +144,7 @@ namespace pycppconn{
         static const bool IsSimpleObjectType = true;
         static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
-            T* obj = (T*)(fromBuffer + sizeof(PyObject));
+            T* obj = (T*)(reinterpret_cast<PyObject*>(*reinterpret_cast<PyObject**>(fromBuffer)) + 1);
             new(toBuffer)T(std::move(*obj));
             return *reinterpret_cast<T*>(toBuffer);
         }
@@ -397,6 +397,34 @@ namespace pycppconn{
         static void* Destructor(char* buffer){
             Type* typedPtr = reinterpret_cast<Type*>(buffer);
             typedPtr->~Type();
+            return nullptr;
+        }
+    };
+
+    template<typename T, std::size_t I>
+    struct ObjectWrapper<T&, I>
+    {
+
+        typedef typename Object<T>::FromPythonType FromPythonType;
+        typedef typename Object<T>::Type Type;
+        static void* AllocateObjectType(CPythonModule& module) {}
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer){
+            return nullptr;
+        }
+    };
+
+    template<typename T, std::size_t I>
+    struct ObjectWrapper<T&&, I>
+    {
+
+        typedef typename Object<T>::FromPythonType FromPythonType;
+        typedef typename Object<T>::Type Type;
+        static void* AllocateObjectType(CPythonModule& module) {}
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer){
             return nullptr;
         }
     };
