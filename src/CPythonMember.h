@@ -42,6 +42,7 @@ namespace pycppconn{
     class ICPythonMember{
     public:
         virtual std::unique_ptr<PyMemberDef> ToPython() const = 0;
+
     };
 
 

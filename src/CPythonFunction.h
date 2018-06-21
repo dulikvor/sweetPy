@@ -9,7 +9,7 @@
 #include "CPythonObject.h"
 #include "Exception.h"
 #include "ICPythonFunction.h"
-#include "CPythonRefObject.h"
+#include "CPythonRef.h"
 
 namespace pycppconn {
 
@@ -60,7 +60,7 @@ namespace pycppconn {
             }
 
             ClassType* _this;
-            if(CPythonRefType<>::IsReferenceType<ClassType>(self))
+            if(CPythonRef<>::IsReferenceType<ClassType>(self))
                 _this = &reinterpret_cast<CPythonRefObject<ClassType>*>(self + 1)->GetRef();
             else
                  _this = reinterpret_cast<ClassType*>(self + 1);
@@ -92,7 +92,7 @@ namespace pycppconn {
             }
 
             ClassType* _this;
-            if(CPythonRefType<>::IsReferenceType<ClassType>(self))
+            if(CPythonRef<>::IsReferenceType<ClassType>(self))
                 _this = &reinterpret_cast<CPythonRefObject<ClassType>*>(self + 1)->GetRef();
             else
                 _this = reinterpret_cast<ClassType*>(self + 1);
@@ -185,7 +185,7 @@ namespace pycppconn {
             }
 
             const ClassType* _this;
-            if(CPythonRefType<>::IsReferenceType<ClassType>(self))
+            if(CPythonRef<>::IsReferenceType<ClassType>(self))
                 _this = &reinterpret_cast<CPythonRefObject<ClassType>*>(self + 1)->GetRef();
             else
                 _this = reinterpret_cast<const ClassType*>(self + 1);
@@ -216,7 +216,7 @@ namespace pycppconn {
             }
 
             const ClassType* _this;
-            if(CPythonRefType<>::IsReferenceType<ClassType>(self))
+            if(CPythonRef<>::IsReferenceType<ClassType>(self))
                 _this = &reinterpret_cast<CPythonRefObject<ClassType>*>(self + 1)->GetRef();
             else
                 _this = reinterpret_cast<const ClassType*>(self + 1);

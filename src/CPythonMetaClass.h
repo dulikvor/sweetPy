@@ -4,7 +4,7 @@
 #include <memory>
 #include <Python.h>
 #include <structmember.h>
-#include "TypeState.h"
+#include "CPythonType.h"
 
 namespace pycppconn {
 
@@ -12,13 +12,22 @@ namespace pycppconn {
     class ICPythonFunction;
     class CPythonModule;
 
-    class CPythonMetaClass {
+    class CPythonMetaClassType : public CPythonType
+    {
     public:
         enum Collectable {
             False = 0,
             True = 1
         };
 
+        CPythonMetaClassType(const std::string& name, const std::string& doc, int extendedSize);
+
+    private:
+        static int IsCollectable(PyObject *obj);
+    };
+
+    class CPythonMetaClass {
+    public:
         CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc, int extendedSize = 0);
         ~CPythonMetaClass();
         void InitType();
@@ -29,7 +38,6 @@ namespace pycppconn {
         PyObject* InitializeSubType(const std::string& name, const std::string& doc) const;
         static PyTypeObject &GetStaticMetaType();
         static void InitStaticType();
-        static int IsCollectable(PyObject *obj);
 
     private:
         void InitMethods();
@@ -38,7 +46,7 @@ namespace pycppconn {
     private:
         std::vector<std::shared_ptr<ICPythonFunction>> m_cPythonMemberFunctions;
         std::vector<std::unique_ptr<CPythonEnumValue>> m_cPythonEnumValues;
-        std::unique_ptr<TypeState> m_typeState;
+        std::unique_ptr<CPythonType> m_type;
         static PyTypeObject m_staticType;
         CPythonModule& m_module;
     };

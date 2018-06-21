@@ -7,15 +7,15 @@
 #include "Common.h"
 
 namespace pycppconn {
-    class TypeState;
+    class CPythonType;
     class CPythonModule {
     public:
         explicit CPythonModule(const std::string &name, const std::string &doc);
-        void AddType(std::unique_ptr<TypeState>&& type);
+        void AddType(std::unique_ptr<CPythonType>&& type);
         PyObject* GetModule() const;
     private:
         std::unique_ptr<PyObject, Deleter::Func> m_module;
-        std::vector<std::unique_ptr<TypeState>> m_types;
+        std::vector<std::unique_ptr<CPythonType>> m_types;
         std::string m_name;
         std::string m_doc;
     };

@@ -1,6 +1,6 @@
 #include "CPythonModule.h"
 #include "CPythonClass.h"
-#include "TypeState.h"
+#include "CPythonType.h"
 
 using namespace std;
 
@@ -14,8 +14,8 @@ namespace pycppconn{
         CPYTHON_VERIFY(m_module.get() != nullptr, "Module registration failed");
     }
 
-    void CPythonModule::AddType(std::unique_ptr<TypeState>&& type) {
-        CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), type->Name.c_str(), (PyObject*)type->PyType.operator->()) == 0, "Type registration with module failed");
+    void CPythonModule::AddType(std::unique_ptr<CPythonType>&& type) {
+        CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), type->GetName().c_str(), (PyObject*)type.get()) == 0, "Type registration with module failed");
         m_types.emplace_back(std::move(type));
     }
 

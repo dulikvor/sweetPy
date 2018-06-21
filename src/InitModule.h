@@ -8,7 +8,7 @@
 #include "Common.h"
 #include "CPyModuleContainer.h"
 #include "CPythonMetaClass.h"
-#include "CPythonRefObject.h"
+#include "CPythonRef.h"
 #include "CPythonModule.h"
 
 #define INIT_MODULE(name, doc) \
@@ -17,7 +17,7 @@ PyMODINIT_FUNC init##name() { \
     auto module = std::make_shared<pycppconn::CPythonModule>(#name, doc); \
     pycppconn::CPyModuleContainer::Instance().AddModule(#name, module); \
     pycppconn::CPythonMetaClass::InitStaticType(); \
-    pycppconn::CPythonRefType<>::InitStaticType(); \
+    pycppconn::CPythonRef<>::InitStaticType(); \
     InitializeModule(*module); \
 } \
 void InitializeModule(pycppconn::CPythonModule& module)

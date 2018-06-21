@@ -1,9 +1,16 @@
-#include "CPythonRefObject.h"
+#include "CPythonRef.h"
 
 namespace pycppconn{
 
+    static int Traverse(PyObject *self, visitproc visit, void *arg)
+    {
+        //Instance members are kept out of the instance dictionary, they are part of the continuous memory of the instance, kept in C POD form.
+        //There is no need to traverse the members due to the fact they are not part of python garbage collector and uknown to python.
+        return 0;
+    }
+
     template<>
-    PyTypeObject CPythonRefType<>::m_staticType = {
+    PyTypeObject CPythonRef<>::m_staticType = {
             PyVarObject_HEAD_INIT(&PyType_Type, 0)
             "CPythonRefType",          /* tp_name */
             sizeof(PyObject) + sizeof(CPythonRefObject<int>),/* tp_basicsize */
@@ -27,7 +34,7 @@ namespace pycppconn{
             Py_TPFLAGS_HAVE_GC |
             Py_TPFLAGS_HAVE_WEAKREFS,  /* tp_flags */
             "CPthon meta class",       /* tp_doc */
-            &CPythonRefObject<int>::Traverse,/* tp_traverse */
+            &Traverse,/* tp_traverse */
             0,                         /* tp_clear */
             0,                         /* tp_richcompare */
             0,                         /* tp_weaklistoffset */

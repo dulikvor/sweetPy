@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <vector>
 #include <memory>
+#include <unordered_map>
 #include <Python.h>
 #include <structmember.h>
 #include "Lock.h"
@@ -13,73 +14,132 @@
 #include "CPythonModule.h"
 #include "CPythonMetaClass.h"
 #include "CPythonConstructor.h"
-#include "CPythonRefObject.h"
+#include "CPythonRef.h"
+#include "CPythonObject.h"
+#include "CPythonType.h"
+#include "Exception.h"
 
 namespace pycppconn {
+
+    class IMemberAccessor
+    {
+    public:
+        virtual ~IMemberAccessor(){}
+        virtual void Set(PyObject* object, PyObject* rhs) = 0;
+    };
+
+    template<typename MemberType>
+    class MemberAccessor : public IMemberAccessor
+    {
+    public:
+        MemberAccessor(int offset): m_offset(offset){}
+        virtual ~MemberAccessor(){}
+        /*
+         * Set will receive the rhs object, the object may be a reference wrapper
+         * /a python supported type/a C++ type.
+         */
+        void Set(PyObject* object, PyObject* rhs) override
+        {
+            MemberType& member = *(MemberType*)((char*)(object + 1) + m_offset);
+            if(CPythonRef<>::IsReferenceType<MemberType>(rhs))
+            {
+                MemberType& _rhs = Object<MemberType&>::FromPython(rhs);
+                member = _rhs;
+            }
+            else
+            {
+                auto _rhs = Object<MemberType>::FromPython(rhs);
+                member = _rhs;
+            }
+        }
+
+    private:
+        int m_offset;
+    };
+
+    template<typename Type>
+    class CPythonClassType : public CPythonType
+    {
+    public:
+        CPythonClassType(const std::string& name, const std::string& doc)
+            :CPythonType(name, doc)
+        {
+            ob_type = &CPythonMetaClass::GetStaticMetaType();
+            ob_refcnt = 1;
+            ob_size = 0;
+            tp_name = m_name.c_str();
+            tp_basicsize = sizeof(Type) + sizeof(PyObject);
+            tp_dealloc = &Dealloc;
+            tp_flags = Py_TPFLAGS_HAVE_CLASS |
+                       Py_TPFLAGS_HAVE_GC;
+            tp_doc = m_doc.c_str();
+            tp_traverse = &Traverse;
+            tp_new = PyBaseObject_Type.tp_new;
+
+        }
+
+        template<typename MemberType>
+        void CreateMemberAccessor(int offset)
+        {
+            if(m_membersAccessors.find(offset) != m_membersAccessors.end())
+                throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "MemberAccessor for that given offset already exists  - %d", offset);
+            m_membersAccessors.insert({offset, std::shared_ptr<IMemberAccessor>(new MemberAccessor<MemberType>(offset))});
+        }
+
+
+    private:
+        static int Traverse(PyObject *object, visitproc visit, void *arg)
+        {
+            //Instance members are kept out of the instance dictionary, they are part of the continuous memory of the instance, kept in C POD form.
+            //There is no need to traverse the members due to the fact they are not part of python garbage collector and uknown to python.
+            return 0;
+        }
+
+        static void Dealloc(PyObject *object)
+        {
+            //No need to call reference forget - being called by _Py_Dealloc
+            PyTypeObject* type = Py_TYPE(object);
+
+            if (PyType_IS_GC(type))
+                PyObject_GC_UnTrack(object);
+
+            if (type->tp_flags & Py_TPFLAGS_HEAPTYPE)
+                Py_DECREF(type);
+
+            ((Type*)(object + 1))->~Type();
+            type->tp_free(object);
+        }
+
+        static int SetAttribute(PyObject *, PyObject *, PyObject *) {
+
+        }
+
+
+    private:
+        std::unordered_map<int, std::shared_ptr<IMemberAccessor>> m_membersAccessors; //Nothing is shared, but due to the fact vptr is not allowed we will use raii to keep the memory in check.
+    };
 
     template<typename T, typename Type = typename std::remove_const<typename std::remove_pointer<
             typename std::remove_reference<T>::type>::type>::type>
     class CPythonClass {
     public:
         CPythonClass(CPythonModule &module, const std::string &name, const std::string &doc)
-                : m_module(module), m_typeState(new TypeState(name, doc)) {
-            m_typeState->PyType.reset(new PyTypeObject{
-                    PyVarObject_HEAD_INIT(&CPythonMetaClass::GetStaticMetaType(), 0)
-                    m_typeState->Name.c_str(), /* tp_name */
-                    sizeof(Type) + sizeof(PyObject),/* tp_basicsize */
-                    0,                         /* tp_itemsize */
-                    &Dealloc,                  /* tp_dealloc */
-                    0,                         /* tp_print */
-                    0,                         /* tp_getattr */
-                    0,                         /* tp_setattr */
-                    0,                         /* tp_compare */
-                    0,                         /* tp_repr */
-                    0,                         /* tp_as_number */
-                    0,                         /* tp_as_sequence */
-                    0,                         /* tp_as_mapping */
-                    0,                         /* tp_hash */
-                    0,                         /* tp_call */
-                    0,                         /* tp_str */
-                    0,                         /* tp_getattro */
-                    0,                         /* tp_setattro */
-                    0,                         /* tp_as_buffer */
-                    Py_TPFLAGS_HAVE_CLASS |
-                    Py_TPFLAGS_HAVE_GC |
-                    Py_TPFLAGS_HEAPTYPE,       /* tp_flags */
-                    m_typeState->Doc.c_str(),  /* tp_doc */
-                    &Traverse,                 /* tp_traverse */
-                    0,                         /* tp_clear */
-                    0,                         /* tp_richcompare */
-                    0,                         /* tp_weaklistoffset */
-                    0,                         /* tp_iter */
-                    0,                         /* tp_iternext */
-                    NULL,                      /* tp_methods */
-                    NULL,                      /* tp_members */
-                    0,                         /* tp_getset */
-                    0,                         /* tp_base */
-                    0,                         /* tp_dict */
-                    0,                         /* tp_descr_get */
-                    0,                         /* tp_descr_set */
-                    0,                         /* tp_dictoffset */
-                    NULL,                      /* tp_init */
-                    0,                         /* tp_alloc */
-                    NULL,                      /* tp_new */
-            });
-            Py_IncRef((PyObject *) m_typeState->PyType.get()); //Making sure the true owner of the type is CPythonClass
+                : m_module(module), m_type(new CPythonClassType<Type>(name, doc)) {
+            Py_IncRef((PyObject *)m_type.get()); //Making sure the true owner of the type is CPythonClass
         }
 
         ~CPythonClass() {
             InitMembers();
             InitMethods();
             InitStaticMethods();
-            PyType_Ready(m_typeState->PyType.get());
-            CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<CPythonClass<Type>>(), m_typeState->PyType.get());
+            PyType_Ready(m_type.get());
+            CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<CPythonClass<Type>>(), m_type.get());
             //Init ref type
-            CPythonRefType<Type> refType(m_module, std::string(m_typeState->Name) + "_ref", std::string(m_typeState->Doc) + "_ref");
+            CPythonRef<Type> refType(m_module, std::string(m_type->GetName()) + "_ref", std::string(m_type->GetDoc()) + "_ref");
             refType.AddMethods(m_cPythonMemberFunctions);
             refType.AddMembers(m_cPythonMembers);
 
-            m_module.AddType(std::move(m_typeState));
+            m_module.AddType(std::move(m_type));
         }
 
         template<typename X, typename std::enable_if<std::is_member_function_pointer<X>::value, bool>::type = true>
@@ -99,12 +159,15 @@ namespace pycppconn {
 
         template<typename... Args>
         void AddConstructor() {
-            m_typeState->PyType->tp_init = &CPythonConstructor<Type, Args...>::Wrapper;
+            m_type->tp_init = &CPythonConstructor<Type, Args...>::Wrapper;
         }
 
         template<typename MemberType>
-        void AddMember(const std::string &name, MemberType Type::* member, const std::string &doc) {
+        void AddMember(const std::string &name, MemberType Type::* member, const std::string &doc)
+        {
             m_cPythonMembers.emplace_back(new CPythonMember<Type, MemberType>(name, member, doc));
+            CPythonClassType<Type>& type = static_cast<CPythonClassType<Type>&>(*m_type);
+            type.template CreateMemberAccessor<MemberType>(GetOffset(member));
         }
 
     private:
@@ -113,25 +176,10 @@ namespace pycppconn {
             return typeid(CPythonFunctionType).hash_code();
         }
 
-        static int Traverse(PyObject *self, visitproc visit, void *arg) {
-            //Instance members are kept out of the instance dictionary, they are part of the continuous memory of the instance, kept in C POD form.
-            //the descriptors are placed with the type it self, a descriptor per member.
-            PyTypeObject *type = Py_TYPE(self);
-            if (type->tp_flags & Py_TPFLAGS_HEAPTYPE)
-                Py_VISIT(type);
-
-            return 0;
-        }
-
-        static void Dealloc(PyObject *self) {
-            Type *_this = reinterpret_cast<Type *>((char *) self + sizeof(PyObject));
-            _this->~Type();
-            Py_TYPE(self)->tp_free(self);
-        }
 
         void InitMethods() {
             PyMethodDef *methods = new PyMethodDef[m_cPythonMemberFunctions.size() + 1]; //spare space for sentinal
-            m_typeState->PyType->tp_methods = methods;
+            m_type->tp_methods = methods;
             for (const auto &method : m_cPythonMemberFunctions) {
                 method->AllocateObjectsTypes(m_module);
                 *methods = *method->ToPython();
@@ -144,11 +192,11 @@ namespace pycppconn {
         void InitStaticMethods() {
             if (m_cPythonMemberStaticFunctions.size() > 0) {
                 auto type = std::unique_ptr<CPythonMetaClass>(new CPythonMetaClass(m_module,
-                                                                                   std::string(m_typeState->Name) +
+                                                                                   std::string(m_type->GetName()) +
                                                                                    "MetaClass",
-                                                                                   std::string(m_typeState->Doc) +
+                                                                                   std::string(m_type->GetDoc()) +
                                                                                    "MetaClass"));
-                m_typeState->PyType.get()->ob_type = &type->ToPython();
+                m_type.get()->ob_type = &type->ToPython();
                 for (auto &staticFunction : m_cPythonMemberStaticFunctions) {
                     staticFunction->AllocateObjectsTypes(m_module);
                     type->AddMethod(staticFunction);
@@ -160,7 +208,7 @@ namespace pycppconn {
 
         void InitMembers() {
             PyMemberDef *members = new PyMemberDef[m_cPythonMembers.size() + 1]; //spare space for sentinal
-            m_typeState->PyType->tp_members = members;
+            m_type->tp_members = members;
             for (const auto &member : m_cPythonMembers) {
                 *members = *member->ToPython();
                 members++;
@@ -168,15 +216,11 @@ namespace pycppconn {
             *members = {NULL, 0, 0, 0, NULL};
         }
 
-        static int SetAttribute(PyObject *, PyObject *, PyObject *) {
-
-        }
-
     private:
         std::vector<std::shared_ptr<ICPythonFunction>> m_cPythonMemberFunctions;
         std::vector<std::shared_ptr<ICPythonFunction>> m_cPythonMemberStaticFunctions;
         std::vector<std::shared_ptr<ICPythonMember>> m_cPythonMembers;
-        std::unique_ptr<TypeState> m_typeState;
+        std::unique_ptr<CPythonType> m_type;
         CPythonModule &m_module;
     };
 }

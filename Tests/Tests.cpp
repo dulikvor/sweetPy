@@ -36,7 +36,8 @@ namespace pycppconnTest {
 
 
     TEST(CPythonClassTest, PODByValueArgumentConstructor) {
-        const char *testingScript = "a = TestClass(7)";
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "print TestClass.__name__";
         PyRun_SimpleString(testingScript);
 
     }
