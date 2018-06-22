@@ -11,6 +11,26 @@ namespace pycppconnTest {
         Bad = 3
     };
 
+    class TestSubjectC{
+    public:
+        TestSubjectC(const TestSubjectC&) = delete;
+        TestSubjectC& operator=(const TestSubjectC&) = delete;
+        TestSubjectC(const TestSubjectC&&) = delete;
+        TestSubjectC& operator=(const TestSubjectC&&) = delete;
+        static TestSubjectC& Instance(){
+            static TestSubjectC c{};
+            return c;
+        }
+        void Inc(){i++;}
+
+    public:
+        int i;
+
+    private:
+        TestSubjectC(){}
+
+    };
+
     class TestSubjectB{
     public:
         TestSubjectB():m_value(0){}

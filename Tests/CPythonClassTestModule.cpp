@@ -33,6 +33,10 @@ namespace pycppconnTest {
         CPythonEnum enumSubject(module, "Enum_Python", "What we think about python in general");
         enumSubject.AddEnumValue("Good", (int)Python::Good, "We are pretty sure, python is great");
         enumSubject.AddEnumValue("Bad", (int)Python::Bad, "Lets be honest, cpp is the best :)");
+
+        CPythonClass<TestSubjectC> subjectC(module, "TestClassC", "A non copyable/moveable version for a class");
+        subjectC.AddMethod("inc", "will increase i", &TestSubjectC::Inc);
+        subjectC.AddStaticMethod("instance", "a reference method", &TestSubjectC::Instance);
     }
 
 }

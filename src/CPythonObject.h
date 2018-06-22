@@ -419,9 +419,8 @@ namespace pycppconn{
     template<typename T, std::size_t I>
     struct ObjectWrapper<T&, I>
     {
-
-        typedef typename Object<T>::FromPythonType FromPythonType;
-        typedef typename Object<T>::Type Type;
+        typedef typename Object<T&>::FromPythonType FromPythonType;
+        typedef typename Object<T&>::Type Type;
         static void* AllocateObjectType(CPythonModule& module) {}
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -433,9 +432,8 @@ namespace pycppconn{
     template<typename T, std::size_t I>
     struct ObjectWrapper<T&&, I>
     {
-
-        typedef typename Object<T>::FromPythonType FromPythonType;
-        typedef typename Object<T>::Type Type;
+        typedef typename Object<T&&>::FromPythonType FromPythonType;
+        typedef typename Object<T&&>::Type Type;
         static void* AllocateObjectType(CPythonModule& module) {}
         template<typename... Args>
         static void MultiInvoker(Args&&...){}

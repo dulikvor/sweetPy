@@ -1,8 +1,10 @@
+#include <type_traits>
 #include "gtest/gtest.h"
 #include <Python.h>
 #include "core/Logger.h"
 #include "PythonEmbedder.h"
 #include "CPythonClassTestModule.h"
+#include "CPythonObject.h"
 
 static int _argc;
 static char **_argv;
@@ -16,7 +18,7 @@ namespace pycppconnTest {
         void SetUp() override {
             core::Logger::Instance().Start(core::TraceSeverity::Info);
             PythonEmbedder::InitiateInterperter("CPythonClassTest", _argc, _argv);
-            const char *testingScript = "from CPythonClassTestModule import TestClass, Enum_Python\n";
+            const char *testingScript = "from CPythonClassTestModule import TestClass, TestClassC, Enum_Python\n";
             PyRun_SimpleString(testingScript);
         }
 
@@ -24,6 +26,16 @@ namespace pycppconnTest {
             PythonEmbedder::TerminateInterperter();
         }
     };
+
+    //Test is going to validate at compile time the correctness of different types use cases
+    // being handled by ObjectWrapper and Object.
+    TEST(CPythonClassTest, CPythonObjectWrapperTest){
+        {
+            //The use case of non copyable/moveable reference type
+            static_assert(std::is_same<typename pycppconn::ObjectWrapper<TestSubjectC&,0>::Type, TestSubjectC>::value, "ObjectWrapper Type - validating a non copyable/moveable reference type assertion has failed.");
+            static_assert(std::is_same<typename pycppconn::ObjectWrapper<TestSubjectC&,0>::FromPythonType, PyObject*>::value, "ObjectWrapper FromPython - validating a non copyable/moveable reference type assertion has failed.");
+        }
+    }
 
 
     TEST(CPythonClassTest, StaticMethod) {
@@ -36,10 +48,9 @@ namespace pycppconnTest {
 
 
     TEST(CPythonClassTest, PODByValueArgumentConstructor) {
-        const char *testingScript = "a = TestClass(7)\n"
-                                    "print TestClass.__name__";
+        const char *testingScript = "a = TestClass(7)\n";
         PyRun_SimpleString(testingScript);
-
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), 7);
     }
 
     TEST(CPythonClassTest, PODByValueMember) {
@@ -75,7 +86,11 @@ namespace pycppconnTest {
         ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("s"), std::string("Hello World"));
         ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("newS"), std::string("Hello World Temp"));
     }
-
+    //Test is going to verify the capability to return a reference of type T&.
+    //The reference object is wrapped when being tranformed from the C++ to Python memory model.
+    //in this test a.GetB() will return a reference wrapper object pointed by python's module entry b.
+    //b is then provided back to a native function which will unpack the reference object.
+    //at the end the undeline buffer is modified and the result is asserted.
     TEST(CPythonClassTest, LvalueReferenceArgumentReturnPassing) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "b = a.GetB()\n"
@@ -83,6 +98,16 @@ namespace pycppconnTest {
         PyRun_SimpleString(testingScript);
         const TestSubjectB& b = PythonEmbedder::GetAttribute<const TestSubjectB&>("b");
         ASSERT_EQ(b.GetValue(), 1);
+    }
+    //Test is going to address the capability of providing a wrapped reference of type T&, where T
+    //is non copyable and non moveable. the returned wrapped will be invoked upon, changing the internal state
+    //of the wrapped object. the result of that modification will be inspected.
+    TEST(CPythonClassTest, LvalueReferenceArgumentReturnNonCopy_MoveAblePassing) {
+        const char *testingScript = "a = TestClassC.instance()\n"
+                                    "a.inc()";
+        PyRun_SimpleString(testingScript);
+        TestSubjectC& a = PythonEmbedder::GetAttribute<TestSubjectC&>("a");
+        ASSERT_EQ(a.i, 1);
     }
 
     TEST(CPythonClassTest, NativeReturn) {
