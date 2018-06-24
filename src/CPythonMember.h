@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <type_traits>
+#include <algorithm>
 #include <Python.h>
 #include <structmember.h>
 
@@ -75,12 +76,20 @@ namespace pycppconn{
 
         }
         std::unique_ptr<PyMemberDef> ToPython() const override{
+            char* name = new char[m_name.length() + 1];
+            std::copy_n(m_name.c_str(), m_name.length(), name);
+            name[m_name.length()] = '\0';
+
+            char* doc = new char[m_doc.length() + 1];
+            std::copy_n(m_doc.c_str(), m_doc.length(), doc);
+            name[m_doc.length()] = '\0';
+
             return std::unique_ptr<PyMemberDef>(new PyMemberDef{
-                                                        const_cast<char *>(m_name.c_str()),
+                                                        name,
                                                         m_typeId,
                                                         m_offset,
                                                         IsNonConst ? 0 : READONLY,
-                                                        const_cast<char *>(m_doc.c_str())
+                                                        doc
             }); //Python emphasis the use of implicit conversion of C++ string literals to prvalue of char*, so const_cast is safe.
         }
 
@@ -98,12 +107,20 @@ namespace pycppconn{
         static constexpr bool IsNonConst = std::is_same<MemberType, typename std::remove_const<MemberType>::type>::value;
         CPythonMember(const std::string& name, MemberType Type::*& member, const std::string& doc):m_offset(GetOffset(member)), m_name(name), m_doc(doc){}
         std::unique_ptr<PyMemberDef> ToPython() const override{
+            char* name = new char[m_name.length() + 1];
+            std::copy_n(m_name.c_str(), m_name.length(), name);
+            name[m_name.length()] = '\0';
+
+            char* doc = new char[m_doc.length() + 1];
+            std::copy_n(m_doc.c_str(), m_doc.length(), doc);
+            name[m_doc.length()] = '\0';
+
             return std::unique_ptr<PyMemberDef>(new PyMemberDef{
-                    const_cast<char *>(m_name.c_str()),
+                    name,
                     T_STRING,
                     m_offset,
                     IsNonConst ? 0 : READONLY,
-                    const_cast<char *>(m_doc.c_str())
+                    doc
             }); //Python emphasis the use of implicit conversion of C++ string literals to prvalue of char*, so const_cast is safe.
         }
 

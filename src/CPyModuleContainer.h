@@ -18,8 +18,8 @@ namespace pycppconn{
         void AddModule(const std::string& key, const std::shared_ptr<CPythonModule>& module);
         CPythonModule& GetModule(const std::string& key);
         void AddType(size_t key, PyTypeObject* const type);
-        void AddMethod(int key, const std::shared_ptr<ICPythonFunction>& method);
-        void AddStaticMethod(int key, const std::shared_ptr<ICPythonFunction>& staticMethod);
+        void AddMethod(int key, std::shared_ptr<ICPythonFunction>& method);
+        void AddStaticMethod(int key, std::shared_ptr<ICPythonFunction>& staticMethod);
         ICPythonFunction& GetMethod(int key);
         ICPythonFunction& GetStaticMethod(int key);
         bool Exists(size_t key);

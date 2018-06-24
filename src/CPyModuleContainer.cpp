@@ -29,13 +29,13 @@ namespace pycppconn{
     }
 
 
-    void CPyModuleContainer::AddMethod(int key, const std::shared_ptr<ICPythonFunction>& method){
+    void CPyModuleContainer::AddMethod(int key, std::shared_ptr<ICPythonFunction>& method){
         if( m_methods.find(key) != m_methods.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
         m_methods.insert(std::make_pair(key, method));
     }
 
-    void CPyModuleContainer::AddStaticMethod(int key, const std::shared_ptr<ICPythonFunction>& staticMethod){
+    void CPyModuleContainer::AddStaticMethod(int key, std::shared_ptr<ICPythonFunction>& staticMethod){
         if( m_staticMethods.find(key) != m_staticMethods.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
         m_staticMethods.insert(std::make_pair(key, staticMethod));

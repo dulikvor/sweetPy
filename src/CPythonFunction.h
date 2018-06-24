@@ -15,6 +15,7 @@ namespace pycppconn {
 
     template<typename Return, typename... Args>
     class CPythonFunction: public ICPythonFunction {
+        virtual ~CPythonFunction(){}
     };
 
     template<typename ClassType, typename Return, typename... Args>
@@ -27,6 +28,8 @@ namespace pycppconn {
                 : m_name(name), m_doc(doc), m_memberMethod(memberMethod) {
         }
 
+        virtual ~CPythonFunction(){}
+
         CPythonFunction(CPythonFunction &) = delete;
 
         CPythonFunction &operator=(CPythonFunction &) = delete;
@@ -35,14 +38,12 @@ namespace pycppconn {
             std::swap(m_memberMethod, obj.m_memberMethod);
             std::swap(m_name, obj.m_name);
             std::swap(m_doc, obj.m_doc);
-            std::swap(m_pyMethod,obj.m_pyMethod);
         }
 
         CPythonFunction &operator=(CPythonFunction &&obj) {
             std::swap(m_memberMethod, obj.m_memberMethod);
             std::swap(m_name, obj.m_name);
             std::swap(m_doc, obj.m_doc);
-            std::swap(m_pyMethod, obj.m_pyMethod);
         }
 
         template<bool Enable = true, std::size_t... I>
@@ -136,7 +137,6 @@ namespace pycppconn {
         }
 
     private:
-        std::unique_ptr<PyMethodDef> m_pyMethod;
         MemberFunction m_memberMethod;
         std::string m_name;
         std::string m_doc;
@@ -152,6 +152,8 @@ namespace pycppconn {
                 : m_name(name), m_doc(doc), m_memberMethod(memberMethod) {
         }
 
+        virtual ~CPythonFunction(){}
+
         CPythonFunction(CPythonFunction &) = delete;
 
         CPythonFunction &operator=(CPythonFunction &) = delete;
@@ -160,14 +162,12 @@ namespace pycppconn {
             std::swap(m_memberMethod, obj.m_memberMethod);
             std::swap(m_name, obj.m_name);
             std::swap(m_doc, obj.m_doc);
-            std::swap(m_pyMethod, obj.m_pyMethod);
         }
 
         CPythonFunction &operator=(CPythonFunction &&obj) {
             std::swap(m_memberMethod, obj.m_memberMethod);
             std::swap(m_name, obj.m_name);
             std::swap(m_doc, obj.m_doc);
-            std::swap(m_pyMethod, obj.m_pyMethod);
         }
 
         template<bool Enable = true, std::size_t... I>
@@ -259,7 +259,6 @@ namespace pycppconn {
         }
 
     private:
-        std::unique_ptr<PyMethodDef> m_pyMethod;
         MemberFunction m_memberMethod;
         std::string m_name;
         std::string m_doc;
@@ -275,6 +274,8 @@ namespace pycppconn {
                 : m_name(name), m_doc(doc), m_staticMethod(staticMethod) {
         }
 
+        virtual ~CPythonFunction(){}
+
         CPythonFunction(CPythonFunction &) = delete;
 
         CPythonFunction &operator=(CPythonFunction &) = delete;
@@ -283,14 +284,12 @@ namespace pycppconn {
             std::swap(m_staticMethod, obj.m_staticMethod);
             std::swap(m_name, obj.m_name);
             std::swap(m_doc, obj.m_doc);
-            std::swap(m_pyMethod, obj.m_pyMethod);
         }
 
         CPythonFunction &operator=(CPythonFunction &&obj) {
             std::swap(m_staticMethod, obj.m_staticMethod);
             std::swap(m_name, obj.m_name);
             std::swap(m_doc, obj.m_doc);
-            std::swap(m_pyMethod, obj.m_pyMethod);
         }
 
         template<bool Enable = true, std::size_t... I>
@@ -367,7 +366,6 @@ namespace pycppconn {
         }
 
     private:
-        std::unique_ptr<PyMethodDef> m_pyMethod;
         StaticFunction m_staticMethod;
         std::string m_name;
         std::string m_doc;

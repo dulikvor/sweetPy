@@ -3,11 +3,20 @@
 #include <string>
 #include <memory>
 #include <Python.h>
+#include "CPythonType.h"
 #include "CPythonModule.h"
-#include "CPythonMetaClass.h"
 #include "CPythonEnumValue.h"
 
 namespace pycppconn {
+
+    template<bool IsEnumMeta>
+    class CPythonMetaClass;
+
+    class CPythonEnumType : public CPythonType
+    {
+    public:
+        CPythonEnumType(const std::string& name, const std::string& doc, PyTypeObject* const type);
+    };
 
     class CPythonEnum {
     public:
@@ -22,7 +31,7 @@ namespace pycppconn {
         }
 
     private:
-        std::unique_ptr<CPythonMetaClass> m_metaClass;
+        std::unique_ptr<CPythonMetaClass<true>> m_metaClass;
         std::vector<std::unique_ptr<CPythonEnumValue>> m_enumValues;
         std::string m_name;
         std::string m_doc;

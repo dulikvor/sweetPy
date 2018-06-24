@@ -12,6 +12,7 @@ namespace pycppconn {
     class ICPythonFunction;
     class CPythonModule;
 
+    template <bool IsEnumMeta>
     class CPythonMetaClassType : public CPythonType
     {
     public:
@@ -19,24 +20,26 @@ namespace pycppconn {
             False = 0,
             True = 1
         };
-
         CPythonMetaClassType(const std::string& name, const std::string& doc, int extendedSize);
 
     private:
         static int IsCollectable(PyObject *obj);
+        static void Dealloc(PyObject *object);
     };
 
-    class CPythonMetaClass {
+    template <bool IsEnumMeta = false>
+    class CPythonMetaClass
+    {
     public:
         CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc, int extendedSize = 0);
         ~CPythonMetaClass();
+        static PyTypeObject& GetStaticMetaType();
+        PyTypeObject& ToPython() const;
+
         void InitType();
-        void AddToModule();
         void AddMethod(const std::shared_ptr<ICPythonFunction>& method);
         void AddEnumValue(std::unique_ptr<CPythonEnumValue>&& enumValue);
-        PyTypeObject& ToPython() const;
-        PyObject* InitializeSubType(const std::string& name, const std::string& doc) const;
-        static PyTypeObject &GetStaticMetaType();
+        PyObject* InitializeEnumType(const std::string& name, const std::string& doc) const;
         static void InitStaticType();
 
     private:

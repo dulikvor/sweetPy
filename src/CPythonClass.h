@@ -40,7 +40,7 @@ namespace pycppconn {
          */
         void Set(PyObject* object, PyObject* rhs) override
         {
-            MemberType& member = *(MemberType*)((char*)(object + 1) + m_offset);
+            MemberType& member = *(MemberType*)((char*)object + m_offset);
             if(CPythonRef<>::IsReferenceType<MemberType>(rhs))
             {
                 MemberType& _rhs = Object<MemberType&>::FromPython(rhs);
@@ -61,10 +61,12 @@ namespace pycppconn {
     class CPythonClassType : public CPythonType
     {
     public:
+        typedef CPythonClassType<Type> self;
+
         CPythonClassType(const std::string& name, const std::string& doc)
             :CPythonType(name, doc)
         {
-            ob_type = &CPythonMetaClass::GetStaticMetaType();
+            ob_type = &CPythonMetaClass<>::GetStaticMetaType();
             ob_refcnt = 1;
             ob_size = 0;
             tp_name = m_name.c_str();
@@ -75,6 +77,7 @@ namespace pycppconn {
             tp_doc = m_doc.c_str();
             tp_traverse = &Traverse;
             tp_new = PyBaseObject_Type.tp_new;
+            tp_setattro = &SetAttribute;
 
         }
 
@@ -85,6 +88,15 @@ namespace pycppconn {
                 throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "MemberAccessor for that given offset already exists  - %d", offset);
             m_membersAccessors.insert({offset, std::shared_ptr<IMemberAccessor>(new MemberAccessor<MemberType>(offset))});
         }
+
+        IMemberAccessor& GetAccessor(int offset)
+        {
+            auto it = m_membersAccessors.find(offset);
+            if(it == m_membersAccessors.end())
+                throw CPythonException(PyExc_LookupError, __CORE_SOURCE, "Requested accessor couldn't be found, offset - %d", offset);
+            return *it->second;
+        }
+
 
 
     private:
@@ -110,14 +122,27 @@ namespace pycppconn {
             type->tp_free(object);
         }
 
-        static int SetAttribute(PyObject *, PyObject *, PyObject *) {
+        static int SetAttribute(PyObject* object, PyObject* attrName, PyObject* value) {
+            PyTypeObject* type = CPyModuleContainer::Instance().GetType(CPyModuleContainer::TypeHash<self>());
+            CPYTHON_VERIFY(type != nullptr,"was unable to locate type");
+            CPYTHON_VERIFY(attrName->ob_type == &PyString_Type,"attrName must be py string type");
+            char* name = PyString_AsString(attrName);
+            MembersDefs defs(type->tp_members);
+            auto it = std::find_if(defs.begin(), defs.end(), [&name](typename MembersDefs::iterator::reference rhs){return strcmp(rhs.name, name) == 0; });
+            if(it == defs.end())
+                throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Requested attribute - %s, was not found", name);
 
+            self& cpythonClassType = static_cast<self&>(*type);
+            IMemberAccessor& accessor = cpythonClassType.GetAccessor(it->offset);
+            accessor.Set(object, value);
+            return 0;
         }
 
 
     private:
         std::unordered_map<int, std::shared_ptr<IMemberAccessor>> m_membersAccessors; //Nothing is shared, but due to the fact vptr is not allowed we will use raii to keep the memory in check.
     };
+
 
     template<typename T, typename Type = typename std::remove_const<typename std::remove_pointer<
             typename std::remove_reference<T>::type>::type>::type>
@@ -133,7 +158,7 @@ namespace pycppconn {
             InitMethods();
             InitStaticMethods();
             PyType_Ready(m_type.get());
-            CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<CPythonClass<Type>>(), m_type.get());
+            CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<CPythonClassType<Type>>(), m_type.get());
             //Init ref type
             CPythonRef<Type> refType(m_module, std::string(m_type->GetName()) + "_ref", std::string(m_type->GetDoc()) + "_ref");
             refType.AddMethods(m_cPythonMemberFunctions);
@@ -178,20 +203,23 @@ namespace pycppconn {
 
 
         void InitMethods() {
-            PyMethodDef *methods = new PyMethodDef[m_cPythonMemberFunctions.size() + 1]; //spare space for sentinal
-            m_type->tp_methods = methods;
-            for (const auto &method : m_cPythonMemberFunctions) {
-                method->AllocateObjectsTypes(m_module);
-                *methods = *method->ToPython();
-                methods++;
+            if(m_cPythonMemberFunctions.empty() == false)
+            {
+                PyMethodDef *methods = new PyMethodDef[m_cPythonMemberFunctions.size() + 1]; //spare space for sentinal
+                m_type->tp_methods = methods;
+                for (const auto &method : m_cPythonMemberFunctions) {
+                    method->AllocateObjectsTypes(m_module);
+                    *methods = *method->ToPython();
+                    methods++;
+                }
+                *methods = {NULL, NULL, 0, NULL};
             }
-            *methods = {NULL, NULL, 0, NULL};
         }
 
 
         void InitStaticMethods() {
             if (m_cPythonMemberStaticFunctions.size() > 0) {
-                auto type = std::unique_ptr<CPythonMetaClass>(new CPythonMetaClass(m_module,
+                auto type = std::unique_ptr<CPythonMetaClass<>>(new CPythonMetaClass<>(m_module,
                                                                                    std::string(m_type->GetName()) +
                                                                                    "MetaClass",
                                                                                    std::string(m_type->GetDoc()) +
@@ -202,18 +230,20 @@ namespace pycppconn {
                     type->AddMethod(staticFunction);
                 }
                 type->InitType();
-                type->AddToModule();
             }
         }
 
         void InitMembers() {
-            PyMemberDef *members = new PyMemberDef[m_cPythonMembers.size() + 1]; //spare space for sentinal
-            m_type->tp_members = members;
-            for (const auto &member : m_cPythonMembers) {
-                *members = *member->ToPython();
-                members++;
+            if( m_cPythonMembers.empty() == false)
+            {
+                PyMemberDef *members = new PyMemberDef[m_cPythonMembers.size() + 1]; //spare space for sentinal
+                m_type->tp_members = members;
+                for (const auto &member : m_cPythonMembers) {
+                    *members = *member->ToPython();
+                    members++;
+                }
+                *members = {NULL, 0, 0, 0, NULL};
             }
-            *members = {NULL, 0, 0, 0, NULL};
         }
 
     private:

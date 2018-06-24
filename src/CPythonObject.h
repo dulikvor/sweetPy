@@ -18,13 +18,13 @@ namespace pycppconn{
     template<typename Type>
     class CPythonObjectType : public CPythonType {
     public:
-        typedef CPythonObjectType<Type> Self;
+        typedef CPythonObjectType<Type> self;
 
         CPythonObjectType(CPythonModule &module)
-                : CPythonType(std::to_string((int)CPyModuleContainer::TypeHash<Self>()) + "-GenericObjectType",
-                                      std::to_string((int)CPyModuleContainer::TypeHash<Self>()) + "-GenericObjectType")
+                : CPythonType(std::to_string((int)CPyModuleContainer::TypeHash<self>()) + "-GenericObjectType",
+                                      std::to_string((int)CPyModuleContainer::TypeHash<self>()) + "-GenericObjectType")
         {
-            ob_type = &CPythonMetaClass::GetStaticMetaType();
+            ob_type = &CPythonMetaClass<>::GetStaticMetaType();
             ob_refcnt = 1;
             ob_size = 0;
             tp_name = m_name.c_str();

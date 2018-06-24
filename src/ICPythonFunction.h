@@ -10,6 +10,7 @@ namespace pycppconn {
     class ICPythonFunction
     {
     public:
+        virtual ~ICPythonFunction(){}
         virtual std::unique_ptr<PyMethodDef> ToPython() const = 0;
         virtual void AllocateObjectsTypes(CPythonModule& module) const = 0;
     };

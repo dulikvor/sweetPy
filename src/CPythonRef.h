@@ -32,7 +32,7 @@ namespace pycppconn {
         CPythonRefType(const std::string& name, const std::string& doc)
                 : CPythonType(name, doc)
         {
-            ob_type = &CPythonMetaClass::GetStaticMetaType();
+            ob_type = &CPythonMetaClass<>::GetStaticMetaType();
             ob_refcnt = 1;
             ob_size = 0;
             tp_name = m_name.c_str();
@@ -124,24 +124,30 @@ namespace pycppconn {
 
         void InitMethods()
         {
-            PyMethodDef *methods = new PyMethodDef[m_cPythonMemberFunctions.size() + 1]; //spare space for sentinal
-            m_type->tp_methods = methods;
-            for (const auto &method : m_cPythonMemberFunctions) {
-                *methods = *method->ToPython();
-                methods++;
+            if(m_cPythonMemberFunctions.empty() == false)
+            {
+                PyMethodDef *methods = new PyMethodDef[m_cPythonMemberFunctions.size() + 1]; //spare space for sentinal
+                m_type->tp_methods = methods;
+                for (const auto &method : m_cPythonMemberFunctions) {
+                    *methods = *method->ToPython();
+                    methods++;
+                }
+                *methods = {NULL, NULL, 0, NULL};
             }
-            *methods = {NULL, NULL, 0, NULL};
         }
 
         void InitMembers()
         {
-            PyMemberDef *members = new PyMemberDef[m_cPythonMembers.size() + 1]; //spare space for sentinal
-            m_type->tp_members = members;
-            for (const auto &member : m_cPythonMembers) {
-                *members = *member->ToPython();
-                members++;
+            if(m_cPythonMembers.empty() == false)
+            {
+                PyMemberDef *members = new PyMemberDef[m_cPythonMembers.size() + 1]; //spare space for sentinal
+                m_type->tp_members = members;
+                for (const auto &member : m_cPythonMembers) {
+                    *members = *member->ToPython();
+                    members++;
+                }
+                *members = {NULL, 0, 0, 0, NULL};
             }
-            *members = {NULL, 0, 0, 0, NULL};
         }
 
     private:

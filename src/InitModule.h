@@ -16,7 +16,7 @@ void InitializeModule(pycppconn::CPythonModule& module); \
 PyMODINIT_FUNC init##name() { \
     auto module = std::make_shared<pycppconn::CPythonModule>(#name, doc); \
     pycppconn::CPyModuleContainer::Instance().AddModule(#name, module); \
-    pycppconn::CPythonMetaClass::InitStaticType(); \
+    pycppconn::CPythonMetaClass<>::InitStaticType(); \
     pycppconn::CPythonRef<>::InitStaticType(); \
     InitializeModule(*module); \
 } \

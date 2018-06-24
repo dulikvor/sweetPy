@@ -15,12 +15,20 @@ namespace pycppconn{
                 :m_offset(offset), m_name(name), m_doc(doc), m_value(value){}
 
         std::unique_ptr<PyMemberDef> ToPython() const {
+            char* name = new char[m_name.length() + 1];
+            std::copy_n(m_name.c_str(), m_name.length(), name);
+            name[m_name.length()] = '\0';
+
+            char* doc = new char[m_doc.length() + 1];
+            std::copy_n(m_doc.c_str(), m_doc.length(), doc);
+            doc[m_doc.length()] = '\0';
+
             return std::unique_ptr<PyMemberDef>(new PyMemberDef{
-                    const_cast<char *>(m_name.c_str()),
+                    name,
                     T_INT,
                     m_offset,
                     READONLY,
-                    const_cast<char *>(m_doc.c_str())
+                    doc
             });
         }
         int GetOffset() const { return m_offset; }
