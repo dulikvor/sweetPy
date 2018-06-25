@@ -22,7 +22,7 @@ Python - version 2.7.
 
 GoogleTest - version 1.8.0 and higher - not mandatory.
 
-GoogleTesst will be fetched automatically on need.
+GoogleTest will be fetched automatically on need.
 
 ### Installing
 
@@ -75,7 +75,7 @@ sweetPy supports the following C++ language capabilities, into python:
 1. Exporting Enums.
 3. User types supports:
 - User defined constructor.
-- User defined destructors.
+- User defined destructor.
 - Member functions (Not including overloading as of now).
 - Members - both const and not (for read and write permission).
 - static member functions.
