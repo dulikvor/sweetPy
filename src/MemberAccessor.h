@@ -28,6 +28,11 @@ namespace pycppconn {
             }
         }
 
+        PyObject* Get(PyObject *object) override {
+            MemberType &member = *(MemberType *) ((char *) object + m_offset);
+            return Object<MemberType>::ToPython(member);
+        }
+
     private:
         int m_offset;
     };

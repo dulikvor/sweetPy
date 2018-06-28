@@ -136,6 +136,18 @@ namespace pycppconnTest {
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("b_value"), 1);
     }
 
+
+    TEST(CPythonClassTest, AccessNonPythonTypes){
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "b = a.GetBByValue()\n"
+                                    "def get(a = str):\n"
+                                    "   return a\n"
+                                    "c = get(b.str)";
+
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(strcmp(PythonEmbedder::GetAttribute<std::string>("c").c_str(), "Hello World") == 0, true);
+    }
+
     TEST(CPythonClassTest, Enum) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "a.SetPython(Enum_Python.Bad)";

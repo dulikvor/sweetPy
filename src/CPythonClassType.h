@@ -28,6 +28,7 @@ namespace pycppconn {
             tp_traverse = &Traverse;
             tp_new = PyBaseObject_Type.tp_new;
             tp_setattro = &SetAttribute;
+            tp_getattro = &GetAttribute;
 
         }
 
@@ -86,6 +87,23 @@ namespace pycppconn {
             IMemberAccessor &accessor = cpythonClassType.GetAccessor(it->offset);
             accessor.Set(object, value);
             return 0;
+        }
+
+        static PyObject* GetAttribute(PyObject *object, PyObject *attrName) {
+            PyTypeObject *type = CPyModuleContainer::Instance().GetType(CPyModuleContainer::TypeHash<self>());
+            CPYTHON_VERIFY(type != nullptr, "was unable to locate type");
+            CPYTHON_VERIFY(attrName->ob_type == &PyString_Type, "attrName must be py string type");
+            char *name = PyString_AsString(attrName);
+            MembersDefs defs(type->tp_members);
+            auto it = std::find_if(defs.begin(), defs.end(), [&name](typename MembersDefs::iterator::reference rhs) {
+                return strcmp(rhs.name, name) == 0;
+            });
+            if (it == defs.end())
+               return  PyObject_GenericGetAttr(object, attrName);
+
+            self &cpythonClassType = static_cast<self &>(*type);
+            IMemberAccessor &accessor = cpythonClassType.GetAccessor(it->offset);
+            return accessor.Get(object);
         }
 
 

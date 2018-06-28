@@ -33,12 +33,13 @@ namespace pycppconnTest {
 
     class TestSubjectB{
     public:
-        TestSubjectB():m_value(0){}
+        TestSubjectB():m_value(0), m_str("Hello World"){}
         void IncValue(){m_value++;}
         int GetValue() const { return m_value; }
 
     public:
         int m_value;
+        std::string m_str;
     };
 
     class TestSubjectA {
