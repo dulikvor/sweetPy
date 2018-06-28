@@ -30,6 +30,10 @@ namespace pycppconnTest {
         subject.AddMember("ctypeStr", &TestSubjectA::m_ctypeStr, "c-type string member support");
         subject.AddMethod("SetPython", "Will set the python enum value", &TestSubjectA::SetPython);
 
+        CPythonClass<TestSubjectB> subjectB(module, "TestClassB", "TestClassB");
+        subjectB.AddMethod("IncValue", "Will increase b internal ref count", &TestSubjectB::IncValue);
+        subjectB.AddMember("value", &TestSubjectB::m_value, "value");
+
         CPythonEnum enumSubject(module, "Enum_Python", "What we think about python in general");
         enumSubject.AddEnumValue("Good", (int)Python::Good, "We are pretty sure, python is great");
         enumSubject.AddEnumValue("Bad", (int)Python::Bad, "Lets be honest, cpp is the best :)");

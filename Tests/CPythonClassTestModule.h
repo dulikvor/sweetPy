@@ -37,7 +37,7 @@ namespace pycppconnTest {
         void IncValue(){m_value++;}
         int GetValue() const { return m_value; }
 
-    private:
+    public:
         int m_value;
     };
 

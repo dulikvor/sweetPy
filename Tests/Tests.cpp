@@ -123,6 +123,19 @@ namespace pycppconnTest {
         ASSERT_EQ(b_2.get(), nullptr);
     }
 
+
+    TEST(CPythonClassTest, InvocationUponReturnByValue){
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "b = a.GetBByValue()\n"
+                                    "b.IncValue()\n"
+                                    "b_value = b.value";
+
+        PyRun_SimpleString(testingScript);
+        TestSubjectB& b = PythonEmbedder::GetAttribute<TestSubjectB&>("b");
+        ASSERT_EQ(b.GetValue(), 1);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("b_value"), 1);
+    }
+
     TEST(CPythonClassTest, Enum) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "a.SetPython(Enum_Python.Bad)";

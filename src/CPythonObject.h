@@ -10,6 +10,7 @@
 #include "CPythonRef.h"
 #include "CPythonEnumValue.h"
 #include "CPythonType.h"
+#include "CPythonClassType.h"
 #include "Exception.h"
 
 namespace pycppconn{
@@ -118,10 +119,16 @@ namespace pycppconn{
 
         static PyObject* ToPython(T& obj)
         {
-            size_t key = CPyModuleContainer::TypeHash<CPythonObjectType<T>>();
             auto& container = CPyModuleContainer::Instance();
-            CPYTHON_VERIFY(container.Exists(key) == true, "Requested PyObjectType does not exists");
-            PyTypeObject* type = container.GetType(key);
+            size_t classTypeKey = CPyModuleContainer::TypeHash<CPythonClassType<T>>();
+            size_t objectTypeKey = CPyModuleContainer::TypeHash<CPythonObjectType<T>>();
+            PyTypeObject* type = nullptr;
+            if(container.Exists(classTypeKey) == true)
+                type = container.GetType(classTypeKey);
+            else if(container.Exists(objectTypeKey) == true)
+                type = container.GetType(objectTypeKey);
+
+            CPYTHON_VERIFY(type != nullptr, "Requested PyObjectType does not exists");
             return CPythonObject<T>::Alloc(type, obj);
         }
     };
@@ -149,10 +156,16 @@ namespace pycppconn{
 
         static PyObject* ToPython(T& obj)
         {
-            size_t key = CPyModuleContainer::TypeHash<CPythonObjectType<typename std::remove_reference<T>::type>>();
             auto& container = CPyModuleContainer::Instance();
-            CPYTHON_VERIFY(container.Exists(key) == true, "Requested PyObjectType does not exists");
-            PyTypeObject* type = container.GetType(key);
+            size_t classTypeKey = CPyModuleContainer::TypeHash<CPythonClassType<T>>();
+            size_t objectTypeKey = CPyModuleContainer::TypeHash<CPythonObjectType<T>>();
+            PyTypeObject* type = nullptr;
+            if(container.Exists(classTypeKey) == true)
+                type = container.GetType(classTypeKey);
+            else if(container.Exists(objectTypeKey) == true)
+                type = container.GetType(objectTypeKey);
+
+            CPYTHON_VERIFY(type != nullptr, "Requested PyObjectType does not exists");
             return CPythonObject<T>::Alloc(type, std::move(obj));
         }
     };
