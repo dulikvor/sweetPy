@@ -1,6 +1,6 @@
 #include "CPythonType.h"
 
-namespace pycppconn {
+namespace sweetPy {
 
     PyMemberDef CPythonType::MembersDefs::m_sentinal = {NULL};
 }

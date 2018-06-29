@@ -4,9 +4,9 @@
 #include "CPythonEnum.h"
 #include "InitModule.h"
 
-using namespace pycppconn;
+using namespace sweetPy;
 
-namespace pycppconnTest {
+namespace sweetPyTest {
 
     bool TestSubjectA::m_valid = false;
     bool TestSubjectA::m_instanceDestroyed = false;

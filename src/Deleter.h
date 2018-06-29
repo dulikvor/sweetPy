@@ -4,7 +4,7 @@
 #include <Python.h>
 #include "Lock.h"
 
-namespace pycppconn {
+namespace sweetPy {
     struct Deleter {
     public:
         typedef std::function<void(PyObject * )> Func;

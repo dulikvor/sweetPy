@@ -7,7 +7,7 @@
 #include <Python.h>
 #include <structmember.h>
 
-namespace pycppconn{
+namespace sweetPy{
 
     #define PyArgumentsTypes short, int, long, float, double, char*, short , char, char,  \
         unsigned char, unsigned short, unsigned int, unsigned long, char*, bool

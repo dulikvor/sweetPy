@@ -7,7 +7,7 @@
 #include "Lock.h"
 #include "Exception.h"
 
-namespace pycppconn{
+namespace sweetPy{
 #define CPYTHON_VERIFY(expression, reason) do{ if(!(expression)) throw CPythonException(PyExc_StandardError, __CORE_SOURCE, reason); }while(0)
 
 //Will not accept array, function pointers types, will remove const from - T const/T const&, will retain the value category.

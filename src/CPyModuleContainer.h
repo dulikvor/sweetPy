@@ -5,7 +5,7 @@
 #include <string>
 #include <Python.h>
 
-namespace pycppconn{
+namespace sweetPy{
 
     class CPythonModule;
     class ICPythonFunction;

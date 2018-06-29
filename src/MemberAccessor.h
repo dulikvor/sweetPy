@@ -4,7 +4,7 @@
 #include "CPythonRef.h"
 #include "CPythonObject.h"
 
-namespace pycppconn {
+namespace sweetPy {
 
     template<typename MemberType>
     class MemberAccessor : public IMemberAccessor {

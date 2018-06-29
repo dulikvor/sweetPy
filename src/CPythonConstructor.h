@@ -8,7 +8,7 @@
 #include "CPythonObject.h"
 #include "Common.h"
 
-namespace pycppconn {
+namespace sweetPy {
 
     template<typename ClassType, typename... Args>
     class CPythonConstructor {

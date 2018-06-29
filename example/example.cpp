@@ -4,7 +4,7 @@
 #include "src/InitModule.h"
 #include "src/CPythonClass.h"
 
-using namespace pycppconn;
+using namespace sweetPy;
 
 class A{
 public:

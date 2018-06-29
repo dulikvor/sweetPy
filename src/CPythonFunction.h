@@ -11,7 +11,7 @@
 #include "ICPythonFunction.h"
 #include "CPythonRef.h"
 
-namespace pycppconn {
+namespace sweetPy {
 
     template<typename Return, typename... Args>
     class CPythonFunction: public ICPythonFunction {

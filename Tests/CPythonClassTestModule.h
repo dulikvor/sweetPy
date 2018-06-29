@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 
-namespace pycppconnTest {
+namespace sweetPyTest {
 
     enum Python
     {

@@ -7,7 +7,7 @@
 #include "Exception.h"
 
 
-namespace pycppconn {
+namespace sweetPy {
 
     template<typename Type>
     class CPythonClassType : public CPythonType {
@@ -94,8 +94,6 @@ namespace pycppconn {
             CPYTHON_VERIFY(type != nullptr, "was unable to locate type");
             CPYTHON_VERIFY(attrName->ob_type == &PyString_Type, "attrName must be py string type");
             char *name = PyString_AsString(attrName);
-            if (type->tp_members == nullptr)
-                return  PyObject_GenericGetAttr(object, attrName);
             MembersDefs defs(type->tp_members);
             auto it = std::find_if(defs.begin(), defs.end(), [&name](typename MembersDefs::iterator::reference rhs) {
                 return strcmp(rhs.name, name) == 0;

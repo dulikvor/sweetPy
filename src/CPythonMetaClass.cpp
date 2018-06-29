@@ -4,7 +4,7 @@
 #include "CPythonEnumValue.h"
 #include "CPythonEnum.h"
 
-namespace pycppconn {
+namespace sweetPy {
 
     template<bool IsEnumMeta>
     CPythonMetaClassType<IsEnumMeta>::CPythonMetaClassType(const std::string &name, const std::string &doc, int extendedSize)

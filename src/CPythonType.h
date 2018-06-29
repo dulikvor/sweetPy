@@ -8,7 +8,7 @@
 #include <Python.h>
 #include <structmember.h>
 
-namespace pycppconn {
+namespace sweetPy {
 
     //vptr is not allowed
     struct CPythonType : public PyTypeObject
@@ -43,7 +43,7 @@ namespace pycppconn {
             class iterator : public std::iterator<std::forward_iterator_tag, PyMemberDef*, ptrdiff_t, PyMemberDef*, PyMemberDef&>
             {
             public:
-                explicit iterator(PyMemberDef* memberDef): m_memberDef(memberDef){}
+                explicit iterator(PyMemberDef* memberDef): m_memberDef(memberDef ? memberDef : &m_sentinal){}
                 iterator& operator++(){m_memberDef++;}
                 bool operator==(const iterator& other) const{return m_memberDef == other.m_memberDef || m_memberDef->name == m_sentinal.name;} //sentinal is not actually the original sentinal, only identical by its data.
                 bool operator!=(const iterator& other) const{return m_memberDef != other.m_memberDef && m_memberDef->name != m_sentinal.name;} //sentinal is not actually the original sentinal, only identical by its data.

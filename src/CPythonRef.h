@@ -13,7 +13,7 @@
 #include "CPythonType.h"
 #include "CPythonMetaClass.h"
 
-namespace pycppconn {
+namespace sweetPy {
 
     template<typename Type, typename std::enable_if<!std::is_reference<Type>::value, bool>::type = true>
     class CPythonRefObject {

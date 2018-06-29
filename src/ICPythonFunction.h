@@ -3,7 +3,7 @@
 #include <memory>
 #include <Python.h>
 
-namespace pycppconn {
+namespace sweetPy {
 
     class CPythonModule;
 

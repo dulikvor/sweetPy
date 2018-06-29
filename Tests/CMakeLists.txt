@@ -1,4 +1,4 @@
-project(pycppconnTests CXX)
+project(sweetPyTests CXX)
 cmake_minimum_required(VERSION 3.0)
 
 set (CMAKE_CXX_STANDARD 14)
@@ -24,13 +24,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
 set(CMAKE_BINARY_DIR ${PROJECT_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
 
-include_directories(. ..  ${PROJECT_DIR} ${pyCppConn_3RD_PARTY_DIR}/include)
-link_directories(${pyCppConn_3RD_PARTY_DIR}/lib ${PROJECT_DIR}/../bin)
+include_directories(. ..  ${PROJECT_DIR} ${sweetPy_3RD_PARTY_DIR}/include)
+link_directories(${sweetPy_3RD_PARTY_DIR}/lib ${PROJECT_DIR}/../bin)
 
 add_library(CPythonClassTestModule SHARED CPythonClassTestModule.cpp)
-target_link_libraries(CPythonClassTestModule pyCppConn Core pthread )
+target_link_libraries(CPythonClassTestModule sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore.so pthread )
 set_target_properties(CPythonClassTestModule PROPERTIES PREFIX "")
 
-add_executable(pycppconnTests Tests.cpp CPythonClassTestModule.h)
-set(TO_LINK_LIBS gtest ${PYTHON_LIBRARIES} util dl CPythonClassTestModule Core pthread)
-target_link_libraries(pycppconnTests ${TO_LINK_LIBS})
+add_executable(sweetPyTests Tests.cpp CPythonClassTestModule.h)
+set(TO_LINK_LIBS gtest ${PYTHON_LIBRARIES} util dl CPythonClassTestModule ${sweetPy_3RD_PARTY_DIR}/lib/libCore.so pthread)
+target_link_libraries(sweetPyTests ${TO_LINK_LIBS})

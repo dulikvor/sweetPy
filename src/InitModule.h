@@ -12,12 +12,12 @@
 #include "CPythonModule.h"
 
 #define INIT_MODULE(name, doc) \
-void InitializeModule(pycppconn::CPythonModule& module); \
+void InitializeModule(sweetPy::CPythonModule& module); \
 PyMODINIT_FUNC init##name() { \
-    auto module = std::make_shared<pycppconn::CPythonModule>(#name, doc); \
-    pycppconn::CPyModuleContainer::Instance().AddModule(#name, module); \
-    pycppconn::CPythonMetaClass<>::InitStaticType(); \
-    pycppconn::CPythonRef<>::InitStaticType(); \
+    auto module = std::make_shared<sweetPy::CPythonModule>(#name, doc); \
+    sweetPy::CPyModuleContainer::Instance().AddModule(#name, module); \
+    sweetPy::CPythonMetaClass<>::InitStaticType(); \
+    sweetPy::CPythonRef<>::InitStaticType(); \
     InitializeModule(*module); \
 } \
-void InitializeModule(pycppconn::CPythonModule& module)
+void InitializeModule(sweetPy::CPythonModule& module)

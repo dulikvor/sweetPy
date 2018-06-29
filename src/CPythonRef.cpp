@@ -1,6 +1,6 @@
 #include "CPythonRef.h"
 
-namespace pycppconn{
+namespace sweetPy{
 
     static int Traverse(PyObject *self, visitproc visit, void *arg)
     {

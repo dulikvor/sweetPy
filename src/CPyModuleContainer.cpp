@@ -3,7 +3,7 @@
 #include "core/Source.h"
 #include "Exception.h"
 
-namespace pycppconn{
+namespace sweetPy{
 
     CPyModuleContainer& CPyModuleContainer::Instance() {
         static CPyModuleContainer instance;

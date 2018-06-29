@@ -2,7 +2,7 @@
 
 #include <Python.h>
 
-namespace pycppconn {
+namespace sweetPy {
 
     class IMemberAccessor {
     public:

@@ -6,7 +6,7 @@
 #include <Python.h>
 #include <structmember.h>
 
-namespace pycppconn{
+namespace sweetPy{
 
     class CPythonEnumValue
     {

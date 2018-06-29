@@ -21,7 +21,7 @@
 #include "MemberAccessor.h"
 #include "Exception.h"
 
-namespace pycppconn {
+namespace sweetPy {
 
     template<typename T, typename Type = typename std::remove_const<typename std::remove_pointer<
             typename std::remove_reference<T>::type>::type>::type>

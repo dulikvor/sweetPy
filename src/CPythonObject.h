@@ -13,7 +13,7 @@
 #include "CPythonClassType.h"
 #include "Exception.h"
 
-namespace pycppconn{
+namespace sweetPy{
 
 
     template<typename Type>

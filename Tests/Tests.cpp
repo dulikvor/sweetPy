@@ -4,12 +4,11 @@
 #include "core/Logger.h"
 #include "PythonEmbedder.h"
 #include "CPythonClassTestModule.h"
-#include "CPythonObject.h"
 
 static int _argc;
 static char **_argv;
 
-namespace pycppconnTest {
+namespace sweetPyTest {
 
     class CPythonClassTest : public ::testing::Environment {
     public:
@@ -32,8 +31,8 @@ namespace pycppconnTest {
     TEST(CPythonClassTest, CPythonObjectWrapperTest){
         {
             //The use case of non copyable/moveable reference type
-            static_assert(std::is_same<typename pycppconn::ObjectWrapper<TestSubjectC&,0>::Type, TestSubjectC>::value, "ObjectWrapper Type - validating a non copyable/moveable reference type assertion has failed.");
-            static_assert(std::is_same<typename pycppconn::ObjectWrapper<TestSubjectC&,0>::FromPythonType, PyObject*>::value, "ObjectWrapper FromPython - validating a non copyable/moveable reference type assertion has failed.");
+            static_assert(std::is_same<typename sweetPy::ObjectWrapper<TestSubjectC&,0>::Type, TestSubjectC>::value, "ObjectWrapper Type - validating a non copyable/moveable reference type assertion has failed.");
+            static_assert(std::is_same<typename sweetPy::ObjectWrapper<TestSubjectC&,0>::FromPythonType, PyObject*>::value, "ObjectWrapper FromPython - validating a non copyable/moveable reference type assertion has failed.");
         }
     }
 
@@ -170,7 +169,7 @@ namespace pycppconnTest {
 int main(int argc, char **argv) {
     _argc = argc;
     _argv = argv;
-    ::testing::AddGlobalTestEnvironment(new pycppconnTest::CPythonClassTest);
+    ::testing::AddGlobalTestEnvironment(new sweetPyTest::CPythonClassTest);
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }

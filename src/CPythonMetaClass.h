@@ -6,7 +6,7 @@
 #include <structmember.h>
 #include "CPythonType.h"
 
-namespace pycppconn {
+namespace sweetPy {
 
     class CPythonEnumValue;
     class ICPythonFunction;

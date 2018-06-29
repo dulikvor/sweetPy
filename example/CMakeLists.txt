@@ -26,5 +26,5 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
 include_directories(. .. ${PROJECT_DIR} ${PYTHON_INCLUDE_DIRS})
 
 add_executable(example example.cpp)
-set(TO_LINK_LIBS ${PYTHON_LIBRARIES} pyCppConn ${pyCppConn_3RD_PARTY_DIR}/lib/libCore.so util dl pthread)
+set(TO_LINK_LIBS ${PYTHON_LIBRARIES} sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore.so util dl pthread)
 target_link_libraries(example ${TO_LINK_LIBS})

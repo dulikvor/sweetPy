@@ -1,7 +1,7 @@
 #include "Exception.h"
 #include "Lock.h"
 
-namespace pycppconn{
+namespace sweetPy{
 
     void CPythonException::Raise() const {
         if(!PyErr_Occurred())

@@ -1,4 +1,4 @@
-project(pyCppConn CXX)
+project(sweetPy CXX)
 cmake_minimum_required(VERSION 3.0)
 
 set (CMAKE_CXX_STANDARD 14)
@@ -22,30 +22,30 @@ else()
 endif()
 
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-if(NOT pyCppConn_3RD_PARTY_DIR)
-    set(pyCppConn_3RD_PARTY_DIR ${PROJECT_DIR}/Third_Party/)
+if(NOT sweetPy_3RD_PARTY_DIR)
+    set(sweetPy_3RD_PARTY_DIR ${PROJECT_DIR}/Third_Party/)
 endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-list(APPEND CMAKE_PREFIX_PATH ${pyCppConn_3RD_PARTY_DIR})
+list(APPEND CMAKE_PREFIX_PATH ${sweetPy_3RD_PARTY_DIR})
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Python REQUIRED)
 find_package(Core)
 
-option(pyCppConn_Test_Support "Test support" OFF)
-option(pyCppConn_3RD_PARTY_INSTALL_STEP "3rd parties installation step" OFF)
-option(pyCppConn_COMPILATION_STEP "Compilation step" OFF)
-if(pyCppConn_Test_Support)
+option(sweetPy_Test_Support "Test support" OFF)
+option(sweetPy_3RD_PARTY_INSTALL_STEP "3rd parties installation step" OFF)
+option(sweetPy_COMPILATION_STEP "Compilation step" OFF)
+if(sweetPy_Test_Support)
     find_package(GoogleTest)
 endif()
 
-if(pyCppConn_3RD_PARTY_INSTALL_STEP)
+if(sweetPy_3RD_PARTY_INSTALL_STEP)
     include(installThirdParty)
 endif()
 
 
-if(pyCppConn_COMPILE_STEP)
-    include_directories( ${PROJECT_DIR} ${PROJECT_DIR}/src ${pyCppConn_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
+if(sweetPy_COMPILE_STEP)
+    include_directories( ${PROJECT_DIR} ${PROJECT_DIR}/src ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 
     set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC -DSPDLOG_FOUND=${SPDLOG_FOUND} -DTHRIFT_FOUND=${THRIFT_FOUND}")
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -58,11 +58,11 @@ if(pyCppConn_COMPILE_STEP)
     #Pre build step
 
     add_subdirectory(${PROJECT_DIR}/example)
-    if(pyCppConn_Test_Support)
+    if(sweetPy_Test_Support)
         add_subdirectory(${PROJECT_DIR}/Tests)
     endif()
 
     add_definitions(-DA_DLL)
-    add_library(pyCppConn SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Common.h src/Exception.cpp src/Exception.h src/CPythonClass.h src/Lock.h src/Deleter.h src/CPythonFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h src/CPythonMetaClass.cpp src/CPythonMetaClass.h src/CPythonConstructor.h src/CPythonObject.h Tests/PythonEmbedder.h src/CPythonEnum.h src/CPythonEnumValue.h src/CPythonEnum.cpp src/CPythonType.h src/ICPythonFunction.h src/InitModule.h src/CPythonRef.cpp src/CPythonType.cpp src/CPythonClassType.h src/MemberAccessor.h src/IMemberAccessor.h)
-    target_link_libraries(pyCppConn ${pyCppConn_3RD_PARTY_DIR}/lib/libCore.so)
+    add_library(sweetPy SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Common.h src/Exception.cpp src/Exception.h src/CPythonClass.h src/Lock.h src/Deleter.h src/CPythonFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h src/CPythonMetaClass.cpp src/CPythonMetaClass.h src/CPythonConstructor.h src/CPythonObject.h Tests/PythonEmbedder.h src/CPythonEnum.h src/CPythonEnumValue.h src/CPythonEnum.cpp src/CPythonType.h src/ICPythonFunction.h src/InitModule.h src/CPythonRef.cpp src/CPythonType.cpp src/CPythonClassType.h src/MemberAccessor.h src/IMemberAccessor.h)
+    target_link_libraries(sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore.so)
 endif()

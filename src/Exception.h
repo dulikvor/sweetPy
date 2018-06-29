@@ -6,7 +6,7 @@
 #include "Deleter.h"
 
 
-namespace pycppconn{
+namespace sweetPy{
 
     class CPythonException: public core::Exception
     {

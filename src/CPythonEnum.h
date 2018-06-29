@@ -7,7 +7,7 @@
 #include "CPythonModule.h"
 #include "CPythonEnumValue.h"
 
-namespace pycppconn {
+namespace sweetPy {
 
     template<bool IsEnumMeta>
     class CPythonMetaClass;

@@ -4,7 +4,7 @@
 
 using namespace std;
 
-namespace pycppconn{
+namespace sweetPy{
 
     CPythonModule::CPythonModule(const string &name, const string &doc): m_module(nullptr, &Deleter::Borrow),
         m_name(name), m_doc(doc){

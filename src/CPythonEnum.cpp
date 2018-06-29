@@ -1,7 +1,7 @@
 #include "CPythonEnum.h"
 #include "CPythonMetaClass.h"
 
-namespace pycppconn
+namespace sweetPy
 {
     CPythonEnumType::CPythonEnumType(const std::string& name, const std::string& doc, PyTypeObject* const type)
             :CPythonType(name, doc)

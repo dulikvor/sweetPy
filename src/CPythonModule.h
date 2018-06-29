@@ -6,7 +6,7 @@
 #include <Python.h>
 #include "Common.h"
 
-namespace pycppconn {
+namespace sweetPy {
     class CPythonType;
     class CPythonModule {
     public:

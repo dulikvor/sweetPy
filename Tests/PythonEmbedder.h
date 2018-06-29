@@ -8,7 +8,7 @@
 #include "Deleter.h"
 #include "CPythonObject.h"
 
-namespace pycppconnTest{
+namespace sweetPyTest{
 
     class PythonEmbedder{
     public:
@@ -25,13 +25,13 @@ namespace pycppconnTest{
         static T GetAttribute(const char* name){
             {
                 std::vector<std::string> tokens = Split(name);
-                pycppconn::GilLock lock;
+                sweetPy::GilLock lock;
                 PyObject* context = PyImport_AddModule("__main__");
                 for(const std::string& token : tokens){
-                    std::unique_ptr<PyObject, pycppconn::Deleter::Func> attributeName(PyString_FromString(token.c_str()), &pycppconn::Deleter::Owner);
+                    std::unique_ptr<PyObject, sweetPy::Deleter::Func> attributeName(PyString_FromString(token.c_str()), &sweetPy::Deleter::Owner);
                     context = PyObject_GetAttr(context, attributeName.get());
                 }
-                return pycppconn::Object<T>::FromPython(context);
+                return sweetPy::Object<T>::FromPython(context);
             }
         }
     private:
