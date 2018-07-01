@@ -395,6 +395,22 @@ namespace sweetPy{
     };
 
     template<typename... Args>
+    struct FromPythonObjectOffset{};
+
+
+    template<typename T, typename... Args>
+    struct FromPythonObjectOffset<T, T, Args...>
+    {
+        static const int value = 0;
+    };
+
+    template<typename T, typename X, typename... Args>
+    struct FromPythonObjectOffset<T, X, Args...>
+    {
+        static const int value = FromPythonObjectOffset<T, Args...>::value + sizeof(typename X::FromPythonType);
+    };
+
+    template<typename... Args>
     struct ObjectOffset{};
 
 
@@ -407,7 +423,7 @@ namespace sweetPy{
     template<typename T, typename X, typename... Args>
     struct ObjectOffset<T, X, Args...>
     {
-        static const int value = ObjectOffset<T, Args...>::value + sizeof(X);
+        static const int value = ObjectOffset<T, Args...>::value + sizeof(typename X::Type);
     };
 
     template<typename T, std::size_t I>

@@ -34,6 +34,8 @@ namespace sweetPyTest {
         subjectB.AddMethod("IncValue", "Will increase b internal ref count", &TestSubjectB::IncValue);
         subjectB.AddMember("value", &TestSubjectB::m_value, "value");
         subjectB.AddMember("str", &TestSubjectB::m_str, "str");
+        subjectB.AddMethod("Foo_1", "Foo function", static_cast<int(TestSubjectB::*)(int)>(&TestSubjectB::Foo));
+        subjectB.AddMethod("Foo_2", "Foo function", static_cast<int(TestSubjectB::*)(int, int)>(&TestSubjectB::Foo));
 
         CPythonEnum enumSubject(module, "Enum_Python", "What we think about python in general");
         enumSubject.AddEnumValue("Good", (int)Python::Good, "We are pretty sure, python is great");

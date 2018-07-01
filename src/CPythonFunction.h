@@ -56,8 +56,8 @@ namespace sweetPy {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
-                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                        ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
 
             ClassType* _this;
@@ -68,12 +68,12 @@ namespace sweetPy {
 
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             Return returnValue = (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
-                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
+                    pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
-                    ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
-                            typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
+                    ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                            ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
 
             return Object<Return>::ToPython(returnValue);
         }
@@ -88,8 +88,8 @@ namespace sweetPy {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
-                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                        ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
 
             ClassType* _this;
@@ -100,12 +100,12 @@ namespace sweetPy {
 
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
-                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
+                    pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
-                                                                                                            ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
-                                                                                                                    typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
+                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
             return Py_None;
         }
 
@@ -180,8 +180,8 @@ namespace sweetPy {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
-                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                        ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
 
             const ClassType* _this;
@@ -192,12 +192,12 @@ namespace sweetPy {
 
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             Return returnValue = (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
-                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
+                    pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
-                                                                                                            ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
-                                                                                                                    typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
+                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
             return Object<Return>::ToPython(returnValue);
         }
 
@@ -211,8 +211,8 @@ namespace sweetPy {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
-                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                        ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
 
             const ClassType* _this;
@@ -223,12 +223,12 @@ namespace sweetPy {
 
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetMethod(typeid(Self).hash_code()));
             (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
-                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
+                    pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
-                                                                                                            ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
-                                                                                                                    typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
+                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
             return Py_None;
         }
 
@@ -302,17 +302,17 @@ namespace sweetPy {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
-                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                        ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetStaticMethod(typeid(Self).hash_code()));
             Return returnValue = (*m_pyFunc.m_staticMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
-                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
+                    pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
-                                                                                                            ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
-                                                                                                                    typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
+                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
             return Object<Return>::ToPython(returnValue);
         }
 
@@ -326,17 +326,17 @@ namespace sweetPy {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
-                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                        ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
             Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetStaticMethod(typeid(Self).hash_code()));
             (*m_pyFunc.m_staticMethod)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
-                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
+                    pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
-                                                                                                            ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
-                                                                                                                    typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
+                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
             return Py_None;
         }
 
