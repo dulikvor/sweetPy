@@ -28,16 +28,16 @@ namespace sweetPy {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,
-                        typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value)...), "Invalid argument was provided");
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                        ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
             new((char*)self + sizeof(PyObject))ClassType(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    pythonArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType,typename ObjectWrapper<typename base<Args>::Type, I>::FromPythonType...>::value,
-                    nativeArgsBuffer + ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value))...);
+                    pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
-                                                                                                            ObjectOffset<typename ObjectWrapper<typename base<Args>::Type, I>::Type,
-                                                                                                                    typename ObjectWrapper<typename base<Args>::Type, I>::Type...>::value)...);
+                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                    ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
             return 0;
         }
 

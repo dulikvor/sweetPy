@@ -36,6 +36,8 @@ namespace sweetPyTest {
         TestSubjectB():m_value(0), m_str("Hello World"){}
         void IncValue(){m_value++;}
         int GetValue() const { return m_value; }
+        int Foo(int i){ return i; }
+        int Foo(int i, int y){return i+y;}
 
     public:
         int m_value;
