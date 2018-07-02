@@ -76,11 +76,17 @@ sweetPy supports the following C++ language capabilities, into python:
 3. User types supports:
 - User defined constructor.
 - User defined destructor.
-- Member functions (Not including overloading as of now).
+- Member functions.
 - Members - both const and not (for read and write permission).
 - static member functions.
-4. Reference types.
+4. Functions:
+- Overloading is supported with explicit cast.
+- Member/Static member.
+5. Reference types:
 - Invocation upon reference types.
 - Accessing reference types members.
-5. Seamless transition between python builtin types into your C++ code.
-6. Seamless transition between C++ POD types and user defined types into python.
+6. Non Python returned types:
+- Members access.
+- Invocation upon returned type.
+7. Seamless transition between python builtin types into your C++ code.
+8. Seamless transition between C++ POD types and user defined types into python.
