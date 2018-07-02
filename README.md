@@ -81,12 +81,11 @@ sweetPy supports the following C++ language capabilities, into python:
 - static member functions.
 4. Functions:
 - Overloading is supported with explicit cast.
-- Member/Static member.
 5. Reference types:
 - Invocation upon reference types.
 - Accessing reference types members.
 6. Non Python returned types:
-- Members access.
+- Accessing returned types members.
 - Invocation upon returned type.
 7. Seamless transition between python builtin types into your C++ code.
 8. Seamless transition between C++ POD types and user defined types into python.
