@@ -34,37 +34,37 @@ sweetPy instalment is based upon two phases:
 
 | Argument  | Description |
 | ------------- | ------------- |
-| pyCppConn_3RD_PARTY_INSTALL_STEP - Mandatory  | 3rd parties installation step |
-|pyCppConn_Test_Support - Optional| Will install the google test package  |
+|sweetPy_3RD_PARTY_INSTALL_STEP - Mandatory  | 3rd parties installation step |
+|sweetPy_Test_Support - Optional| Will install the google test package  |
 
 In sweetPy root directory:
 ```
-cmake . -DpyCppConn_3RD_PARTY_INSTALL_STEP=ON -DpyCppConn_Test_Support=ON && make
+cmake . -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_Test_Support=ON && make
 ```
 
 #### Compilation phase
 
 | Argument  | Description |
 | ------------- | ------------- |
-| pyCppConn_COMPILE_STEP - Mandatory  | Will compile sweetPy and its example |
-|pyCppConn_Test_Support - Optional| Will compile sweetPy tests  |
+|sweetPy_COMPILE_STEP - Mandatory  | Will compile sweetPy and its example |
+|sweetPy_Test_Support - Optional| Will compile sweetPy tests  |
 
 In sweetPy root directory:
 ```
-cmake . -DpyCppConn_COMPILE_STEP=ON -DpyCppConn_Test_Support=ON && make
+cmake . -DsweetPy_COMPILE_STEP=ON -DsweetPy_Test_Support=ON && make
 ```
 
 The binary product of sweetPy is a shared object file located at - 
 In sweetPy root directory:
 ```
-./bin/libpyCppConn.so
+./bin/libsweetPy.so
 ```
 
 ## Running the tests
 
 In order to run sweetPy tests, just run the following command, from sweetPy root directory:
 ```
-./Tests/bin/pycppconnTests
+./Tests/bin/sweetPyTests
 ```
 
 ## SweetPy supporting capabilities
