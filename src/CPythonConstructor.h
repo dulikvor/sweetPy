@@ -28,15 +28,15 @@ namespace sweetPy {
             char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
             char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
             {
-                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                         ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
             }
             new((char*)self + sizeof(PyObject))ClassType(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
-                    pythonArgsBuffer + FromPythonObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
-                    nativeArgsBuffer + ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
+                    pythonArgsBuffer + ObjectOffset<FromPython, ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
 
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
-                                                                                                            ObjectOffset<ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                            ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                                                                                                                     ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
             return 0;
         }
