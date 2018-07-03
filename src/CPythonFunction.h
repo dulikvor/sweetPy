@@ -18,11 +18,12 @@ namespace sweetPy {
         virtual ~CPythonFunction(){}
     };
 
-    template<typename ClassType, typename Return, typename... Args>
-    class CPythonFunction<ClassType, Return(ClassType::*)(Args...)> : public ICPythonFunction{
+    template<typename ClassType, typename MemberFunctionType, typename Return, typename... Args>
+    class CPythonFunction<ClassType, Return(MemberFunctionType::*)(Args...)> : public ICPythonFunction{
     public:
-        typedef Return(ClassType::*MemberFunction)(Args...);
-        typedef CPythonFunction<ClassType, Return(ClassType::*)(Args...)> Self;
+        typedef Return(MemberFunctionType::*MemberFunction)(Args...);
+        typedef CPythonFunction<ClassType, Return(MemberFunctionType::*)(Args...)> Self;
+        typedef typename std::enable_if<std::is_base_of<MemberFunctionType, ClassType>::value>::type VirtualSupport;
 
         CPythonFunction(const std::string& name, const std::string doc, const MemberFunction &memberMethod)
                 : m_name(name), m_doc(doc), m_memberMethod(memberMethod) {
@@ -142,11 +143,11 @@ namespace sweetPy {
         std::string m_doc;
     };
 
-    template<typename ClassType, typename Return, typename... Args>
-    class CPythonFunction<ClassType, Return(ClassType::*)(Args...) const> : public ICPythonFunction{
+    template<typename ClassType, typename MemberFunctionType, typename Return, typename... Args>
+    class CPythonFunction<ClassType, Return(MemberFunctionType::*)(Args...) const> : public ICPythonFunction{
     public:
-        typedef Return(ClassType::*MemberFunction)(Args...) const;
-        typedef CPythonFunction<ClassType, Return(ClassType::*)(Args...) const> Self;
+        typedef Return(MemberFunctionType::*MemberFunction)(Args...) const;
+        typedef CPythonFunction<ClassType, Return(MemberFunctionType::*)(Args...) const> Self;
 
         CPythonFunction(const std::string& name, const std::string doc, const MemberFunction &memberMethod)
                 : m_name(name), m_doc(doc), m_memberMethod(memberMethod) {

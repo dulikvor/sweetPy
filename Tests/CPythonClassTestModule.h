@@ -44,7 +44,18 @@ namespace sweetPyTest {
         std::string m_str;
     };
 
-    class TestSubjectA {
+    class TestSubjectAAbastract
+    {
+    public:
+        TestSubjectAAbastract():m_value{}{}
+        virtual void IncBaseValue(){m_value++;}
+        virtual int GetBaseValue(){return m_value;}
+
+    private:
+        int m_value;
+    };
+
+    class TestSubjectA : public TestSubjectAAbastract{
     public:
         TestSubjectA(int &valueInt) : m_byValueInt(valueInt), m_enumValue(Python::Good) {}
         ~TestSubjectA(){ m_instanceDestroyed = true; }
