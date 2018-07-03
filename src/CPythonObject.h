@@ -394,36 +394,38 @@ namespace sweetPy{
         static const int value = sizeof(Type) + ObjectsPackSize<Args...>::value;
     };
 
-    template<typename... Args>
-    struct FromPythonObjectOffset{};
-
-
-    template<typename T, typename... Args>
-    struct FromPythonObjectOffset<T, T, Args...>
+    enum OffsetType : short
     {
-        static const int value = 0;
+        FromPython,
+        ToNative
     };
 
-    template<typename T, typename X, typename... Args>
-    struct FromPythonObjectOffset<T, X, Args...>
-    {
-        static const int value = FromPythonObjectOffset<T, Args...>::value + sizeof(typename X::FromPythonType);
-    };
-
-    template<typename... Args>
+    template<OffsetType, typename... Args>
     struct ObjectOffset{};
 
 
     template<typename T, typename... Args>
-    struct ObjectOffset<T, T, Args...>
+    struct ObjectOffset<FromPython, T, T, Args...>
+    {
+        static const int value = 0;
+    };
+
+    template<typename T, typename... Args>
+    struct ObjectOffset<ToNative, T, T, Args...>
     {
         static const int value = 0;
     };
 
     template<typename T, typename X, typename... Args>
-    struct ObjectOffset<T, X, Args...>
+    struct ObjectOffset<FromPython, T, X, Args...>
     {
-        static const int value = ObjectOffset<T, Args...>::value + sizeof(typename X::Type);
+        static const int value = ObjectOffset<FromPython, T, Args...>::value + sizeof(typename X::FromPythonType);
+    };
+
+    template<typename T, typename X, typename... Args>
+    struct ObjectOffset<ToNative, T, X, Args...>
+    {
+        static const int value = ObjectOffset<ToNative, T, Args...>::value + sizeof(typename X::Type);
     };
 
     template<typename T, std::size_t I>
