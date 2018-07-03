@@ -22,6 +22,8 @@ namespace sweetPyTest {
         subject.AddMethod("GetBByNoCopyConstructible", "Return a rvalue instance of non copy constructable type", &TestSubjectA::GetBNonCopyConstructable);
         subject.AddMethod("IncBByRef", "Will increase b internal ref count", &TestSubjectA::IncBByRef);
         subject.AddMethod("IncB", "Will increase b internal ref count", &TestSubjectA::IncB);
+        subject.AddMethod("IncBaseValue", "Will increase base class member value", &TestSubjectA::IncBaseValue);
+        subject.AddMethod("GetBaseValue", "Will get base class member value", &TestSubjectA::GetBaseValue);
         subject.AddStaticMethod("GetUniqueMe", "GetUniqueMe - Return an rvalue reference of non supported type", &TestSubjectA::GetUniqueMe);
         subject.AddStaticMethod("Setter", "Setter - will change the value of m_valid into true", &TestSubjectA::Setter);
         subject.AddStaticMethod("Getter", "Getter - will retrieve m_valid", &TestSubjectA::Getter);

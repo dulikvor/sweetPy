@@ -77,6 +77,15 @@ namespace sweetPyTest {
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), PythonEmbedder::GetAttribute<int>("b"));
     }
 
+    TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "a.IncBaseValue()\n"
+                                    "result = a.GetBaseValue()";
+
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("result"), 1);
+    }
+
     TEST(CPythonClassTest, HandleArgumentConversionofNonPythonType) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "s = 'Hello World'\n"
