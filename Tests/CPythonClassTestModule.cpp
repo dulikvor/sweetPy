@@ -2,6 +2,7 @@
 #include "CPythonModule.h"
 #include "CPythonClass.h"
 #include "CPythonEnum.h"
+#include "CPythonGlobalFunction.h"
 #include "InitModule.h"
 
 using namespace sweetPy;
@@ -46,6 +47,8 @@ namespace sweetPyTest {
         CPythonClass<TestSubjectC> subjectC(module, "TestClassC", "A non copyable/moveable version for a class");
         subjectC.AddMethod("inc", "will increase i", &TestSubjectC::Inc);
         subjectC.AddStaticMethod("instance", "a reference method", &TestSubjectC::Instance);
+
+        CPythonGlobalFunction function(module, "globalFunction", "global function", &globalFunction);
     }
 
 }

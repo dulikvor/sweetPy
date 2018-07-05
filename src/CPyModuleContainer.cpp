@@ -41,6 +41,14 @@ namespace sweetPy{
         m_staticMethods.insert(std::make_pair(key, staticMethod));
     }
 
+
+    void CPyModuleContainer::AddGlobalFunction(int key, std::shared_ptr<ICPythonFunction>& function){
+
+        if( m_functions.find(key) != m_functions.end())
+            throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
+        m_functions.insert(std::make_pair(key, function));
+    }
+
     ICPythonFunction& CPyModuleContainer::GetMethod(int key){
         if( m_methods.find(key) == m_methods.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key related entry dosn't exists - %d", key);
@@ -51,6 +59,12 @@ namespace sweetPy{
         if( m_staticMethods.find(key) == m_staticMethods.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key related entry dosn't exists - %d", key);
         return *m_staticMethods[key];
+    }
+
+    ICPythonFunction& CPyModuleContainer::GetGlobalFunction(int key){
+        if( m_functions.find(key) == m_functions.end())
+            throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key related entry dosn't exists - %d", key);
+        return *m_functions[key];
     }
 
     bool CPyModuleContainer::Exists(size_t key){

@@ -129,7 +129,7 @@ namespace sweetPy {
                 PyMethodDef *methods = new PyMethodDef[m_cPythonMemberFunctions.size() + 1]; //spare space for sentinal
                 m_type->tp_methods = methods;
                 for (const auto &method : m_cPythonMemberFunctions) {
-                    *methods = *method->ToPython();
+                    *methods = method->ToPython()->MethodDef;
                     methods++;
                 }
                 *methods = {NULL, NULL, 0, NULL};

@@ -122,8 +122,8 @@ namespace sweetPy {
 
         }
 
-        std::unique_ptr<PyMethodDef> ToPython() const override{
-            return std::unique_ptr<PyMethodDef>(new PyMethodDef{
+        std::unique_ptr<PyFunctionDef> ToPython() const override{
+            return std::unique_ptr<PyFunctionDef>(new PyFunctionDef{
                     m_name.c_str(),
                     &Wrapper,
                     METH_VARARGS,
@@ -244,8 +244,8 @@ namespace sweetPy {
 
         }
 
-        std::unique_ptr<PyMethodDef> ToPython() const override{
-            return std::unique_ptr<PyMethodDef>(new PyMethodDef{
+        std::unique_ptr<PyFunctionDef> ToPython() const override{
+            return std::unique_ptr<PyFunctionDef>(new PyFunctionDef{
                     m_name.c_str(),
                     &Wrapper,
                     METH_VARARGS,
@@ -351,8 +351,8 @@ namespace sweetPy {
             }
         }
 
-        std::unique_ptr<PyMethodDef> ToPython() const override{
-            return std::unique_ptr<PyMethodDef>(new PyMethodDef{
+        std::unique_ptr<PyFunctionDef> ToPython() const override{
+            return std::unique_ptr<PyFunctionDef>(new PyFunctionDef{
                     m_name.c_str(),
                     &Wrapper,
                     METH_VARARGS,
@@ -368,6 +368,111 @@ namespace sweetPy {
 
     private:
         StaticFunction m_staticMethod;
+        std::string m_name;
+        std::string m_doc;
+    };
+
+
+    template<typename Return, typename... Args>
+    class CPythonFunction<Return(*)(Args...)> : public ICPythonFunction{
+    public:
+        typedef Return(*Function)(Args...);
+        typedef CPythonFunction<Return(*)(Args...)> Self;
+
+        CPythonFunction(const std::string& name, const std::string doc, const Function &function)
+                : m_name(name), m_doc(doc), m_function(function) {
+        }
+
+        virtual ~CPythonFunction(){}
+
+        CPythonFunction(CPythonFunction &) = delete;
+
+        CPythonFunction &operator=(CPythonFunction &) = delete;
+
+        CPythonFunction(CPythonFunction &&obj) : m_function(nullptr) {
+            std::swap(m_function, obj.m_function);
+            std::swap(m_name, obj.m_name);
+            std::swap(m_doc, obj.m_doc);
+        }
+
+        CPythonFunction &operator=(CPythonFunction &&obj) {
+            std::swap(m_function, obj.m_function);
+            std::swap(m_name, obj.m_name);
+            std::swap(m_doc, obj.m_doc);
+        }
+
+        template<bool Enable = true, std::size_t... I>
+        static typename std::enable_if<!std::is_same<Return, void>::value && Enable, PyObject*>::type WrapperImpl(PyObject *self, PyObject *args, std::index_sequence<I...>) {
+            std::initializer_list<const char *> formatList = {Object<typename base<Args>::Type>::Format...};
+            std::string format;
+            for (auto &subFormat : formatList)
+                format += subFormat;
+
+            char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
+            char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
+            {
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<FromPython, ObjectWrapper<typename base<Args>::Type, I>,
+                        ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+            }
+            Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetGlobalFunction(typeid(Self).hash_code()));
+            Return returnValue = (*m_pyFunc.m_function)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
+                    pythonArgsBuffer + ObjectOffset<FromPython, ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
+
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+                                                                                                        ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            return Object<Return>::ToPython(returnValue);
+        }
+
+        template<bool Enable = true, std::size_t... I>
+        static typename std::enable_if<std::is_same<Return, void>::value && Enable, PyObject*>::type WrapperImpl(PyObject *self, PyObject *args, std::index_sequence<I...>) {
+            std::initializer_list<const char *> formatList = {Object<typename base<Args>::Type>::Format...};
+            std::string format;
+            for (auto &subFormat : formatList)
+                format += subFormat;
+
+            char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
+            char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
+            {
+                CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<FromPython, ObjectWrapper<typename base<Args>::Type, I>,
+                        ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
+            }
+            Self& m_pyFunc = static_cast<Self&>(CPyModuleContainer::Instance().GetGlobalFunction(typeid(Self).hash_code()));
+            (*m_pyFunc.m_function)(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
+                    pythonArgsBuffer + ObjectOffset<FromPython, ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
+                    nativeArgsBuffer + ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
+
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
+                                                                                                        ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                                ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            return Py_None;
+        }
+
+        static PyObject* Wrapper(PyObject *self, PyObject *args, PyObject*) {
+            try{
+                return WrapperImpl(self, args, std::make_index_sequence<sizeof...(Args)>{});
+            }
+            catch(const CPythonException& exc){
+                exc.Raise();
+                return NULL;
+            }
+        }
+
+        std::unique_ptr<PyFunctionDef> ToPython() const override{
+            auto functionDef = std::unique_ptr<PyFunctionDef>(new PyFunctionDef());
+            functionDef->Function = &Wrapper;
+            return functionDef;
+        }
+
+        void AllocateObjectsTypes(CPythonModule& module) const override
+        {
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
+        }
+
+    private:
+        Function m_function;
         std::string m_name;
         std::string m_doc;
     };

@@ -11,6 +11,8 @@ namespace sweetPyTest {
         Bad = 3
     };
 
+    int globalFunction(int i){return i;}
+
     class TestSubjectC{
     public:
         TestSubjectC(const TestSubjectC&) = delete;

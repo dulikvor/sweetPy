@@ -39,7 +39,9 @@ namespace sweetPy {
         void InitType();
         void AddMethod(const std::shared_ptr<ICPythonFunction>& method);
         void AddEnumValue(std::unique_ptr<CPythonEnumValue>&& enumValue);
+        void SetCallableOperator(ternaryfunc function);
         PyObject* InitializeEnumType(const std::string& name, const std::string& doc) const;
+        PyObject* InitializeFunctionType(const std::string& name, const std::string& doc) const;
         static void InitStaticType();
 
     private:

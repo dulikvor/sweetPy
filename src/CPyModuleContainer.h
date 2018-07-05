@@ -20,8 +20,10 @@ namespace sweetPy{
         void AddType(size_t key, PyTypeObject* const type);
         void AddMethod(int key, std::shared_ptr<ICPythonFunction>& method);
         void AddStaticMethod(int key, std::shared_ptr<ICPythonFunction>& staticMethod);
+        void AddGlobalFunction(int key, std::shared_ptr<ICPythonFunction>& function);
         ICPythonFunction& GetMethod(int key);
         ICPythonFunction& GetStaticMethod(int key);
+        ICPythonFunction& GetGlobalFunction(int key);
         bool Exists(size_t key);
         PyTypeObject* const GetType(size_t key);
         template<typename T>
@@ -34,5 +36,6 @@ namespace sweetPy{
         std::unordered_map<size_t, PyTypeObject* const> m_types;
         std::unordered_map<int, std::shared_ptr<ICPythonFunction>> m_methods;
         std::unordered_map<int, std::shared_ptr<ICPythonFunction>> m_staticMethods;
+        std::unordered_map<int, std::shared_ptr<ICPythonFunction>> m_functions;
     };
 }
