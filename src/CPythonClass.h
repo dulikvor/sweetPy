@@ -90,7 +90,7 @@ namespace sweetPy {
                 m_type->tp_methods = methods;
                 for (const auto &method : m_cPythonMemberFunctions) {
                     method->AllocateObjectsTypes(m_module);
-                    *methods = *method->ToPython();
+                    *methods = method->ToPython()->MethodDef;
                     methods++;
                 }
                 *methods = {NULL, NULL, 0, NULL};

@@ -2,6 +2,7 @@
 #include "CPythonModule.h"
 #include "ICPythonFunction.h"
 #include "CPythonEnumValue.h"
+#include "CPythonGlobalFunction.h"
 #include "CPythonEnum.h"
 
 namespace sweetPy {
@@ -116,6 +117,12 @@ namespace sweetPy {
     }
 
     template<bool IsEnumMeta>
+    void CPythonMetaClass<IsEnumMeta>::SetCallableOperator(ternaryfunc function)
+    {
+       m_type->tp_call = function;
+    }
+
+    template<bool IsEnumMeta>
     void CPythonMetaClass<IsEnumMeta>::InitType()
     {
         InitMethods();
@@ -145,7 +152,7 @@ namespace sweetPy {
             m_type->tp_methods = methods;
             for(const auto& method : m_cPythonMemberFunctions){
                 method->AllocateObjectsTypes(m_module);
-                *methods = *method->ToPython();
+                *methods = method->ToPython()->MethodDef;
                 methods++;
             }
             *methods = {NULL, NULL, 0, NULL};
@@ -175,6 +182,15 @@ namespace sweetPy {
         for(auto& enumValue : m_cPythonEnumValues)
             *(int*)((char*)type + enumValue->GetOffset()) = enumValue->GetValue();
 
+        CPYTHON_VERIFY(PyModule_AddObject(m_module.GetModule(), name.c_str(), (PyObject*)type) == 0, "Type registration with module failed");
+    }
+
+    template<bool IsEnumMeta>
+    PyObject* CPythonMetaClass<IsEnumMeta>::InitializeFunctionType(const std::string& name, const std::string& doc) const
+    {
+        PyTypeObject* type = (PyTypeObject*)m_type->tp_alloc(m_type.get(), 0);
+        new(type)CPythonFunctionType(name, doc, m_type.get());
+        PyType_Ready(type);
         CPYTHON_VERIFY(PyModule_AddObject(m_module.GetModule(), name.c_str(), (PyObject*)type) == 0, "Type registration with module failed");
     }
 

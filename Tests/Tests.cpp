@@ -17,7 +17,7 @@ namespace sweetPyTest {
         void SetUp() override {
             core::Logger::Instance().Start(core::TraceSeverity::Info);
             PythonEmbedder::InitiateInterperter("CPythonClassTest", _argc, _argv);
-            const char *testingScript = "from CPythonClassTestModule import TestClass, TestClassB, TestClassC, Enum_Python\n";
+            const char *testingScript = "from CPythonClassTestModule import TestClass, TestClassB, TestClassC, Enum_Python, globalFunction\n";
             PyRun_SimpleString(testingScript);
         }
 
@@ -181,6 +181,12 @@ namespace sweetPyTest {
                                     "result = result1 + result2";
         PyRun_SimpleString(testingScript);
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("result"), 9);
+    }
+
+    TEST(CPythonClassTest, GlobalFunctionInvocation) {
+        const char *testingScript = "result = globalFunction(5)";
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("result"), 5);
     }
 
 }
