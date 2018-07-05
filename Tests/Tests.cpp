@@ -189,6 +189,14 @@ namespace sweetPyTest {
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("result"), 5);
     }
 
+    TEST(CPythonClassTest, FromPythonStrToNativeXpireStrArgument) {
+        const char *testingScript = "a = TestClass(5)\n"
+                                    "a.SetXpireValue('Xpire Value')\n"
+                                    "strRef = a.GetStr()";
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<std::string&>("strRef"), "Xpire Value");
+    }
+
 }
 
 int main(int argc, char **argv) {

@@ -32,6 +32,8 @@ namespace sweetPyTest {
         subject.AddMember("byValueInt", &TestSubjectA::m_byValueInt, "int by value member support");
         subject.AddMember("ctypeStr", &TestSubjectA::m_ctypeStr, "c-type string member support");
         subject.AddMethod("SetPython", "Will set the python enum value", &TestSubjectA::SetPython);
+        subject.AddMethod("GetStr", "Will return a reference to m_str", &TestSubjectA::GetStr);
+        subject.AddMethod("SetXpireValue", "Will set m_str from an xpire value", &TestSubjectA::SetXpireValue);
 
         CPythonClass<TestSubjectB> subjectB(module, "TestClassB", "TestClassB");
         subjectB.AddMethod("IncValue", "Will increase b internal ref count", &TestSubjectB::IncValue);
