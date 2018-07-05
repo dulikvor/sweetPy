@@ -1,0 +1,13 @@
+language: cpp
+
+os: linux
+env:
+  global:
+    - CC=gcc-5
+    - CXX=g++-5
+before_install:
+-sudo apt-get install g++-5
+-sudo apt-get install python2.7-dev
+install:
+- cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_TEST_SUPPORT=ON .
+
