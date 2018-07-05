@@ -188,7 +188,7 @@ namespace sweetPy{
     struct Object<T&>{
     public:
         typedef PyObject* FromPythonType;
-        typedef typename std::enable_if<!std::is_same<T&, std::string&>::value, T>::type Type;
+        typedef T Type;
         static constexpr const char *Format = "O";
         static const bool IsSimpleObjectType = false;
         static T& GetTyped(char* fromBuffer, char* toBuffer){
@@ -223,7 +223,7 @@ namespace sweetPy{
     struct Object<T&&>{
     public:
         typedef PyObject* FromPythonType;
-        typedef typename std::enable_if<std::__not_<std::is_same<T&&, std::string&&>>::value, T>::type Type;
+        typedef T Type;
         static constexpr const char *Format = "O";
         static const bool IsSimpleObjectType = false;
         static T&& GetTyped(char* fromBuffer, char* toBuffer){
@@ -336,6 +336,36 @@ namespace sweetPy{
             auto& container = CPyModuleContainer::Instance();
             PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
             return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
+    template<>
+    struct Object<std::string&&> {
+    public:
+        typedef const char* FromPythonType;
+        typedef std::string Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static std::string&& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(Py_TYPE(object) == &PyString_Type)
+            {
+                new(toBuffer)std::string(PyString_AsString(object));
+                return std::move(*reinterpret_cast<std::string*>(toBuffer));
+            }
+            else if(CPythonRef<>::IsReferenceType<std::string>(object))
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "conversion between python CPythonRef to string&& is not possible");
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string&& can only originates from python string");
+        }
+        static std::string&& FromPython(PyObject* object){
+            if(Py_TYPE(object) == &PyString_Type)
+                return std::string(PyString_AsString(object));
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string&& can only originates from python string");
+        }
+        static PyObject* ToPython(std::string&& data){
+            throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Transform of to be expired value to python is not possible");
         }
     };
 

@@ -62,6 +62,8 @@ namespace sweetPyTest {
         TestSubjectA(int &valueInt) : m_byValueInt(valueInt), m_enumValue(Python::Good) {}
         ~TestSubjectA(){ m_instanceDestroyed = true; }
         virtual int GetValue(){ return m_byValueInt;}
+        const std::string& GetStr() const{return m_str;}
+        void SetXpireValue(std::string&& str){m_str = str;}
         std::string SetString(const std::string& str){
             return m_str = str + " Temp";
         }
