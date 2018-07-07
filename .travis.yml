@@ -20,7 +20,9 @@ matrix:
 
 before_install:
 - eval "${MATRIX_EVAL}"
-- gcc --version
+script:
+  - sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-6 /usr/bin/g++
+  - g++ --version
 install:
 - cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make
 script:
