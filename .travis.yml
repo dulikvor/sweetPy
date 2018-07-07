@@ -1,13 +1,36 @@
-language: cpp
+language: python
+python:
+  - "2.7"
+sudo: required
 
-os: linux
-env:
-  global:
-    - CC=gcc-5
-    - CXX=g++-5
+matrix:
+  include:
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+            - libssl-dev
+            - libboost-dev
+      env:
+         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+
 before_install:
--sudo apt-get install g++-5
--sudo apt-get install python2.7-dev
+- eval "${MATRIX_EVAL}"
+- sudo unlink /usr/bin/g++ && sudo ln -s /usr/bin/g++-5 /usr/bin/g++
+- g++ --version  
 install:
-- cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_TEST_SUPPORT=ON .
+- sudo apt-get install -y gdb  # install gdb
+- cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make
+before_script:
+- ulimit -c unlimited -S       # enable core dumps
+script:
+- cmake -DsweetPy_COMPILE_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make
+- ./Tests/bin/sweetPyTests
+after_failure:
+- COREFILE=$(find . -maxdepth 1 -name "core*" | head -n 1) # find core file
+- if [[ -f "$COREFILE" ]]; then gdb -c "$COREFILE" ./Tests/bin/sweetPyTests -ex "thread apply all bt" -ex "set pagination 0" -batch; fi
 
