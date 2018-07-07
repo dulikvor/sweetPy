@@ -1,6 +1,8 @@
 language: python
 python:
   - "2.7"
+sudo: required
+
 matrix:
   include:
     # works on Precise and Trusty
@@ -10,16 +12,16 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-7
+            - g++-6
             - libssl-dev
             - libboost-dev
       env:
-         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
-script: cmake
 before_install:
 - eval "${MATRIX_EVAL}"
+- gcc --version
 install:
 - cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make
 script:
-- c++ --version && cmake -DsweetPy_COMPILE_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make VERBOSE=1 && ./Test/bin/sweetPyTests
+- cmake -DsweetPy_COMPILE_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make VERBOSE=1 && ./Test/bin/sweetPyTests
