@@ -1,4 +1,4 @@
-find_package(PythonLibs)
+find_package(PythonLibs 2.7 REQUIRED)
 if(${PYTHONLIBS_FOUND})
     message(STATUS "Python version ${PYTHONLIBS_VERSION_STRING} found")
     if(NOT ${PYTHONLIBS_VERSION_STRING} MATCHES "^(2.7)")
