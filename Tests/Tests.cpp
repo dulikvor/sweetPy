@@ -1,4 +1,5 @@
 #include <type_traits>
+#include <iostream>
 #include "gtest/gtest.h"
 #include <Python.h>
 #include "core/Logger.h"
@@ -192,9 +193,13 @@ namespace sweetPyTest {
     TEST(CPythonClassTest, FromPythonStrToNativeXpireStrArgument) {
         const char *testingScript = "a = TestClass(5)\n"
                                     "a.SetXpireValue('Xpire Value')\n"
-                                    "strRef = a.GetStr()";
+                                    "print 'set was done'\n"
+                                    "strRef = a.GetStr()\n"
+                                    "print 'getStr fine'";
         PyRun_SimpleString(testingScript);
-        ASSERT_EQ(PythonEmbedder::GetAttribute<std::string&>("strRef"), "Xpire Value");
+        auto& strRef = PythonEmbedder::GetAttribute<std::string&>("strRef");
+        std::cout<<"Python embeder fine"<<std::endl;
+        ASSERT_EQ(strRef, std::string("Xpire Value"));
     }
 
 }
