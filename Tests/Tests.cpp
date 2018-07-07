@@ -191,7 +191,8 @@ namespace sweetPyTest {
     }
 
     TEST(CPythonClassTest, FromPythonStrToNativeXpireStrArgument) {
-        const char *testingScript = "a = TestClass(5)\n"
+        const char *testingScript = "print a.str\n"
+                                    "a = TestClass(5)\n"
                                     "a.SetXpireValue('Xpire Value')\n"
                                     "print 'set was done'\n"
                                     "strRef = a.GetStr()\n"

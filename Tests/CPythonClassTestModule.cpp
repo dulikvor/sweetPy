@@ -36,6 +36,7 @@ namespace sweetPyTest {
         subject.AddMethod("SetXpireValue", "Will set m_str from an xpire value", &TestSubjectA::SetXpireValue);
 
         CPythonClass<TestSubjectB> subjectB(module, "TestClassB", "TestClassB");
+        subjectB.AddConstructor<>();
         subjectB.AddMethod("IncValue", "Will increase b internal ref count", &TestSubjectB::IncValue);
         subjectB.AddMember("value", &TestSubjectB::m_value, "value");
         subjectB.AddMember("str", &TestSubjectB::m_str, "str");
