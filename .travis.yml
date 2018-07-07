@@ -10,12 +10,11 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-6
+            - g++-7
             - libssl-dev
             - libboost-dev
-            - python2.7-dev
       env:
-         - MATRIX_EVAL="COMPILER_NAME=gcc CC=gcc-6 && CXX=g++-6"
+         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
 
 script: cmake
 before_install:
