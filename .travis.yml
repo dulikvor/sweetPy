@@ -10,15 +10,17 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-5
+            - g++-6
             - libssl-dev
             - libboost-dev
             - python2.7-dev
       env:
-         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
 
 script: cmake
 before_install:
 - eval "${MATRIX_EVAL}"
 install:
-- cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_TEST_SUPPORT=ON .
+- cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make
+script:
+- cmake -DsweetPy_COMPILE_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make && ./Test/bin/sweetPyTests
