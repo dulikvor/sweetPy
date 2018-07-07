@@ -358,11 +358,8 @@ namespace sweetPy{
             else
                 throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string&& can only originates from python string");
         }
-        static std::string&& FromPython(PyObject* object){
-            if(Py_TYPE(object) == &PyString_Type)
-                return std::string(PyString_AsString(object));
-            else
-                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string&& can only originates from python string");
+        static std::string FromPython(PyObject* object){
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string&& is not supported");
         }
         static PyObject* ToPython(std::string&& data){
             throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Transform of to be expired value to python is not possible");
