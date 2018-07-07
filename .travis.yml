@@ -1,14 +1,22 @@
 language: cpp
-
-os: linux
-env:
-  global:
-    - CC=gcc-5
-    - CXX=g++-5
+matrix:
+  include:
+    # works on Precise and Trusty
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+            - libssl-dev
+            - libboost-dev
+            - python2.7-dev
+      env:
+         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
 script: cmake
 before_install:
-- sudo apt-get install g++-5
-- sudo apt-get install python2.7-dev
+- eval "${MATRIX_EVAL}"
 install:
 - cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_TEST_SUPPORT=ON .
