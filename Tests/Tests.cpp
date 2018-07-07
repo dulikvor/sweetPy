@@ -191,15 +191,11 @@ namespace sweetPyTest {
     }
 
     TEST(CPythonClassTest, FromPythonStrToNativeXpireStrArgument) {
-        const char *testingScript = "print a.str\n"
-                                    "a = TestClass(5)\n"
+        const char *testingScript = "a = TestClass(5)\n"
                                     "a.SetXpireValue('Xpire Value')\n"
-                                    "print 'set was done'\n"
-                                    "strRef = a.GetStr()\n"
-                                    "print 'getStr fine'";
+                                    "strRef = a.GetStr()\n";
         PyRun_SimpleString(testingScript);
-        auto& strRef = PythonEmbedder::GetAttribute<std::string&>("strRef");
-        std::cout<<"Python embeder fine"<<std::endl;
+        std::string& strRef = PythonEmbedder::GetAttribute<std::string&>("strRef");
         ASSERT_EQ(strRef, std::string("Xpire Value"));
     }
 
