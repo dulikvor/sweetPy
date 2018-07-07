@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/Dudi119/sweetPy.svg?branch=master)](https://travis-ci.org/Dudi119/sweetPy)
 # sweetPy
 
 sweetPy is a seamless binding library, intended to export your C++ code with ease into Python 2.7.
