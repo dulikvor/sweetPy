@@ -15,7 +15,7 @@ matrix:
             - libboost-dev
             - python2.7-dev
       env:
-         - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+         - MATRIX_EVAL="COMPILER_NAME=gcc CC=gcc-6 && CXX=g++-6"
 
 script: cmake
 before_install:
