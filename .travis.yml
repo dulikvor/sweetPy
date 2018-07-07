@@ -25,4 +25,5 @@ before_install:
 install:
 - cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make
 script:
-- cmake -DsweetPy_COMPILE_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make VERBOSE=1 && ./Test/bin/sweetPyTests
+- cmake -DsweetPy_COMPILE_STEP=ON -DsweetPy_TEST_SUPPORT=ON . && make
+- ./Tests/bin/sweetPyTests
