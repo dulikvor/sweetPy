@@ -52,6 +52,12 @@ namespace sweetPyTest {
         PyRun_SimpleString(testingScript);
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), 7);
     }
+    //Invoking a compiler generated constructor, no CPythonConstructor was binded to the python representation.
+    TEST(CPythonClassTest, InvokingCompilerGeneratedContructor) {
+        const char *testingScript = "a = TestClassB()";
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("a.str"), "Hello World");
+    }
 
     TEST(CPythonClassTest, PODByValueMember) {
         const char *testingScript = "a = TestClass(7)\n"

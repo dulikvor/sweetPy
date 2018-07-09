@@ -13,8 +13,6 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-5
-            - libssl-dev
-            - libboost-dev
       env:
          - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
 
@@ -33,4 +31,5 @@ script:
 after_failure:
 - COREFILE=$(find . -maxdepth 1 -name "core*" | head -n 1) # find core file
 - if [[ -f "$COREFILE" ]]; then gdb -c "$COREFILE" ./Tests/bin/sweetPyTests -ex "thread apply all bt" -ex "set pagination 0" -batch; fi
-
+notifications:
+  email: false

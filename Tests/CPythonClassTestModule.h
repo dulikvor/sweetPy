@@ -52,7 +52,6 @@ namespace sweetPyTest {
         TestSubjectAAbastract():m_value{}{}
         virtual void IncBaseValue(){m_value++;}
         virtual int GetBaseValue(){return m_value;}
-
     private:
         int m_value;
     };

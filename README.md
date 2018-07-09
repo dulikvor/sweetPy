@@ -31,7 +31,7 @@ sweetPy instalment is based upon two phases:
 1. Resolving all 3rd party dependencies.
 2. Compilation of sweetPy, its examples and if requested - its tests.
 
-#### 3RD Party Dependencies instalment
+#### 3RD Party dependencies instalment
 
 | Argument  | Description |
 | ------------- | ------------- |
@@ -77,7 +77,9 @@ sweetPy supports the following C++ language capabilities, into python:
 3. User types supports:
 - User defined constructor.
 - User defined destructor.
-- Member functions.
+- Invocation of an overridden function from python side.
+- Member functions. 
+- Overloaded Member functions are supported, must have unique name.
 - Members - both const and not (for read and write permission).
 - static member functions.
 4. Functions:
@@ -85,8 +87,6 @@ sweetPy supports the following C++ language capabilities, into python:
 5. Reference types:
 - Invocation upon reference types.
 - Accessing reference types members.
-6. Non Python returned types:
-- Accessing returned types members.
-- Invocation upon returned type.
-7. Seamless transition between python builtin types into your C++ code.
-8. Seamless transition between C++ POD types and user defined types into python.
+5. Invocation of global functions.
+6. Seamless transition between python builtin types into your C++ code.
+7. Seamless transition between C++ POD types and user defined types into python.
