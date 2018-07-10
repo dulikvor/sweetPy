@@ -63,6 +63,6 @@ if(sweetPy_COMPILE_STEP)
     endif()
 
     add_definitions(-DA_DLL)
-    add_library(sweetPy SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Common.h src/Exception.cpp src/Exception.h src/CPythonClass.h src/Lock.h src/Deleter.h src/CPythonFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h src/CPythonMetaClass.cpp src/CPythonMetaClass.h src/CPythonConstructor.h src/CPythonObject.h Tests/PythonEmbedder.h src/CPythonEnum.h src/CPythonEnumValue.h src/CPythonEnum.cpp src/CPythonType.h src/ICPythonFunction.h src/InitModule.h src/CPythonRef.cpp src/CPythonType.cpp src/CPythonClassType.h src/MemberAccessor.h src/IMemberAccessor.h src/CPythonGlobalFunction.h)
+    add_library(sweetPy SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Common.h src/Exception.cpp src/Exception.h src/CPythonClass.h src/Lock.h src/Deleter.h src/CPythonFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h src/CPythonMetaClass.cpp src/CPythonMetaClass.h src/CPythonConstructor.h src/CPythonObject.h Tests/PythonEmbedder.h src/CPythonEnum.h src/CPythonEnumValue.h src/CPythonEnum.cpp src/CPythonType.h src/ICPythonFunction.h src/InitModule.h src/CPythonRef.cpp src/CPythonType.cpp src/CPythonClassType.h src/MemberAccessor.h src/IMemberAccessor.h src/CPythonGlobalFunction.h src/CPythonGlobalVariable.h src/CPythonVariable.h src/ICPythonVariable.h)
     target_link_libraries(sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore.so)
 endif()

@@ -24,7 +24,7 @@ namespace sweetPy{
 
     void CPyModuleContainer::AddType(size_t key, PyTypeObject *const type){
         if( m_types.find(key) != m_types.end())
-            return; //types may return due repeating CPythonObjectTypes.
+            throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
         m_types.insert(std::make_pair(key, type));
     }
 

@@ -77,9 +77,14 @@ namespace sweetPy{
 
         ~CPythonObject()
         {
-            PyType_Ready(m_type.get());
-            CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<CPythonObjectType<Type>>(), m_type.get());
-            m_module.AddType(std::move(m_type));
+            auto& moduleContainer = CPyModuleContainer::Instance();
+            size_t key = CPyModuleContainer::TypeHash<CPythonObjectType<Type>>();
+            if(moduleContainer.Exists(key) == false)
+            {
+                PyType_Ready(m_type.get());
+                moduleContainer.AddType(key, m_type.get());
+                m_module.AddType(std::move(m_type));
+            }
         }
 
         template<typename Y>
