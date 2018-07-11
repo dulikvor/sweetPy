@@ -274,6 +274,72 @@ namespace sweetPy{
     };
 
     template<>
+    struct Object<char*> {
+    public:
+        typedef const char* FromPythonType;
+        typedef char* Type;
+        static const bool IsSimpleObjectType = false;
+        static constexpr const char *Format = "z";
+        static char*& GetTyped(char* fromBuffer, char* toBuffer){
+            new(toBuffer)char*(*reinterpret_cast<char**>(fromBuffer));
+            return *reinterpret_cast<char**>(toBuffer);
+        }
+        static char* FromPython(PyObject* obj){
+            GilLock lock;
+            return PyString_AsString(obj);
+        }
+        static PyObject* ToPython(char* data){
+            return PyString_FromString(data);
+        }
+    };
+
+    template<size_t N>
+    struct Object<char[N]> {
+    public:
+        typedef const char* FromPythonType;
+        typedef char* Type;
+        static const bool IsSimpleObjectType = false;
+        static constexpr const char *Format = "z";
+        static char (&GetTyped(char* fromBuffer, char* toBuffer))[N]{
+            CPYTHON_VERIFY(strlen(fromBuffer) <= N-1, "Python string size is too long for char array.");
+            new(toBuffer)char*(*reinterpret_cast<char**>(fromBuffer));
+            return static_cast<char[N]>(toBuffer);
+        }
+        static char(&FromPython(PyObject* obj))[N]{
+            GilLock lock;
+            char* str = PyString_AsString(obj);
+            CPYTHON_VERIFY(strlen(str) <= N-1, "Python string size is too long for char array.");
+            return static_cast<char[N]>(str);
+        }
+        static PyObject* ToPython(char(&data)[N]){
+            return PyString_FromString(data);
+        }
+    };
+
+    template<size_t N>
+    struct Object<const char[N]> {
+    public:
+        typedef const char* FromPythonType;
+        typedef char* Type;
+        static const bool IsSimpleObjectType = false;
+        static constexpr const char *Format = "z";
+        static const char (&GetTyped(char* fromBuffer, char* toBuffer))[N]{
+            CPYTHON_VERIFY(strlen(fromBuffer) <= N-1, "Python string size is too long for char array.");
+            new(toBuffer)char*(*reinterpret_cast<char**>(fromBuffer));
+            return static_cast<const char[N]>(toBuffer);
+        }
+        static const char(&FromPython(PyObject* obj))[N]{
+            GilLock lock;
+            char* str = PyString_AsString(obj);
+            CPYTHON_VERIFY(strlen(str) <= N-1, "Python string size is too long for char array.");
+            return static_cast<const char[N]>(str);
+        }
+        static PyObject* ToPython(const char(&data)[N]){
+            return PyString_FromString(data);
+        }
+    };
+
+    template<>
     struct Object<std::string> {
     public:
         typedef const char* FromPythonType;
@@ -497,6 +563,19 @@ namespace sweetPy{
     {
         typedef typename Object<T&&>::FromPythonType FromPythonType;
         typedef typename Object<T&&>::Type Type;
+        static void* AllocateObjectType(CPythonModule& module) {}
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer){
+            return nullptr;
+        }
+    };
+
+    template<std::size_t I, size_t N>
+    struct ObjectWrapper<char[N], I>
+    {
+        typedef typename Object<char[N]>::FromPythonType FromPythonType;
+        typedef typename Object<char[N]>::Type Type;
         static void* AllocateObjectType(CPythonModule& module) {}
         template<typename... Args>
         static void MultiInvoker(Args&&...){}

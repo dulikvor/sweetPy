@@ -1,9 +1,9 @@
 #pragma once
 
+#include <Python.h>
 #include <string>
 #include <memory>
 #include <type_traits>
-#include <Python.h>
 #include <structmember.h>
 
 namespace sweetPy{

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Python.h>
 #include <string>
 #include <memory>
-#include <Python.h>
 #include "CPythonType.h"
 #include "CPythonModule.h"
 #include "CPythonEnumValue.h"

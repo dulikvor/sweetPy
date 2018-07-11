@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Python.h>
 #include <memory>
 #include <functional>
-#include <Python.h>
 
 namespace sweetPy {
 

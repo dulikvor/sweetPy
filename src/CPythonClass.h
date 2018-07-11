@@ -1,12 +1,12 @@
 #pragma once
 
+#include <Python.h>
 #include <typeinfo>
 #include <type_traits>
 #include <vector>
 #include <memory>
 #include <utility>
 #include <unordered_map>
-#include <Python.h>
 #include <structmember.h>
 #include "Lock.h"
 #include "CPythonFunction.h"

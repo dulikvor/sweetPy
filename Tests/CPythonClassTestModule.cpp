@@ -1,9 +1,10 @@
-#include "CPythonClassTestModule.h"
 #include "CPythonModule.h"
 #include "CPythonClass.h"
 #include "CPythonEnum.h"
 #include "CPythonGlobalFunction.h"
+#include "CPythonGlobalVariable.h"
 #include "InitModule.h"
+#include "CPythonClassTestModule.h"
 
 using namespace sweetPy;
 
@@ -51,6 +52,9 @@ namespace sweetPyTest {
         subjectC.AddStaticMethod("instance", "a reference method", &TestSubjectC::Instance);
 
         CPythonGlobalFunction function(module, "globalFunction", "global function", &globalFunction);
+
+        CPythonGlobalVariable variable_str(module, "globalVariableStr", "Hello World");
+        CPythonGlobalVariable variable_int(module, "globalVariableInt", 5);
     }
 
 }

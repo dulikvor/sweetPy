@@ -1,7 +1,7 @@
+#include <Python.h>
 #include <type_traits>
 #include <iostream>
 #include "gtest/gtest.h"
-#include <Python.h>
 #include "core/Logger.h"
 #include "PythonEmbedder.h"
 #include "CPythonClassTestModule.h"
@@ -18,7 +18,7 @@ namespace sweetPyTest {
         void SetUp() override {
             core::Logger::Instance().Start(core::TraceSeverity::Info);
             PythonEmbedder::InitiateInterperter("CPythonClassTest", _argc, _argv);
-            const char *testingScript = "from CPythonClassTestModule import TestClass, TestClassB, TestClassC, Enum_Python, globalFunction\n";
+            const char *testingScript = "from CPythonClassTestModule import TestClass, TestClassB, TestClassC, Enum_Python, globalFunction, globalVariableStr, globalVariableInt\n";
             PyRun_SimpleString(testingScript);
         }
 
@@ -203,6 +203,13 @@ namespace sweetPyTest {
         PyRun_SimpleString(testingScript);
         std::string& strRef = PythonEmbedder::GetAttribute<std::string&>("strRef");
         ASSERT_EQ(strRef, std::string("Xpire Value"));
+    }
+
+
+    TEST(CPythonClassTest, AccessingGlobalVariable) {
+    std::string variable = PythonEmbedder::GetAttribute<std::string>("globalVariableStr");
+    ASSERT_EQ(variable, std::string("Hello World"));
+    ASSERT_EQ(PythonEmbedder::GetAttribute<int>("globalVariableInt"), 5);
     }
 
 }
