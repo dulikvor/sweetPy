@@ -1,8 +1,8 @@
 #pragma once
 
+#include <Python.h>
 #include <vector>
 #include <memory>
-#include <Python.h>
 #include <structmember.h>
 #include "CPythonType.h"
 

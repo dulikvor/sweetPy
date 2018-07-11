@@ -1,10 +1,10 @@
 #pragma once
 
+#include <Python.h>
 #include <string>
 #include <type_traits>
 #include <memory>
 #include <vector>
-#include <Python.h>
 #include "Common.h"
 #include "CPyModuleContainer.h"
 #include "CPythonMetaClass.h"

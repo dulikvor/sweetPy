@@ -1,9 +1,9 @@
 #pragma once
 
+#include <Python.h>
 #include <string>
 #include <memory>
 #include <vector>
-#include <Python.h>
 #include "Common.h"
 #include "Deleter.h"
 #include "ICPythonVariable.h"

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <type_traits>
 #include <string>
 #include <Python.h>
 #include "Deleter.h"
@@ -9,17 +10,19 @@
 namespace sweetPy {
 
     //Since a copy is due to happen we only want to support pod types to reduce overhead (huge pod structs are unlikeable)
-    template<typename T, typename std::enable_if<std::is_pod<T>::value>::type>
+    //If an array is received it will be decayed into pointer, no copy intialization is supported via array.
+    template<typename T, typename Type = typename std::conditional<std::is_array<T>::value, typename std::decay<T>::type, T>::type, typename = typename std::enable_if<std::is_pod<Type>::value>::type>
     class CPythonVariable : public ICPythonVariable {
     public:
-        CPythonVariable(const std::string &name, const T &value)
+        template<typename Y, typename = typename std::enable_if<std::is_convertible<Y, Type>::value>::type>
+        CPythonVariable(const std::string &name, Y&& value)
                 : ICPythonVariable(name), m_value(value) {}
 
         std::unique_ptr <PyObject, Deleter::Func> ToPython() const override {
-            return std::unique_ptr<PyObject, Deleter::Func>(Object<T>::ToPython(m_value), &Deleter::Borrow);
+            return std::unique_ptr<PyObject, Deleter::Func>(Object<Type>::ToPython(m_value), &Deleter::Borrow);
         }
 
     private:
-        T m_value;
+        Type m_value;
     };
 }
