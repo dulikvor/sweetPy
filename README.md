@@ -70,7 +70,7 @@ In order to run sweetPy tests, just run the following command, from sweetPy root
 
 ## SweetPy supporting capabilities
 
-sweetPy supports the following C++ language capabilities, into python:
+sweetPy binds the following C++ language capabilities, into python:
 
 1. Exporting user types.
 1. Exporting Enums.
@@ -88,5 +88,6 @@ sweetPy supports the following C++ language capabilities, into python:
 - Invocation upon reference types.
 - Accessing reference types members.
 5. Invocation of global functions.
-6. Seamless transition between python builtin types into your C++ code.
-7. Seamless transition between C++ POD types and user defined types into python.
+6. Exporting global variables.
+7. Seamless transition between python builtin types into your C++ code.
+8. Seamless transition between C++ POD types and user defined types into python.
