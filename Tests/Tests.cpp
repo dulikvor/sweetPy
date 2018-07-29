@@ -205,6 +205,16 @@ namespace sweetPyTest {
         ASSERT_EQ(strRef, std::string("Xpire Value"));
     }
 
+    TEST(CPythonClassTest, FromPythonListToNativeVector) {
+        const char *testingScript = "a = TestClass(5)\n"
+                "intVec = a.FromStrVectorToIntVector(['hello', 'world!'])\n";
+        PyRun_SimpleString(testingScript);
+        std::vector<int> intVector = PythonEmbedder::GetAttribute<std::vector<int>>("intVec");
+        ASSERT_EQ(intVector.size(), 2);
+        ASSERT_EQ(intVector[0], 5);
+        ASSERT_EQ(intVector[1], 6);
+    }
+
 
     TEST(CPythonClassTest, AccessingGlobalVariable) {
     std::string variable = PythonEmbedder::GetAttribute<std::string>("globalVariableStr");

@@ -102,6 +102,14 @@ namespace sweetPyTest {
             return std::unique_ptr<TestSubjectB>(new TestSubjectB(m_b));
         }
 
+        std::vector<int> FromStrVectorToIntVector(const std::vector<std::string>& strVector)
+        {
+            std::vector<int> intVector;
+            for(const std::string& str : strVector)
+                intVector.push_back(str.length());
+            return intVector;
+        }
+
         static void BMutator(TestSubjectB& obj){
             obj.IncValue();
         }
