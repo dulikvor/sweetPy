@@ -1,8 +1,9 @@
 #pragma once
 
-#include <string>
-#include <type_traits>
 #include <Python.h>
+#include <string>
+#include <vector>
+#include <type_traits>
 #include "core/Source.h"
 #include "Lock.h"
 #include "CPyModuleContainer.h"
@@ -12,6 +13,7 @@
 #include "CPythonType.h"
 #include "CPythonClassType.h"
 #include "Exception.h"
+#include "Common.h"
 
 namespace sweetPy{
 
@@ -99,11 +101,20 @@ namespace sweetPy{
         CPythonModule &m_module;
     };
 
+
+    template<typename T> struct FromNativeTypeToPyType{};
+    template<> struct FromNativeTypeToPyType<int>{static constexpr void* type = &PyInt_Type;};
+    template<> struct FromNativeTypeToPyType<std::string>{static constexpr void* type = &PyString_Type;};
+    template<> struct FromNativeTypeToPyType<const char*>{static constexpr void* type = &PyString_Type;};
+    template<> struct FromNativeTypeToPyType<char*>{static constexpr void* type = &PyString_Type;};
+    template<> struct FromNativeTypeToPyType<bool>{static constexpr void* type = &PyBool_Type;};
+
+
     template<typename T, typename = void>
     struct Object{};
 
     template<typename T>
-    struct Object<T, typename std::enable_if<!std::is_pointer<T>::value && std::is_copy_constructible<T>::value &&
+    struct Object<T, typename std::enable_if<!std::is_pointer<T>::value && !is_container<T>::value && std::is_copy_constructible<T>::value &&
                                              !std::is_enum<T>::value && !std::is_reference<T>::value>::type> {
     public:
         typedef PyObject* FromPythonType;
@@ -251,6 +262,103 @@ namespace sweetPy{
             }
         }
         //No meaning to return rvalue reference to python (only supports lvalue value category), so ToPython is not implemented.
+    };
+
+    template<typename T>
+    struct Object<std::vector<T>>{
+    public:
+        typedef PyObject* FromPythonType;
+        typedef std::vector<T> Type;
+        static const bool IsSimpleObjectType = false;
+        static constexpr const char *Format = "O";
+        static std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* pyListObject = *reinterpret_cast<PyObject**>(fromBuffer);
+            CPYTHON_VERIFY(pyListObject->ob_type == &PyList_Type, "It is mandatory for the received type to be of PyList_Type");
+            Py_ssize_t numOfElements = PyList_Size(pyListObject);
+            new(toBuffer)std::vector<T>;
+            std::vector<T>& vectorObject = *(std::vector<T>*)(toBuffer);
+            vectorObject.reserve(numOfElements);
+            for(int index = 0; index < numOfElements; index++)
+            {
+                PyObject* element = PyList_GetItem(pyListObject, index);
+                CPYTHON_VERIFY(element->ob_type == FromNativeTypeToPyType<T>::type, "PyListObject type must match a transition to type T");
+                vectorObject.emplace_back(Object<T>::FromPython(element));
+            }
+            return *reinterpret_cast<std::vector<T>*>(toBuffer);
+        }
+
+        static std::vector<T> FromPython(PyObject* object){
+            GilLock lock;
+            CPYTHON_VERIFY(object->ob_type == &PyList_Type, "It is mandatory for the received type to be of PyList_Type");
+            Py_ssize_t numOfElements = PyList_Size(object);
+            std::vector<T> vectorObject;
+            vectorObject.reserve(numOfElements);
+            for(int index = 0; index < numOfElements; index++)
+            {
+                PyObject* element = PyList_GetItem(object, index);
+                CPYTHON_VERIFY(element->ob_type == FromNativeTypeToPyType<T>::type, "PyListObject type must match a transition to type T");
+                vectorObject.emplace_back(Object<T>::FromPython(element));
+            }
+            return vectorObject;
+        }
+
+        static PyObject* ToPython(const std::vector<T>& object){
+            PyObject* pyListObject = PyList_New(object.size());
+            for( int index = 0; index < object.size(); index++)
+                PyList_SetItem(pyListObject, index, Object<T>::ToPython(object[index]));
+
+            return pyListObject;
+        }
+    };
+
+    template<typename T>
+    struct Object<std::vector<T>&>{
+    public:
+        typedef PyObject* FromPythonType;
+        typedef std::vector<T> Type;
+        static const bool IsSimpleObjectType = false;
+        static constexpr const char *Format = "O";
+        static std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
+            if(object->ob_type == &PyList_Type)
+            {
+                Py_ssize_t numOfElements = PyList_Size(object);
+                new(toBuffer)std::vector<T>;
+                std::vector<T>& vectorObject = *(std::vector<T>*)(toBuffer);
+                vectorObject.reserve(numOfElements);
+                for(int index = 0; index < numOfElements; index++)
+                {
+                    PyObject* element = PyList_GetItem(object, index);
+                    CPYTHON_VERIFY(element->ob_type == FromNativeTypeToPyType<T>::type, "PyListObject type must match a transition to type T");
+                    vectorObject.emplace_back(Object<T>::FromPython(element));
+                }
+                return *reinterpret_cast<std::vector<T>*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<std::vector<T>>(object))
+            {
+                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "std::vector can only originates from python list type or ref to std::vector type");
+        }
+
+        static std::vector<T>& FromPython(PyObject* obj){
+            if(CPythonRef<>::IsReferenceType<std::string>(obj)){
+                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(obj + 1);
+                return refObject->GetRef();
+            }
+            else{
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "conversion between python list object to std::vector is not possible");
+            }
+        }
+
+        static PyObject* ToPython(std::vector<T>& data){ //Only l_value, no xpire value
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<std::vector<T>>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
     };
 
     template<>
