@@ -8,10 +8,13 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "Default build type 'Debug'")
-    set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "" FORCE )
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "" FORCE )
 else()
-    string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
     message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(CMAKE_DEBUG_POSTFIX d)
 endif()
 
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -26,5 +29,5 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
 include_directories(. .. ${PROJECT_DIR} ${PYTHON_INCLUDE_DIRS})
 
 add_executable(example example.cpp)
-set(TO_LINK_LIBS ${PYTHON_LIBRARIES} sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore.so util dl pthread)
+set(TO_LINK_LIBS ${PYTHON_LIBRARIES} sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CMAKE_DEBUG_POSTFIX}.so util dl pthread)
 target_link_libraries(example ${TO_LINK_LIBS})

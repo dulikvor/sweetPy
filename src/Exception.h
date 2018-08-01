@@ -1,7 +1,7 @@
 #pragma once
 
-#include <memory>
 #include <Python.h>
+#include <memory>
 #include "core/Exception.h"
 #include "Deleter.h"
 

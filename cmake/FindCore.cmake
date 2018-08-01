@@ -1,6 +1,6 @@
 message(STATUS "3rd party loc - ${sweetPy_3RD_PARTY_DIR}")
-find_path(CORE_INCLUDE_DIR NAMES core/Exception.h PATHS ${sweetPy_3RD_PARTY_DIR}/include NO_DEFAULT_PATH)
-find_program(CORE_LIBRARY_DIR NAMES libCore.so PATHS ${sweetPy_3RD_PARTY_DIR}/lib NO_DEFAULT_PATH)
+find_path(CORE_INCLUDE_DIR NAMES core/Exception.h PATHS ${sweetPy_3RD_PARTY_DIR}/include)
+find_program(CORE_LIBRARY_DIR NAMES libCore${CMAKE_DEBUG_POSTFIX}.so PATHS ${sweetPy_3RD_PARTY_DIR}/lib)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Core REQUIRED_VARS CORE_INCLUDE_DIR CORE_LIBRARY_DIR)
 

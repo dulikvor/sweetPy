@@ -34,15 +34,14 @@ namespace sweetPy {
             new((char*)self + sizeof(PyObject))ClassType(std::forward<Args>(Object<typename base<Args>::Type>::GetTyped(
                     pythonArgsBuffer + ObjectOffset<FromPython, ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value,
                     nativeArgsBuffer + ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,ObjectWrapper<typename base<Args>::Type, I>...>::value))...);
-
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
-                                                                                                            ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
+                                                                                                        ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                                                                                                                     ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
             return 0;
         }
 
         static int Wrapper(PyObject *self, PyObject *args, PyObject *kwargs) {
-            WrapperImpl(self, args, std::make_index_sequence<sizeof...(Args)>{});
+            return WrapperImpl(self, args, std::make_index_sequence<sizeof...(Args)>{});
         }
 
     private:
