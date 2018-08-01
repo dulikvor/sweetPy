@@ -8,10 +8,14 @@ set (CMAKE_CXX_EXTENSIONS OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "Default build type 'Debug'")
-    set(CMAKE_BUILD_TYPE DEBUG CACHE STRING "" FORCE )
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING "" FORCE )
 else()
-    string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE)
     message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+endif()
+
+if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+    set(CMAKE_DEBUG_POSTFIX)
+    set(CORE_DEBUG_POSTFIX d)
 endif()
 
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -28,9 +32,9 @@ include_directories(. ..  ${PROJECT_DIR} ${sweetPy_3RD_PARTY_DIR}/include)
 link_directories(${sweetPy_3RD_PARTY_DIR}/lib ${PROJECT_DIR}/../bin)
 
 add_library(CPythonClassTestModule SHARED CPythonClassTestModule.cpp)
-target_link_libraries(CPythonClassTestModule sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore.so pthread )
+target_link_libraries(CPythonClassTestModule sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CORE_DEBUG_POSTFIX}.so pthread )
 set_target_properties(CPythonClassTestModule PROPERTIES PREFIX "")
 
 add_executable(sweetPyTests Tests.cpp CPythonClassTestModule.h)
-set(TO_LINK_LIBS gtest ${PYTHON_LIBRARIES} util dl CPythonClassTestModule ${sweetPy_3RD_PARTY_DIR}/lib/libCore.so pthread)
+set(TO_LINK_LIBS gtest ${PYTHON_LIBRARIES} util dl CPythonClassTestModule ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CORE_DEBUG_POSTFIX}.so pthread)
 target_link_libraries(sweetPyTests ${TO_LINK_LIBS})

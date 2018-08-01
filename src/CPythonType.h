@@ -1,11 +1,11 @@
 #pragma once
 
+#include <Python.h>
 #include <iostream>
 #include <string>
 #include <memory>
 #include <iterator>
 #include <algorithm>
-#include <Python.h>
 #include <structmember.h>
 
 namespace sweetPy {
