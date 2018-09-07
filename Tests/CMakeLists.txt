@@ -28,7 +28,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
 set(CMAKE_BINARY_DIR ${PROJECT_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
 
-include_directories(. ..  ${PROJECT_DIR} ${sweetPy_3RD_PARTY_DIR}/include)
+include_directories(. ..  ${PROJECT_DIR} ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 link_directories(${sweetPy_3RD_PARTY_DIR}/lib ${PROJECT_DIR}/../bin)
 
 add_library(CPythonClassTestModule SHARED CPythonClassTestModule.cpp)
