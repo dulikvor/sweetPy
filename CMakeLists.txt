@@ -35,10 +35,11 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Python REQUIRED)
 find_package(Core)
 
-option(sweetPy_TEST_SUPPORT "Test support" OFF)
+option(sweetPy_WITH_TESTS "Test support" OFF)
+option(sweetPy_WITH_EXAMPLES "Examples support" OFF)
 option(sweetPy_3RD_PARTY_INSTALL_STEP "3rd parties installation step" OFF)
 option(sweetPy_COMPILATION_STEP "Compilation step" OFF)
-if(sweetPy_TEST_SUPPORT)
+if(sweetPy_WITH_TESTS)
     find_package(GoogleTest)
 endif()
 
@@ -60,8 +61,10 @@ if(sweetPy_COMPILE_STEP)
     set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
     #Pre build step
 
-    add_subdirectory(${PROJECT_DIR}/example)
-    if(sweetPy_TEST_SUPPORT)
+    if(sweetPy_WITH_EXAMPLES)
+        add_subdirectory(${PROJECT_DIR}/example)
+    endif()
+    if(sweetPy_WITH_TESTS)
         add_subdirectory(${PROJECT_DIR}/Tests)
     endif()
 
