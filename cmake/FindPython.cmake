@@ -1,3 +1,4 @@
+set(Python_ADDITIONAL_VERSIONS 3.6)
 find_package(PythonLibs 3.6 REQUIRED)
 if(NOT ${PYTHONLIBS_FOUND})
     execute_process(COMMAND python3 -c "from distutils.sysconfig import get_python_inc; print(get_python_inc(), end='')" OUTPUT_VARIABLE PYTHON_INCLUDE_DIRS)
