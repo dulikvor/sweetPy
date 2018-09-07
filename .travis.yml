@@ -26,6 +26,7 @@ install:
 before_script:
 - ulimit -c unlimited -S       # enable core dumps
 script:
+- ls -l /opt/python/3.6.3/lib/
 - cmake -DsweetPy_COMPILE_STEP=ON -DsweetPy_WITH_TESTS=ON -DCMAKE_BUILD_TYPE=Release . && make
 - ./Tests/bin/sweetPyTests
 after_failure:
