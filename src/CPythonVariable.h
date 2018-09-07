@@ -3,7 +3,7 @@
 #include <type_traits>
 #include <string>
 #include <Python.h>
-#include "Deleter.h"
+#include "src/Core/Deleter.h"
 #include "ICPythonVariable.h"
 #include "CPythonObject.h"
 
@@ -19,7 +19,7 @@ namespace sweetPy {
                 : ICPythonVariable(name), m_value(value) {}
 
         std::unique_ptr <PyObject, Deleter::Func> ToPython() const override {
-            return std::unique_ptr<PyObject, Deleter::Func>(Object<Type>::ToPython(m_value), &Deleter::Borrow);
+            return std::unique_ptr<PyObject, Deleter::Func>(Object<Type>::ToPython(m_value), &Deleter::Owner);
         }
 
     private:

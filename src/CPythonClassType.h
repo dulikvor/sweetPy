@@ -4,7 +4,9 @@
 #include <Python.h>
 #include "CPythonType.h"
 #include "IMemberAccessor.h"
-#include "Exception.h"
+#include "src/Core/Exception.h"
+#include "src/Core/Assert.h"
+#include "src/Core/Dictionary.h"
 
 
 namespace sweetPy {
@@ -16,20 +18,18 @@ namespace sweetPy {
 
         CPythonClassType(const std::string &name, const std::string &doc)
                 : CPythonType(name, doc) {
-            ob_type = &CPythonMetaClass<>::GetStaticMetaType();
-            ob_refcnt = 1;
-            ob_size = 0;
+            ob_base.ob_base.ob_type = &CPythonMetaClass::GetStaticMetaType();
+            ob_base.ob_base.ob_refcnt = 1;
+            ob_base.ob_size = 0;
             tp_name = m_name.c_str();
             tp_basicsize = sizeof(Type) + sizeof(PyObject);
             tp_dealloc = &Dealloc;
-            tp_flags = Py_TPFLAGS_HAVE_CLASS |
-                       Py_TPFLAGS_HAVE_GC;
+            tp_flags = Py_TPFLAGS_HAVE_GC;
             tp_doc = m_doc.c_str();
             tp_traverse = &Traverse;
             tp_new = PyBaseObject_Type.tp_new;
             tp_setattro = &SetAttribute;
             tp_getattro = &GetAttribute;
-
         }
 
         //Due to dependency with CPythonObject, the member will be created by CPythonClass
@@ -74,8 +74,10 @@ namespace sweetPy {
         static int SetAttribute(PyObject *object, PyObject *attrName, PyObject *value) {
             PyTypeObject *type = CPyModuleContainer::Instance().GetType(CPyModuleContainer::TypeHash<self>());
             CPYTHON_VERIFY(type != nullptr, "was unable to locate type");
-            CPYTHON_VERIFY(attrName->ob_type == &PyString_Type, "attrName must be py string type");
-            char *name = PyString_AsString(attrName);
+            CPYTHON_VERIFY(attrName->ob_type == &PyUnicode_Type, "attrName must be py string type");
+            object_ptr bytesObject(PyUnicode_AsASCIIString(attrName), &Deleter::Owner);
+            CPYTHON_VERIFY_EXC(bytesObject.get() != nullptr);
+            char *name = PyBytes_AsString(bytesObject.get());
             MembersDefs defs(type->tp_members);
             auto it = std::find_if(defs.begin(), defs.end(), [&name](typename MembersDefs::iterator::reference rhs) {
                 return strcmp(rhs.name, name) == 0;
@@ -89,23 +91,43 @@ namespace sweetPy {
             return 0;
         }
 
-        static PyObject* GetAttribute(PyObject *object, PyObject *attrName) {
+        static PyObject* GetAttribute(PyObject *object, PyObject *attrName)
+        {
             PyTypeObject *type = CPyModuleContainer::Instance().GetType(CPyModuleContainer::TypeHash<self>());
             CPYTHON_VERIFY(type != nullptr, "was unable to locate type");
-            CPYTHON_VERIFY(attrName->ob_type == &PyString_Type, "attrName must be py string type");
-            char *name = PyString_AsString(attrName);
+            CPYTHON_VERIFY(attrName->ob_type == &PyUnicode_Type, "attrName must be py unicode type");
+            object_ptr bytesObject(PyUnicode_AsASCIIString(attrName), &Deleter::Owner);
+            CPYTHON_VERIFY_EXC(bytesObject.get() != nullptr);
+            char *name = PyBytes_AsString(bytesObject.get());
             MembersDefs defs(type->tp_members);
             auto it = std::find_if(defs.begin(), defs.end(), [&name](typename MembersDefs::iterator::reference rhs) {
                 return strcmp(rhs.name, name) == 0;
             });
             if (it == defs.end())
-               return  PyObject_GenericGetAttr(object, attrName);
+            {
+                Dictionary dictionary(object);
+                object_ptr descriptor = dictionary.GetObject(attrName);
+                if(descriptor.get() != nullptr && descriptor->ob_type == &PyMethodDescr_Type)
+                    return GetMethod(descriptor, object);
+                else
+                    return  PyObject_GenericGetAttr(object, attrName);
+            }
 
             self &cpythonClassType = static_cast<self &>(*type);
             IMemberAccessor &accessor = cpythonClassType.GetAccessor(it->offset);
             return accessor.Get(object);
         }
 
+        static PyObject* GetMethod(const object_ptr& descr, PyObject *obj)
+        {
+            PyMethodDescrObject& descriptor = static_cast<PyMethodDescrObject&>(*(PyMethodDescrObject*)descr.get());
+            object_ptr self(PyTuple_New(2), &Deleter::Owner); //self = name and object, function will release the tuple
+            Py_XINCREF(obj); //tuple steals the reference
+            PyTuple_SetItem(self.get(), 0, obj);
+            Py_XINCREF(descriptor.d_common.d_name); //tuple steals the reference
+            PyTuple_SetItem(self.get(), 1, descriptor.d_common.d_name);
+            return PyCFunction_NewEx(descriptor.d_method, self.get(), NULL);
+        }
 
     private:
         std::unordered_map<int, std::shared_ptr<IMemberAccessor>> m_membersAccessors; //Nothing is shared, but due to the fact vptr is not allowed we will use raii to keep the memory in check.

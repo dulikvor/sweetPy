@@ -17,13 +17,14 @@ namespace sweetPyTest {
 
         void SetUp() override {
             core::Logger::Instance().Start(core::TraceSeverity::Info);
-            PythonEmbedder::InitiateInterperter("CPythonClassTest", _argc, _argv);
-            const char *testingScript = "from CPythonClassTestModule import TestClass, TestClassB, TestClassC, Enum_Python, globalFunction, globalVariableStr, globalVariableInt\n";
+            PythonEmbedder::Instance().InitiateInterperter("CPythonClassTest", _argc, _argv);
+            const char *testingScript = "from CPythonClassTestModule import TestClass, Enum_Python, TestClassB, TestClassC, globalFunction, globalVariableStr, globalVariableInt\n"
+                                        "import CPythonClassTestModule as TestModule";
             PyRun_SimpleString(testingScript);
         }
 
         void TearDown() override {
-            PythonEmbedder::TerminateInterperter();
+            PythonEmbedder::Instance().TerminateInterperter();
         }
     };
 
@@ -35,6 +36,21 @@ namespace sweetPyTest {
             static_assert(std::is_same<typename sweetPy::ObjectWrapper<TestSubjectC&,0>::Type, TestSubjectC>::value, "ObjectWrapper Type - validating a non copyable/moveable reference type assertion has failed.");
             static_assert(std::is_same<typename sweetPy::ObjectWrapper<TestSubjectC&,0>::FromPythonType, PyObject*>::value, "ObjectWrapper FromPython - validating a non copyable/moveable reference type assertion has failed.");
         }
+    }
+
+    TEST(CPythonClassTest, CPythonObjectArgsReturnTypesConversion) {
+        const char *testingScript = "value = TestModule.check_int_conversion(1000)\n";
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(1001, PythonEmbedder::GetAttribute<int>("value"));
+    }
+
+    TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {
+        const char *testingScript = "a = TestClass(7)\n"
+                                    "a.IncBaseValue()\n"
+                                    "result = a.GetBaseValue()";
+
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("result"), 1);
     }
 
 
@@ -82,15 +98,6 @@ namespace sweetPyTest {
         PyRun_SimpleString(testingScript);
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), 5);
         ASSERT_EQ(PythonEmbedder::GetAttribute<int>("a.byValueInt"), PythonEmbedder::GetAttribute<int>("b"));
-    }
-
-    TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {
-        const char *testingScript = "a = TestClass(7)\n"
-                                    "a.IncBaseValue()\n"
-                                    "result = a.GetBaseValue()";
-
-        PyRun_SimpleString(testingScript);
-        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("result"), 1);
     }
 
     TEST(CPythonClassTest, HandleArgumentConversionofNonPythonType) {
@@ -214,7 +221,6 @@ namespace sweetPyTest {
         ASSERT_EQ(intVector[0], 5);
         ASSERT_EQ(intVector[1], 6);
     }
-
 
     TEST(CPythonClassTest, AccessingGlobalVariable) {
     std::string variable = PythonEmbedder::GetAttribute<std::string>("globalVariableStr");

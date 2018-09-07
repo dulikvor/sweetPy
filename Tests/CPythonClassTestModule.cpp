@@ -15,7 +15,7 @@ namespace sweetPyTest {
 
     INIT_MODULE(CPythonClassTestModule, "A testing module for CPythonClass static method property") {
         CPythonClass<TestSubjectA> subject(module, "TestClass", "A subject usertype for the CPythonClass static method property");
-        subject.AddConstructor<int &>();
+        subject.AddConstructor<int>();
         subject.AddMethod("GetMe", "GetMe - Will return a reference to my self", &TestSubjectA::GetMe);
         subject.AddMethod("GetValue", "GetValue - Will retrive m_intValue", &TestSubjectA::GetValue);
         subject.AddMethod("SetString", "SetStr - Will modify the internal m_str", &TestSubjectA::SetString);
@@ -44,18 +44,20 @@ namespace sweetPyTest {
         subjectB.AddMethod("Foo_1", "Foo function", static_cast<int(TestSubjectB::*)(int)>(&TestSubjectB::Foo));
         subjectB.AddMethod("Foo_2", "Foo function", static_cast<int(TestSubjectB::*)(int, int)>(&TestSubjectB::Foo));
 
-        CPythonEnum enumSubject(module, "Enum_Python", "What we think about python in general");
-        enumSubject.AddEnumValue("Good", (int)Python::Good, "We are pretty sure, python is great");
-        enumSubject.AddEnumValue("Bad", (int)Python::Bad, "Lets be honest, cpp is the best :)");
+        CPythonEnum enumSubject(module, "Enum_Python");
+        enumSubject.AddEnumValue("Good", (int)Python::Good);
+        enumSubject.AddEnumValue("Bad", (int)Python::Bad);
 
         CPythonClass<TestSubjectC> subjectC(module, "TestClassC", "A non copyable/moveable version for a class");
         subjectC.AddMethod("inc", "will increase i", &TestSubjectC::Inc);
         subjectC.AddStaticMethod("instance", "a reference method", &TestSubjectC::Instance);
 
-        CPythonGlobalFunction function(module, "globalFunction", "global function", &globalFunction);
+        CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
+        CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
+        CPythonGlobalFunction(module, "check_const_ref_int_conversion", "check integral const ref int type conversions", static_cast<const int&(*)(const int&)>(&CheckIntegralIntType));
 
-        CPythonGlobalVariable variable_str(module, "globalVariableStr", "Hello World");
-        CPythonGlobalVariable variable_int(module, "globalVariableInt", 5);
+        CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
+        CPythonGlobalVariable(module, "globalVariableInt", 5);
     }
 
 }

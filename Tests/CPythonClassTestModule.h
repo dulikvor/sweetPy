@@ -5,6 +5,11 @@
 
 namespace sweetPyTest {
 
+    int CheckIntegralIntType(int value){ return value + 1; }
+    int& CheckIntegralIntType(int& value){ return ++value; }
+    const int& CheckIntegralIntType(const int& value){ return value; }
+    int&& CheckIntegralIntType(int&& value){ return std::move(value); }
+
     enum Python
     {
         Good = 1,
@@ -58,7 +63,7 @@ namespace sweetPyTest {
 
     class TestSubjectA : public TestSubjectAAbastract{
     public:
-        TestSubjectA(int &valueInt) : m_byValueInt(valueInt), m_enumValue(Python::Good) {}
+        TestSubjectA(int valueInt) : m_byValueInt(valueInt), m_enumValue(Python::Good) {}
         ~TestSubjectA(){ m_instanceDestroyed = true; }
         virtual int GetValue(){ return m_byValueInt;}
         const std::string& GetStr() const{return m_str;}

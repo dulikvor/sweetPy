@@ -1,13 +1,39 @@
 #include "CPyModuleContainer.h"
-#include <Python.h>
 #include "core/Source.h"
-#include "Exception.h"
+#include "src/Core/Exception.h"
+#include "src/Core/PythonAssist.h"
 
 namespace sweetPy{
+
+    CPyModuleContainer::CPyModuleContainer()
+        :m_isRegistered(false)
+    {
+        m_atExitDescriptor = {"AtExit", &atExit, METH_NOARGS, "AtExit"};
+    }
+
+    void CPyModuleContainer::Clear()
+    {
+        m_modules.clear();
+    }
+
+    void CPyModuleContainer::RegisterContainer()
+    {
+       if(m_isRegistered.exchange(true) == false)
+            Python::RegisterOnExit(m_atExitDescriptor);
+    }
 
     CPyModuleContainer& CPyModuleContainer::Instance() {
         static CPyModuleContainer instance;
         return instance;
+    }
+
+    CPyModuleContainer::~CPyModuleContainer()
+    {
+        for(auto& type :  m_types)
+        {
+            delete (CPythonType*)type.second.get();
+            type.second.release();
+        }
     }
 
     void CPyModuleContainer::AddModule(const std::string &key, const std::shared_ptr<CPythonModule> &module) {
@@ -22,46 +48,51 @@ namespace sweetPy{
         return *m_modules[key];
     }
 
-    void CPyModuleContainer::AddType(size_t key, PyTypeObject *const type){
+    const CPyModuleContainer::Modules& CPyModuleContainer::GetModules() const
+    {
+        return m_modules;
+    }
+
+    void CPyModuleContainer::AddType(size_t key, object_ptr&& type){
         if( m_types.find(key) != m_types.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
-        m_types.insert(std::make_pair(key, type));
+        m_types.insert(std::make_pair(key, std::move(type)));
     }
 
 
-    void CPyModuleContainer::AddMethod(int key, std::shared_ptr<ICPythonFunction>& method){
+    void CPyModuleContainer::AddMethod(int key, std::shared_ptr<CPythonFunction>& method){
         if( m_methods.find(key) != m_methods.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
         m_methods.insert(std::make_pair(key, method));
     }
 
-    void CPyModuleContainer::AddStaticMethod(int key, std::shared_ptr<ICPythonFunction>& staticMethod){
+    void CPyModuleContainer::AddStaticMethod(int key, std::shared_ptr<CPythonFunction>& staticMethod){
         if( m_staticMethods.find(key) != m_staticMethods.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
         m_staticMethods.insert(std::make_pair(key, staticMethod));
     }
 
 
-    void CPyModuleContainer::AddGlobalFunction(int key, std::shared_ptr<ICPythonFunction>& function){
+    void CPyModuleContainer::AddGlobalFunction(int key, std::shared_ptr<CPythonFunction>& function){
 
         if( m_functions.find(key) != m_functions.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
         m_functions.insert(std::make_pair(key, function));
     }
 
-    ICPythonFunction& CPyModuleContainer::GetMethod(int key){
+    CPythonFunction& CPyModuleContainer::GetMethod(int key){
         if( m_methods.find(key) == m_methods.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key related entry dosn't exists - %d", key);
         return *m_methods[key];
     }
 
-    ICPythonFunction& CPyModuleContainer::GetStaticMethod(int key){
+    CPythonFunction& CPyModuleContainer::GetStaticMethod(int key){
         if( m_staticMethods.find(key) == m_staticMethods.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key related entry dosn't exists - %d", key);
         return *m_staticMethods[key];
     }
 
-    ICPythonFunction& CPyModuleContainer::GetGlobalFunction(int key){
+    CPythonFunction& CPyModuleContainer::GetGlobalFunction(int key){
         if( m_functions.find(key) == m_functions.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key related entry dosn't exists - %d", key);
         return *m_functions[key];
@@ -76,6 +107,12 @@ namespace sweetPy{
     PyTypeObject* const CPyModuleContainer::GetType(size_t key){
         if( m_types.find(key) == m_types.end())
             return nullptr;
-        return m_types[key];
+        return (PyTypeObject*)m_types[key].get();
+    }
+
+    PyObject* CPyModuleContainer::atExit(PyObject*, PyObject*)
+    {
+        Instance().Clear();
+        Py_RETURN_NONE;
     }
 }
