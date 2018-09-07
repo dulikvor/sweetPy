@@ -28,7 +28,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
 set(CMAKE_BINARY_DIR ${PROJECT_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
 
-include_directories(. ..  ${PROJECT_DIR} ${sweetPy_3RD_PARTY_DIR}/include)
+include_directories(. ..  ${PROJECT_DIR} ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 link_directories(${sweetPy_3RD_PARTY_DIR}/lib ${PROJECT_DIR}/../bin)
 
 add_library(CPythonClassTestModule SHARED CPythonClassTestModule.cpp)
@@ -36,5 +36,5 @@ target_link_libraries(CPythonClassTestModule sweetPy ${sweetPy_3RD_PARTY_DIR}/li
 set_target_properties(CPythonClassTestModule PROPERTIES PREFIX "")
 
 add_executable(sweetPyTests Tests.cpp CPythonClassTestModule.h)
-set(TO_LINK_LIBS gtest ${PYTHON_LIBRARIES} util dl CPythonClassTestModule ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CORE_DEBUG_POSTFIX}.so pthread)
+set(TO_LINK_LIBS CPythonClassTestModule gtest ${PYTHON_LIBRARIES} util dl ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CORE_DEBUG_POSTFIX}.so pthread)
 target_link_libraries(sweetPyTests ${TO_LINK_LIBS})

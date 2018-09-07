@@ -1,6 +1,7 @@
 #include <Python.h>
 #include <string>
 #include <iostream>
+#include "core/Logger.h"
 #include "src/InitModule.h"
 #include "src/CPythonClass.h"
 
@@ -35,10 +36,14 @@ INIT_MODULE(example, "Example doc")
 
 int main( int argc, const char *argv[] )
 {
-    Py_SetProgramName(const_cast<char*>(argv[0]));
+    core::Logger::Instance().Start(core::TraceSeverity::Info);
+    char* programName = const_cast<char*>(argv[0]);
+    wchar_t* decodedName = Py_DecodeLocale(programName, nullptr);
+    Py_SetProgramName(decodedName);
     Py_Initialize();
-    initexample();
+    PyInit_example();
     Py_Finalize();
+    PyMem_RawFree(decodedName);
 
     return 0;
 }

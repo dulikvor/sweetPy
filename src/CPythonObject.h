@@ -5,15 +5,16 @@
 #include <vector>
 #include <type_traits>
 #include "core/Source.h"
-#include "Lock.h"
 #include "CPyModuleContainer.h"
 #include "CPythonModule.h"
 #include "CPythonRef.h"
 #include "CPythonEnumValue.h"
 #include "CPythonType.h"
 #include "CPythonClassType.h"
-#include "Exception.h"
-#include "Common.h"
+#include "src/Core/Exception.h"
+#include "src/Core/Traits.h"
+#include "src/Core/Lock.h"
+#include "src/Core/Assert.h"
 
 namespace sweetPy{
 
@@ -27,14 +28,13 @@ namespace sweetPy{
                 : CPythonType(std::to_string((int)CPyModuleContainer::TypeHash<self>()) + "-GenericObjectType",
                                       std::to_string((int)CPyModuleContainer::TypeHash<self>()) + "-GenericObjectType")
         {
-            ob_type = &CPythonMetaClass<>::GetStaticMetaType();
-            ob_refcnt = 1;
-            ob_size = 0;
+            ob_base.ob_base.ob_type = &CPythonMetaClass::GetStaticMetaType();
+            ob_base.ob_base.ob_refcnt = 1;
+            ob_base.ob_size = 0;
             tp_name = m_name.c_str();
             tp_basicsize = sizeof(Type) + sizeof(PyObject);
             tp_dealloc = &Dealloc;
-            tp_flags = Py_TPFLAGS_HAVE_CLASS |
-                       Py_TPFLAGS_HAVE_GC;
+            tp_flags = Py_TPFLAGS_HAVE_GC;
             tp_doc = m_doc.c_str();
             tp_traverse = &Traverse;
             tp_new = PyBaseObject_Type.tp_new;
@@ -72,7 +72,7 @@ namespace sweetPy{
     {
     public:
         CPythonObject(CPythonModule &module)
-        : m_module(module), m_type(new CPythonObjectType<Type>(module))
+        : m_module(module), m_type((PyObject*)new CPythonObjectType<Type>(module), &Deleter::Owner)
         {
             Py_IncRef((PyObject *) m_type.get()); //Making sure the instance will leave outside python garbage collector
         }
@@ -83,9 +83,9 @@ namespace sweetPy{
             size_t key = CPyModuleContainer::TypeHash<CPythonObjectType<Type>>();
             if(moduleContainer.Exists(key) == false)
             {
-                PyType_Ready(m_type.get());
-                moduleContainer.AddType(key, m_type.get());
-                m_module.AddType(std::move(m_type));
+                PyType_Ready((PyTypeObject*)m_type.get());
+                m_module.AddType((CPythonType*)m_type.get());
+                moduleContainer.AddType(key, std::move(m_type));
             }
         }
 
@@ -97,16 +97,16 @@ namespace sweetPy{
             return newObject;
         }
     private:
-        std::unique_ptr<CPythonType> m_type;
+        object_ptr m_type;
         CPythonModule &m_module;
     };
 
 
     template<typename T> struct FromNativeTypeToPyType{};
-    template<> struct FromNativeTypeToPyType<int>{static constexpr void* type = &PyInt_Type;};
-    template<> struct FromNativeTypeToPyType<std::string>{static constexpr void* type = &PyString_Type;};
-    template<> struct FromNativeTypeToPyType<const char*>{static constexpr void* type = &PyString_Type;};
-    template<> struct FromNativeTypeToPyType<char*>{static constexpr void* type = &PyString_Type;};
+    template<> struct FromNativeTypeToPyType<int>{static constexpr void* type = &PyLong_Type;};
+    template<> struct FromNativeTypeToPyType<std::string>{static constexpr void* type = &PyUnicode_Type;};
+    template<> struct FromNativeTypeToPyType<const char*>{static constexpr void* type = &PyUnicode_Type;};
+    template<> struct FromNativeTypeToPyType<char*>{static constexpr void* type = &PyUnicode_Type;};
     template<> struct FromNativeTypeToPyType<bool>{static constexpr void* type = &PyBool_Type;};
 
 
@@ -191,11 +191,14 @@ namespace sweetPy{
     public:
         typedef int FromPythonType;
         typedef T Type;
-        static constexpr const char* Format = "i";
+        static constexpr const char* Format = "O";
         static const bool IsSimpleObjectType = false;
         static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
-            new(toBuffer)T((T)*reinterpret_cast<int*>(fromBuffer));
+            PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
+            object_ptr attrName(PyUnicode_FromString("_value_"), &Deleter::Owner);
+            object_ptr attr(PyObject_GetAttr(object, attrName.get()), &Deleter::Owner);
+            new(toBuffer)T((T)int(PyLong_AsLongLong(attr.get())));
             return *reinterpret_cast<T*>(toBuffer);
         }
     };
@@ -320,6 +323,42 @@ namespace sweetPy{
         static constexpr const char *Format = "O";
         static std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
+            if(CPythonRef<>::IsReferenceType<std::vector<T>>(object))
+            {
+                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "std::vector can only originates from ref to std::vector type");
+        }
+
+        static std::vector<T>& FromPython(PyObject* obj){
+            if(CPythonRef<>::IsReferenceType<std::vector<T>>(obj)){
+                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(obj + 1);
+                return refObject->GetRef();
+            }
+            else{
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "conversion between python list object to std::vector is not possible");
+            }
+        }
+
+        static PyObject* ToPython(std::vector<T>& data){ //Only l_value, no xpire value
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<std::vector<T>>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
+    template<typename T>
+    struct Object<const std::vector<T>&>{
+    public:
+        typedef PyObject* FromPythonType;
+        typedef std::vector<T> Type;
+        static const bool IsSimpleObjectType = false;
+        static constexpr const char *Format = "O";
+        static const std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
             if(object->ob_type == &PyList_Type)
             {
                 Py_ssize_t numOfElements = PyList_Size(object);
@@ -334,18 +373,18 @@ namespace sweetPy{
                 }
                 return *reinterpret_cast<std::vector<T>*>(toBuffer);
             }
-            else if(CPythonRef<>::IsReferenceType<std::vector<T>>(object))
+            else if(CPythonRef<>::IsReferenceType<const std::vector<T>>(object))
             {
-                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(object + 1);
+                CPythonRefObject<const std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<const std::vector<T>>*>(object + 1);
                 return refObject->GetRef();
             }
             else
                 throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "std::vector can only originates from python list type or ref to std::vector type");
         }
 
-        static std::vector<T>& FromPython(PyObject* obj){
-            if(CPythonRef<>::IsReferenceType<std::string>(obj)){
-                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(obj + 1);
+        static const std::vector<T>& FromPython(PyObject* obj){
+            if(CPythonRef<>::IsReferenceType<std::vector<T>>(obj)){
+                CPythonRefObject<const std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<const std::vector<T>>*>(obj + 1);
                 return refObject->GetRef();
             }
             else{
@@ -353,8 +392,8 @@ namespace sweetPy{
             }
         }
 
-        static PyObject* ToPython(std::vector<T>& data){ //Only l_value, no xpire value
-            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<std::vector<T>>>();
+        static PyObject* ToPython(const std::vector<T>& data){ //Only l_value, no xpire value
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<const std::vector<T>>>();
             auto& container = CPyModuleContainer::Instance();
             PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
             return CPythonRef<>::Alloc(type, data);
@@ -372,12 +411,18 @@ namespace sweetPy{
             new(toBuffer)const char*(*reinterpret_cast<char**>(fromBuffer));
             return *reinterpret_cast<const char**>(toBuffer);
         }
-        static const char* FromPython(PyObject* obj){
+        static const char* FromPython(PyObject* object){
             GilLock lock;
-            return PyString_AsString(obj);
+            const char* str;
+            if(Py_TYPE(object) == &PyUnicode_Type)
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "conversion between python unicode string to const char* is not possible");
+            else if(Py_TYPE(object) == &PyBytes_Type)
+                str = PyBytes_AsString(object);
+
+            return str;
         }
         static PyObject* ToPython(const char* data){
-            return PyString_FromString(data);
+            return PyBytes_FromString(data);
         }
     };
 
@@ -392,12 +437,18 @@ namespace sweetPy{
             new(toBuffer)char*(*reinterpret_cast<char**>(fromBuffer));
             return *reinterpret_cast<char**>(toBuffer);
         }
-        static char* FromPython(PyObject* obj){
+        static char* FromPython(PyObject* object){
             GilLock lock;
-            return PyString_AsString(obj);
+            char* str;
+            if(Py_TYPE(object) == &PyUnicode_Type)
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "conversion between python unicode string to char* is not possible");
+            else if(Py_TYPE(object) == &PyBytes_Type)
+                str = PyBytes_AsString(object);
+
+            return str;
         }
         static PyObject* ToPython(char* data){
-            return PyString_FromString(data);
+            return PyBytes_FromString(data);
         }
     };
 
@@ -413,14 +464,29 @@ namespace sweetPy{
             new(toBuffer)char*(*reinterpret_cast<char**>(fromBuffer));
             return static_cast<char[N]>(toBuffer);
         }
-        static char(&FromPython(PyObject* obj))[N]{
+        static char(&FromPython(PyObject* object))[N]{
             GilLock lock;
-            char* str = PyString_AsString(obj);
-            CPYTHON_VERIFY(strlen(str) <= N-1, "Python string size is too long for char array.");
+            char* str;
+            if(Py_TYPE(object) == &PyUnicode_Type)
+            {
+                object_ptr bytesObject(PyUnicode_AsASCIIString(object), &Deleter::Owner);
+                CPYTHON_VERIFY_EXC(bytesObject.get() != nullptr && strlen(PyBytes_AsString(bytesObject.get())) <= N-1);
+                str = new char[N];
+                memcpy(str, PyBytes_AsString(bytesObject.get()), N - 1);
+                str[N - 1] = '\0';
+            }
+            else if(Py_TYPE(object) == &PyBytes_Type)
+            {
+                CPYTHON_VERIFY_EXC(strlen(PyBytes_AsString(object)) <= N - 1);
+                str = new char[N];
+                memcpy(str, PyBytes_AsString(object), N - 1);
+                str[N - 1] = '\0';
+                str = PyBytes_AsString(object);
+            }
             return static_cast<char[N]>(str);
         }
         static PyObject* ToPython(char(&data)[N]){
-            return PyString_FromString(data);
+            return PyBytes_FromString(data);
         }
     };
 
@@ -436,14 +502,23 @@ namespace sweetPy{
             new(toBuffer)char*(*reinterpret_cast<char**>(fromBuffer));
             return static_cast<const char[N]>(toBuffer);
         }
-        static const char(&FromPython(PyObject* obj))[N]{
+        static const char(&FromPython(PyObject* object))[N]{
             GilLock lock;
-            char* str = PyString_AsString(obj);
+            char* str;
+            if(Py_TYPE(object) == &PyUnicode_Type)
+            {
+                object_ptr bytesObject(PyUnicode_AsASCIIString(object), &Deleter::Owner);
+                CPYTHON_VERIFY_EXC(bytesObject.get() != nullptr);
+                str = PyBytes_AsString(bytesObject.get());
+            }
+            else if(Py_TYPE(object) == &PyBytes_Type)
+                str = PyBytes_AsString(object);
+
             CPYTHON_VERIFY(strlen(str) <= N-1, "Python string size is too long for char array.");
             return static_cast<const char[N]>(str);
         }
         static PyObject* ToPython(const char(&data)[N]){
-            return PyString_FromString(data);
+            return PyBytes_FromString(data);
         }
     };
 
@@ -456,9 +531,16 @@ namespace sweetPy{
         static const bool IsSimpleObjectType = false;
         static std::string& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* object = *(PyObject**)fromBuffer;
-            if(Py_TYPE(object) == &PyBaseString_Type)
+            if(Py_TYPE(object) == &PyUnicode_Type)
             {
-                new(toBuffer)std::string(PyString_AsString(object));
+                object_ptr bytesObject(PyUnicode_AsASCIIString(object), &Deleter::Owner);
+                CPYTHON_VERIFY_EXC(bytesObject.get() != nullptr);
+                new(toBuffer)std::string(PyBytes_AsString(bytesObject.get()));
+                return *reinterpret_cast<std::string*>(toBuffer);
+            }
+            else if(Py_TYPE(object) == &PyBytes_Type)
+            {
+                new(toBuffer)std::string(PyBytes_AsString(object));
                 return *reinterpret_cast<std::string*>(toBuffer);
             }
             else if(CPythonRef<>::IsReferenceType<std::string>(object))
@@ -469,16 +551,71 @@ namespace sweetPy{
             else
                 throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string can only originates from python string or ref string type");
         }
-        static std::string FromPython(PyObject* obj){
+        static std::string FromPython(PyObject* object){
             GilLock lock;
-            char* data = PyString_AsString(obj); // Providing its underline buffer, a copy is in need.
-            return std::string(data);
+            std::string result;
+            if(Py_TYPE(object) == &PyUnicode_Type)
+            {
+                object_ptr bytesObject(PyUnicode_AsASCIIString(object), &Deleter::Owner);
+                CPYTHON_VERIFY_EXC(bytesObject.get() != nullptr);
+                result = PyBytes_AsString(bytesObject.get());
+            }
+            else if(Py_TYPE(object) == &PyBytes_Type)
+                result = PyBytes_AsString(object);
+
+            return result;
         }
         static PyObject* ToPython(const std::string& data){
-            return PyString_FromString(data.c_str());
+            return PyBytes_FromString(data.c_str());
         }
     };
     //Providing lvalue string is not possible, due to transform between two types, so FromPython is removed.
+    template<>
+    struct Object<const std::string&> {
+    public:
+        typedef const char* FromPythonType;
+        typedef std::string Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static const std::string& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(Py_TYPE(object) == &PyUnicode_Type)
+            {
+                object_ptr bytesObject(PyUnicode_AsASCIIString(object), &Deleter::Owner);
+                CPYTHON_VERIFY_EXC(bytesObject.get() != nullptr);
+                new(toBuffer)std::string(PyBytes_AsString(bytesObject.get()));
+                return *reinterpret_cast<std::string*>(toBuffer);
+            }
+            else if(Py_TYPE(object) == &PyBytes_Type)
+            {
+                new(toBuffer)std::string(PyBytes_AsString(object));
+                return *reinterpret_cast<std::string*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<std::string>(object))
+            {
+                CPythonRefObject<std::string>* refObject = reinterpret_cast<CPythonRefObject<std::string>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "const string& can only originates from python string or ref string type");
+        }
+        static const std::string& FromPython(PyObject* obj){
+            if(CPythonRef<>::IsReferenceType<std::string>(obj)){
+                CPythonRefObject<std::string>* refObject = reinterpret_cast<CPythonRefObject<std::string>*>(obj + 1);
+                return refObject->GetRef();
+            }
+            else{
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "conversion between python string to const string& is not possible");
+            }
+        }
+        static PyObject* ToPython(const std::string& data){
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<std::string>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
     template<>
     struct Object<std::string&> {
     public:
@@ -488,18 +625,13 @@ namespace sweetPy{
         static const bool IsSimpleObjectType = false;
         static std::string& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* object = *(PyObject**)fromBuffer;
-            if(Py_TYPE(object) == &PyString_Type)
-            {
-                new(toBuffer)std::string(PyString_AsString(object));
-                return *reinterpret_cast<std::string*>(toBuffer);
-            }
-            else if(CPythonRef<>::IsReferenceType<std::string>(object))
+            if(CPythonRef<>::IsReferenceType<std::string>(object)) //Only ref string type is supported due to possible scope leakage
             {
                 CPythonRefObject<std::string>* refObject = reinterpret_cast<CPythonRefObject<std::string>*>(object + 1);
                 return refObject->GetRef();
             }
             else
-                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string& can only originates from python string or ref string type");
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string& can only originates from ref string type");
         }
         static std::string& FromPython(PyObject* obj){
             if(CPythonRef<>::IsReferenceType<std::string>(obj)){
@@ -527,9 +659,16 @@ namespace sweetPy{
         static const bool IsSimpleObjectType = false;
         static std::string&& GetTyped(char* fromBuffer, char* toBuffer){
             PyObject* object = *(PyObject**)fromBuffer;
-            if(Py_TYPE(object) == &PyString_Type)
+            if(Py_TYPE(object) == &PyUnicode_Type)
             {
-                new(toBuffer)std::string(PyString_AsString(object));
+                object_ptr bytesObject(PyUnicode_AsASCIIString(object), &Deleter::Owner);
+                CPYTHON_VERIFY_EXC(bytesObject.get() != nullptr);
+                new(toBuffer)std::string(PyBytes_AsString(bytesObject.get()));
+                return std::move(*reinterpret_cast<std::string*>(toBuffer));
+            }
+            else if(Py_TYPE(object) == &PyBytes_Type)
+            {
+                new(toBuffer)std::string(PyBytes_AsString(object));
                 return std::move(*reinterpret_cast<std::string*>(toBuffer));
             }
             else if(CPythonRef<>::IsReferenceType<std::string>(object))
@@ -537,8 +676,8 @@ namespace sweetPy{
             else
                 throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string&& can only originates from python string");
         }
-        static std::string FromPython(PyObject* object){
-                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string&& is not supported");
+        static std::string&& FromPython(PyObject* object){
+            throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "string&& is not supported");
         }
         static PyObject* ToPython(std::string&& data){
             throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Transform of to be expired value to python is not possible");
@@ -570,18 +709,151 @@ namespace sweetPy{
     public:
         typedef long FromPythonType;
         typedef int Type;
-        static constexpr const char *Format = "l";
+        static constexpr const char *Format = "O";
         static const bool IsSimpleObjectType = false;
         static int& GetTyped(char* fromBuffer, char* toBuffer){
-            new(toBuffer)int(*reinterpret_cast<int*>(fromBuffer));
-            return *reinterpret_cast<int*>(toBuffer);
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(Py_TYPE(object) == &PyLong_Type)
+            {
+                new(toBuffer)int(PyLong_AsLongLong(object));
+                return *reinterpret_cast<int*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<int>(object))
+            {
+                CPythonRefObject<int>* refObject = reinterpret_cast<CPythonRefObject<int>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "const int& can only originates from ref int type or python long object");
         }
         static int FromPython(PyObject* obj){
             GilLock lock;
             return (int)PyLong_AsLong(obj);
         }
         static PyObject* ToPython(const int& data){
-            return PyInt_FromLong(data);
+            return PyLong_FromLong(data);
+        }
+    };
+
+    template<>
+    struct Object<const int&> {
+    public:
+        typedef long FromPythonType;
+        typedef int Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static const int& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(Py_TYPE(object) == &PyLong_Type)
+            {
+                new(toBuffer)int(PyLong_AsLong(object));
+                return *reinterpret_cast<int*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<int>(object))
+            {
+                CPythonRefObject<int>* refObject = reinterpret_cast<CPythonRefObject<int>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "const int& can only originates from ref int type or python long object");
+        }
+        //Conversion from python long to const int& will not be supported, due to the fact that returning rvalue encpasulate leakage scope potential.
+        static const int& FromPython(PyObject* object){
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<int>(object)) {
+                CPythonRefObject<int> *refObject = reinterpret_cast<CPythonRefObject<int> *>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "const int& can only originates from ref int type");
+        }
+        static PyObject* ToPython(const int& data){
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<int>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
+    template<>
+    struct Object<int&> {
+    public:
+        typedef long FromPythonType;
+        typedef int Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static int& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(CPythonRef<>::IsReferenceType<int>(object))
+            {
+                CPythonRefObject<int>* refObject = reinterpret_cast<CPythonRefObject<int>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "int& can only originates from ref int type");
+        }
+        static int& FromPython(PyObject* object){
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<int>(object)) {
+                CPythonRefObject<int> *refObject = reinterpret_cast<CPythonRefObject<int> *>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "int& can only originates from ref int type");
+        }
+        static PyObject* ToPython(const int& data){
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<int>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
+    template<>
+    struct Object<int&&> {
+    public:
+        typedef long FromPythonType;
+        typedef int Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static int&& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(Py_TYPE(object) == &PyLong_Type) {
+                new(toBuffer)int(PyLong_AsLong(object));
+                return std::move(*reinterpret_cast<int*>(toBuffer));
+            }
+            else if(CPythonRef<>::IsReferenceType<int>(object))
+            {
+                CPythonRefObject<int>* refObject = reinterpret_cast<CPythonRefObject<int>*>(object + 1);
+                return std::move(refObject->GetRef());
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "int&& can only originates from ref int type or py long type");
+        }
+        //Conversion from python long to int&& will not be supported, due to the fact that returning rvalue encpasulate leakage scope potential.
+        static int&& FromPython(PyObject* object){
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<int>(object)) {
+                CPythonRefObject<int> *refObject = reinterpret_cast<CPythonRefObject<int> *>(object + 1);
+                return std::move(refObject->GetRef());
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "int&& can only originates from ref int type");
+        }
+        static PyObject* ToPython(const int& data){
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<int>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
+    template<>
+    struct Object<PyObject*> {
+    public:
+        static PyObject* ToPython(PyObject*& data){
+            Py_XINCREF(data);
+            return data;
         }
     };
 

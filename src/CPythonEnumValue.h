@@ -11,8 +11,8 @@ namespace sweetPy{
     class CPythonEnumValue
     {
     public:
-        CPythonEnumValue(const std::string& name, int offset, int value, const std::string& doc)
-                :m_offset(offset), m_name(name), m_doc(doc), m_value(value){}
+        CPythonEnumValue(const std::string& name, int value)
+                :m_name(name), m_value(value){}
 
         std::unique_ptr<PyMemberDef> ToPython() const {
             char* name = new char[m_name.length() + 1];

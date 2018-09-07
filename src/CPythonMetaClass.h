@@ -4,15 +4,14 @@
 #include <vector>
 #include <memory>
 #include <structmember.h>
+#include "src/Core/Deleter.h"
 #include "CPythonType.h"
 
 namespace sweetPy {
 
-    class CPythonEnumValue;
-    class ICPythonFunction;
+    class CPythonFunction;
     class CPythonModule;
 
-    template <bool IsEnumMeta>
     class CPythonMetaClassType : public CPythonType
     {
     public:
@@ -27,7 +26,6 @@ namespace sweetPy {
         static void Dealloc(PyObject *object);
     };
 
-    template <bool IsEnumMeta = false>
     class CPythonMetaClass
     {
     public:
@@ -37,22 +35,23 @@ namespace sweetPy {
         PyTypeObject& ToPython() const;
 
         void InitType();
-        void AddMethod(const std::shared_ptr<ICPythonFunction>& method);
-        void AddEnumValue(std::unique_ptr<CPythonEnumValue>&& enumValue);
-        void SetCallableOperator(ternaryfunc function);
-        PyObject* InitializeEnumType(const std::string& name, const std::string& doc) const;
-        PyObject* InitializeFunctionType(const std::string& name, const std::string& doc) const;
+        void AddStaticMethod(const std::shared_ptr<CPythonFunction>& staticMethod);
         static void InitStaticType();
 
     private:
-        void InitMethods();
-        void InitEnumValues();
+        struct NonCollectableMetaType : public PyTypeObject
+        {
+        public:
+            NonCollectableMetaType();
+        };
 
     private:
-        std::vector<std::shared_ptr<ICPythonFunction>> m_cPythonMemberFunctions;
-        std::vector<std::unique_ptr<CPythonEnumValue>> m_cPythonEnumValues;
-        std::unique_ptr<CPythonType> m_type;
-        static PyTypeObject m_staticType;
+        void InitStaticMethods();
+
+    private:
+        std::vector<std::shared_ptr<CPythonFunction>> m_staticMethods;
+        object_ptr m_type;
+        static NonCollectableMetaType m_staticType;
         CPythonModule& m_module;
     };
 }
