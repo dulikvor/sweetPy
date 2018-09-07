@@ -36,5 +36,5 @@ target_link_libraries(CPythonClassTestModule sweetPy ${sweetPy_3RD_PARTY_DIR}/li
 set_target_properties(CPythonClassTestModule PROPERTIES PREFIX "")
 
 add_executable(sweetPyTests Tests.cpp CPythonClassTestModule.h)
-set(TO_LINK_LIBS gtest ${PYTHON_LIBRARIES} util dl CPythonClassTestModule ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CORE_DEBUG_POSTFIX}.so pthread)
+set(TO_LINK_LIBS CPythonClassTestModule gtest ${PYTHON_LIBRARIES} util dl ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CORE_DEBUG_POSTFIX}.so pthread)
 target_link_libraries(sweetPyTests ${TO_LINK_LIBS})
