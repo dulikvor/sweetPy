@@ -1,4 +1,4 @@
-find_package(PythonLibs)
+find_package(PythonLibs 3.6 REQUIRED)
 if(NOT ${PYTHONLIBS_FOUND})
     execute_process(COMMAND python3 -c "from distutils.sysconfig import get_python_inc; print(get_python_inc(), end='')" OUTPUT_VARIABLE PYTHON_INCLUDE_DIRS)
     execute_process(COMMAND python3 -c "from platform import python_version\nimport distutils.sysconfig as sysconfig\nimport os.path\nimport sys\nlibDir = sysconfig.get_config_var('LIBDIR')\nversion = python_version()[:3]\nfor suffix in ['.a', '.so', 'dm.a', 'dm.so']:\n\tlibname = os.sep.join([libDir, 'libpython' + version + suffix])\n\tif(os.path.isfile(libname)):\n\t\tprint(libname, end='')\n\t\tsys.exit()" OUTPUT_VARIABLE PYTHON_LIBRARIES)
