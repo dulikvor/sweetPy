@@ -5,6 +5,20 @@
 
 namespace sweetPyTest {
 
+    template<typename T>
+    class GenerateRefTypes
+    {
+    public:
+        GenerateRefTypes(){m_values.reserve(1000);}
+        T& operator()(const T& value)
+        {
+            m_values.push_back(value);
+            return m_values.back();
+        }
+    private:
+        std::vector<T> m_values;
+    };
+
     int CheckIntegralIntType(int value){ return value + 1; }
     int& CheckIntegralIntType(int& value){ return ++value; }
     const int& CheckIntegralIntType(const int& value){ return value; }
