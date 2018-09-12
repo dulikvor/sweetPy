@@ -37,11 +37,24 @@ namespace sweetPyTest {
             static_assert(std::is_same<typename sweetPy::ObjectWrapper<TestSubjectC&,0>::FromPythonType, PyObject*>::value, "ObjectWrapper FromPython - validating a non copyable/moveable reference type assertion has failed.");
         }
     }
-
+    //Test will inspect the capability of CPythonObject to convert incoming python types into native and vise versa.
+    //1) CPythonObject<int> - received value is PyLongObject, the object is being copied to its native variation,
+    //                        return value is a new PyLongObject.
+    //2) CPythonObject<const int&> - received value is
     TEST(CPythonClassTest, CPythonObjectArgsReturnTypesConversion) {
-        const char *testingScript = "value = TestModule.check_int_conversion(1000)\n";
+        const char *testingScript = "intArgument = 1000\n"
+                                    "intReturn = TestModule.check_int_conversion(intArgument)\n"
+                                    "intRefGenerator = TestModule.GenerateIntRef()\n"
+                                    "intRefObject = intRefGenerator.create(500)\n"
+                                    "intRefObject_2 = TestModule.check_const_ref_int_conversion(intRefObject)\n"
+                                    "intRefObject_3 = intRefGenerator.create(500)\n"
+                                    "intRefObject_4 = TestModule.check_ref_int_conversion(intRefObject_3)";
         PyRun_SimpleString(testingScript);
-        ASSERT_EQ(1001, PythonEmbedder::GetAttribute<int>("value"));
+        ASSERT_EQ(1000, PythonEmbedder::GetAttribute<int>("intArgument"));
+        ASSERT_EQ(1001, PythonEmbedder::GetAttribute<int>("intReturn"));
+        ASSERT_EQ(500, PythonEmbedder::GetAttribute<const int&>("intRefObject_2"));
+        ASSERT_EQ(501, PythonEmbedder::GetAttribute<int&>("intRefObject_3"));
+        ASSERT_EQ(501, PythonEmbedder::GetAttribute<int&>("intRefObject_4"));
     }
 
     TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {

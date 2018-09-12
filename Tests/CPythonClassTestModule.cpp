@@ -52,9 +52,13 @@ namespace sweetPyTest {
         subjectC.AddMethod("inc", "will increase i", &TestSubjectC::Inc);
         subjectC.AddStaticMethod("instance", "a reference method", &TestSubjectC::Instance);
 
+        CPythonClass<GenerateRefTypes<int>> intRefType(module, "GenerateIntRef", "Will generate instance of int ref type");
+        intRefType.AddMethod("create", "Will generate an int ref", static_cast<int&(GenerateRefTypes<int>::*)(const int&)>(&GenerateRefTypes<int>::operator()));
+
         CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
         CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
         CPythonGlobalFunction(module, "check_const_ref_int_conversion", "check integral const ref int type conversions", static_cast<const int&(*)(const int&)>(&CheckIntegralIntType));
+        CPythonGlobalFunction(module, "check_ref_int_conversion", "check integral ref int type conversions", static_cast<int&(*)(int&)>(&CheckIntegralIntType));
 
         CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
         CPythonGlobalVariable(module, "globalVariableInt", 5);
