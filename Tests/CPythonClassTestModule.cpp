@@ -59,10 +59,10 @@ namespace sweetPyTest {
         intConstRefType.AddMethod("create", "Will generate an int ref", static_cast<const int&(GenerateRefTypes<const int>::*)(const int&)>(&GenerateRefTypes<const int>::operator()));
 
         CPythonClass<GenerateRefTypes<std::string>> strRefType(module, "GenerateStrRef", "Will generate instance of string ref type");
-        strRefType.AddMethod("create", "Will generate an int ref", static_cast<std::string&(GenerateRefTypes<std::string>::*)(const std::string&)>(&GenerateRefTypes<std::string>::operator()));
+        strRefType.AddMethod("create", "Will generate an str ref", static_cast<std::string&(GenerateRefTypes<std::string>::*)(const std::string&)>(&GenerateRefTypes<std::string>::operator()));
 
         CPythonClass<GenerateRefTypes<const std::string>> strConstRefType(module, "GenerateConstStrRef", "Will generate instance of const string ref type");
-        strConstRefType.AddMethod("create", "Will generate an int ref", static_cast<const std::string&(GenerateRefTypes<const std::string>::*)(const std::string&)>(&GenerateRefTypes<const std::string>::operator()));
+        strConstRefType.AddMethod("create", "Will generate an const str ref", static_cast<const std::string&(GenerateRefTypes<const std::string>::*)(const std::string&)>(&GenerateRefTypes<const std::string>::operator()));
 
         CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
         CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));

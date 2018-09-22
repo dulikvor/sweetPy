@@ -756,6 +756,7 @@ namespace sweetPy{
             else if(CPythonRef<>::IsReferenceType<std::string>(object))
             {
                 CPythonRefObject<std::string>* refObject = reinterpret_cast<CPythonRefObject<std::string>*>(object + 1);
+                new(toBuffer)std::string();
                 return refObject->GetRef();
             }
             else
@@ -785,7 +786,8 @@ namespace sweetPy{
             else
                 throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "conversion is only legit from python's unicode string, bytes array or std::string, const std::string ref wrapper object");
         }
-        static PyObject* ToPython(const std::string& data){
+        static PyObject* ToPython(const std::string& data)
+        {
             return PyBytes_FromString(data.c_str());
         }
     };
