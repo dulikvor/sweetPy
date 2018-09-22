@@ -1,10 +1,10 @@
+#include "CPythonClassTestModule.h"
 #include "CPythonModule.h"
 #include "CPythonClass.h"
 #include "CPythonEnum.h"
 #include "CPythonGlobalFunction.h"
 #include "CPythonGlobalVariable.h"
 #include "InitModule.h"
-#include "CPythonClassTestModule.h"
 
 using namespace sweetPy;
 
@@ -55,10 +55,25 @@ namespace sweetPyTest {
         CPythonClass<GenerateRefTypes<int>> intRefType(module, "GenerateIntRef", "Will generate instance of int ref type");
         intRefType.AddMethod("create", "Will generate an int ref", static_cast<int&(GenerateRefTypes<int>::*)(const int&)>(&GenerateRefTypes<int>::operator()));
 
+        CPythonClass<GenerateRefTypes<const int>> intConstRefType(module, "GenerateIntConstRef", "Will generate instance of int const ref type");
+        intConstRefType.AddMethod("create", "Will generate an int ref", static_cast<const int&(GenerateRefTypes<const int>::*)(const int&)>(&GenerateRefTypes<const int>::operator()));
+
+        CPythonClass<GenerateRefTypes<std::string>> strRefType(module, "GenerateStrRef", "Will generate instance of string ref type");
+        strRefType.AddMethod("create", "Will generate an str ref", static_cast<std::string&(GenerateRefTypes<std::string>::*)(const std::string&)>(&GenerateRefTypes<std::string>::operator()));
+
+        CPythonClass<GenerateRefTypes<const std::string>> strConstRefType(module, "GenerateConstStrRef", "Will generate instance of const string ref type");
+        strConstRefType.AddMethod("create", "Will generate an const str ref", static_cast<const std::string&(GenerateRefTypes<const std::string>::*)(const std::string&)>(&GenerateRefTypes<const std::string>::operator()));
+
         CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
         CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
         CPythonGlobalFunction(module, "check_const_ref_int_conversion", "check integral const ref int type conversions", static_cast<const int&(*)(const int&)>(&CheckIntegralIntType));
         CPythonGlobalFunction(module, "check_ref_int_conversion", "check integral ref int type conversions", static_cast<int&(*)(int&)>(&CheckIntegralIntType));
+        CPythonGlobalFunction(module, "check_rvalue_ref_int_conversion", "check integral rvalue ref int type conversions", static_cast<void(*)(int&&)>(&CheckIntegralIntType));
+        CPythonGlobalFunction(module, "check_str_conversion", "check integral string type conversions", static_cast<std::string(*)(std::string)>(&CheckIntegralStringType));
+        CPythonGlobalFunction(module, "check_const_ref_str_conversion", "check integral const ref string type conversions", static_cast<const std::string&(*)(const std::string&)>(&CheckIntegralStringType));
+        CPythonGlobalFunction(module, "check_ref_str_conversion", "check integral ref string type conversions", static_cast<std::string&(*)(std::string&)>(&CheckIntegralStringType));
+        CPythonGlobalFunction(module, "check_rvalue_ref_str_conversion", "check integral rvalue ref string type conversions", static_cast<void(*)(std::string&&)>(&CheckIntegralStringType));
+        CPythonGlobalFunction(module, "check_ref_chararray_conversion", "check integral char array type conversions", static_cast<char(&(*)(char(&)[100]))[100]>(&CheckIntegralCharArrayType));
 
         CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
         CPythonGlobalVariable(module, "globalVariableInt", 5);

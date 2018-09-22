@@ -77,7 +77,7 @@ namespace sweetPy{
             m_descriptors.reserve(m_globalFunctions.size());
             for (const auto &function : m_globalFunctions)
             {
-                function->AllocateObjectsTypes(*this);
+                function->AllocateTypes(*this);
                 auto descriptor = function->ToPython();
                 object_ptr name(PyUnicode_FromString(descriptor->ml_name), &Deleter::Owner);
                 object_ptr cFunction(PyCFunction_NewEx(descriptor.get(), name.get(), NULL), &Deleter::Owner);

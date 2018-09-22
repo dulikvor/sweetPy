@@ -140,7 +140,7 @@ namespace sweetPy {
         static bool IsReferenceType(PyObject* obj)
         {
             size_t key = CPyModuleContainer::TypeHash<CPythonRefType<T>>();
-            return obj->ob_type == &CPythonRef<>::GetStaticType() || obj->ob_type == CPyModuleContainer::Instance().GetType(key);
+            return obj->ob_type == CPyModuleContainer::Instance().GetType(key);
         }
 
         template<typename T>

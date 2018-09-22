@@ -154,7 +154,7 @@ namespace sweetPy {
                 PyMethodDef *methods = new PyMethodDef[m_memberFunctions.size() + 1]; //spare space for sentinal
                 ((CPythonType*)m_type.get())->tp_methods = methods;
                 for (const auto &method : m_memberFunctions) {
-                    method->AllocateObjectsTypes(m_module);
+                    method->AllocateTypes(m_module);
                     *methods = *method->ToPython();
                     methods++;
                 }
@@ -174,7 +174,7 @@ namespace sweetPy {
                 ((CPythonType*)m_type.get())->ob_base.ob_base.ob_type = &type->ToPython();
                 for (auto &staticFunction : m_memberStaticFunctions)
                 {
-                    staticFunction->AllocateObjectsTypes(m_module);
+                    staticFunction->AllocateTypes(m_module);
                     type->AddStaticMethod(staticFunction);
                 }
                 type->InitType();

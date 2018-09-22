@@ -115,6 +115,7 @@ namespace sweetPy {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                                                                                                                     ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            Py_XINCREF(Py_None);
             return Py_None;
         }
 
@@ -139,10 +140,10 @@ namespace sweetPy {
             });
         }
 
-        void AllocateObjectsTypes(CPythonModule& module) const override
+        void AllocateTypes(CPythonModule& module) const override
         {
-            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
-            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateType(module);
         }
 
     private:
@@ -241,6 +242,7 @@ namespace sweetPy {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                                                                                                                     ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            Py_XINCREF(Py_None);
             return Py_None;
         }
 
@@ -265,10 +267,10 @@ namespace sweetPy {
             });
         }
 
-        void AllocateObjectsTypes(CPythonModule& module) const override
+        void AllocateTypes(CPythonModule& module) const override
         {
-            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
-            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateType(module);
         }
 
     private:
@@ -354,6 +356,7 @@ namespace sweetPy {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                                                                                                                     ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            Py_XINCREF(Py_None);
             return Py_None;
         }
 
@@ -379,10 +382,10 @@ namespace sweetPy {
             });
         }
 
-        void AllocateObjectsTypes(CPythonModule& module) const override
+        void AllocateTypes(CPythonModule& module) const override
         {
-            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
-            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateType(module);
         }
 
     private:
@@ -442,7 +445,7 @@ namespace sweetPy {
 
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                         ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
-                                                                                                                ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+                                                                                                                            ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
             return Object<Return>::ToPython(returnValue);
         }
 
@@ -469,10 +472,12 @@ namespace sweetPy {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                         ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                                                                                                                 ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
+            Py_XINCREF(Py_None);
             return Py_None;
         }
 
-        static PyObject* Wrapper(PyObject *self, PyObject *args) {
+        static PyObject* Wrapper(PyObject *self, PyObject *args)
+        {
             try
             {
                 return WrapperImpl(self, args, std::make_index_sequence<sizeof...(Args)>{});
@@ -494,10 +499,10 @@ namespace sweetPy {
             });
         }
 
-        void AllocateObjectsTypes(CPythonModule& module) const override
+        void AllocateTypes(CPythonModule& module) const override
         {
-            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
-            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateType(module);
         }
 
     private:
