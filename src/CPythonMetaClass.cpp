@@ -92,7 +92,7 @@ namespace sweetPy {
         {
             for(const auto& method : m_staticMethods)
             {
-                method->AllocateObjectsTypes(m_module);
+                method->AllocateTypes(m_module);
                 auto descriptor = method->ToPython();
 
                 object_ptr name(PyUnicode_FromString(descriptor->ml_name), &Deleter::Owner);

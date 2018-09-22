@@ -20,7 +20,7 @@ namespace sweetPy {
         CPythonFunction &operator=(CPythonFunction &&obj);
 
         virtual std::unique_ptr<PyMethodDef> ToPython() const = 0;
-        virtual void AllocateObjectsTypes(CPythonModule& module) const = 0;
+        virtual void AllocateTypes(CPythonModule& module) const = 0;
 
         template<typename CPythonFunctionType>
         static int GenerateFunctionId(const std::string& functionName)

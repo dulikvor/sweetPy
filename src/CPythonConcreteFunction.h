@@ -139,10 +139,10 @@ namespace sweetPy {
             });
         }
 
-        void AllocateObjectsTypes(CPythonModule& module) const override
+        void AllocateTypes(CPythonModule& module) const override
         {
-            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
-            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateType(module);
         }
 
     private:
@@ -265,10 +265,10 @@ namespace sweetPy {
             });
         }
 
-        void AllocateObjectsTypes(CPythonModule& module) const override
+        void AllocateTypes(CPythonModule& module) const override
         {
-            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
-            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateType(module);
         }
 
     private:
@@ -379,10 +379,10 @@ namespace sweetPy {
             });
         }
 
-        void AllocateObjectsTypes(CPythonModule& module) const override
+        void AllocateTypes(CPythonModule& module) const override
         {
-            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
-            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateType(module);
         }
 
     private:
@@ -494,10 +494,10 @@ namespace sweetPy {
             });
         }
 
-        void AllocateObjectsTypes(CPythonModule& module) const override
+        void AllocateTypes(CPythonModule& module) const override
         {
-            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateObjectType(module)...);
-            ObjectWrapper<typename base<Return>::Type, 0>::AllocateObjectType(module);
+            ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, 0>::AllocateType(module)...);
+            ObjectWrapper<typename base<Return>::Type, 0>::AllocateType(module);
         }
 
     private:

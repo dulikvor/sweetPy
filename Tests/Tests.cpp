@@ -33,28 +33,93 @@ namespace sweetPyTest {
     TEST(CPythonClassTest, CPythonObjectWrapperTest){
         {
             //The use case of non copyable/moveable reference type
-            static_assert(std::is_same<typename sweetPy::ObjectWrapper<TestSubjectC&,0>::Type, TestSubjectC>::value, "ObjectWrapper Type - validating a non copyable/moveable reference type assertion has failed.");
+            static_assert(std::is_same<typename sweetPy::ObjectWrapper<TestSubjectC&,0>::Type, void*>::value, "ObjectWrapper Type - validating a non copyable/moveable reference type assertion has failed.");
             static_assert(std::is_same<typename sweetPy::ObjectWrapper<TestSubjectC&,0>::FromPythonType, PyObject*>::value, "ObjectWrapper FromPython - validating a non copyable/moveable reference type assertion has failed.");
         }
     }
-    //Test will inspect the capability of CPythonObject to convert incoming python types into native and vise versa.
-    //1) CPythonObject<int> - received value is PyLongObject, the object is being copied to its native variation,
-    //                        return value is a new PyLongObject.
-    //2) CPythonObject<const int&> - received value is
-    TEST(CPythonClassTest, CPythonObjectArgsReturnTypesConversion) {
+
+    TEST(CPythonClassTest, CPythonObjectCheckIntIntegralType)
+    {
         const char *testingScript = "intArgument = 1000\n"
-                                    "intReturn = TestModule.check_int_conversion(intArgument)\n"
-                                    "intRefGenerator = TestModule.GenerateIntRef()\n"
-                                    "intRefObject = intRefGenerator.create(500)\n"
-                                    "intRefObject_2 = TestModule.check_const_ref_int_conversion(intRefObject)\n"
-                                    "intRefObject_3 = intRefGenerator.create(500)\n"
-                                    "intRefObject_4 = TestModule.check_ref_int_conversion(intRefObject_3)";
+                "intReturn = TestModule.check_int_conversion(intArgument) #PyLong -> int\n"
+                "intRefGenerator = TestModule.GenerateIntRef()\n"
+                "intRefObject = intRefGenerator.create(500)\n"
+                "intReturn_2 = TestModule.check_int_conversion(intRefObject) #ref int -> int\n"
+                "intConstRefGenerator = TestModule.GenerateIntConstRef()\n"
+                "intConstRefObject = intConstRefGenerator.create(501)\n"
+                "intReturn_3 = TestModule.check_int_conversion(intConstRefObject) #ref const int -> int\n"
+                "'''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'''\n"
+                "intArgument_2 = 1000\n"
+                "intConstRefObject_2 = TestModule.check_const_ref_int_conversion(intArgument_2) #PyLong -> const int&\n"
+                "intRefObject_2 = intRefGenerator.create(500)\n"
+                "intConstRefObject_3 = TestModule.check_const_ref_int_conversion(intRefObject_2) #ref int -> const int&\n"
+                "intConstRefObject_4 = intConstRefGenerator.create(501)\n"
+                "intConstRefObject_5 = TestModule.check_const_ref_int_conversion(intConstRefObject_4) #const ref int -> const int&\n"
+                "'''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'''\n"
+                "intRefObject_3 = intRefGenerator.create(501)\n"
+                "intRefObject_4 = TestModule.check_ref_int_conversion(intRefObject_3) #ref int -> int&";
         PyRun_SimpleString(testingScript);
         ASSERT_EQ(1000, PythonEmbedder::GetAttribute<int>("intArgument"));
         ASSERT_EQ(1001, PythonEmbedder::GetAttribute<int>("intReturn"));
-        ASSERT_EQ(500, PythonEmbedder::GetAttribute<const int&>("intRefObject_2"));
-        ASSERT_EQ(501, PythonEmbedder::GetAttribute<int&>("intRefObject_3"));
-        ASSERT_EQ(501, PythonEmbedder::GetAttribute<int&>("intRefObject_4"));
+        ASSERT_EQ(500, PythonEmbedder::GetAttribute<int&>("intRefObject"));
+        ASSERT_EQ(501, PythonEmbedder::GetAttribute<int>("intReturn_2"));
+        ASSERT_EQ(501, PythonEmbedder::GetAttribute<const int&>("intConstRefObject"));
+        ASSERT_EQ(502, PythonEmbedder::GetAttribute<int>("intReturn_3"));
+
+        ASSERT_EQ(1000, PythonEmbedder::GetAttribute<int>("intArgument_2"));
+        ASSERT_EQ(1000, PythonEmbedder::GetAttribute<const int&>("intConstRefObject_2"));
+        ASSERT_EQ(500, PythonEmbedder::GetAttribute<int&>("intRefObject_2"));
+        ASSERT_EQ(500, PythonEmbedder::GetAttribute<const int&>("intConstRefObject_3"));
+        ASSERT_EQ(501, PythonEmbedder::GetAttribute<const int&>("intConstRefObject_4"));
+        ASSERT_EQ(501, PythonEmbedder::GetAttribute<const int&>("intConstRefObject_5"));
+
+        ASSERT_EQ(502, PythonEmbedder::GetAttribute<int&>("intRefObject_3"));
+        ASSERT_EQ(502, PythonEmbedder::GetAttribute<int&>("intRefObject_4"));
+    }
+
+    TEST(CPythonClassTest, CPythonObjectCheckStringIntegralType)
+    {
+        const char *testingScript = "strArgument = 'hello'\n"
+                                    "strReturn = TestModule.check_str_conversion(strArgument) #Unicode string -> std::string\n"
+                                    "bytesArgument = b'hello'\n"
+                                    "strReturn_2 = TestModule.check_str_conversion(bytesArgument) #Bytes array -> std::string\n"
+                                    "strRefGenerator = TestModule.GenerateStrRef()\n"
+                                    "strRefObject = strRefGenerator.create('hello')\n"
+                                    "strReturn_3 = TestModule.check_str_conversion(strRefObject) #std::string& -> std::string\n"
+                                    "'''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'''\n"
+                                    "strRefObject_2 = strRefGenerator.create('hello')\n"
+                                    "strRefReturn = TestModule.check_ref_str_conversion(strRefObject_2) #std::string& -> std::string&\n"
+                                    "'''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'''\n"
+                                    "strArgument_2 = 'hello'\n"
+                                    "strConstRefReturn = TestModule.check_const_ref_str_conversion(strArgument_2) #Unicode string -> const std::string&\n"
+                                    "bytesArgument_2 = b'hello'\n"
+                                    "strConstRefReturn_2 = TestModule.check_const_ref_str_conversion(bytesArgument_2) #Bytes array -> const std::string&\n"
+                                    "strRefObject_3 = strRefGenerator.create('hello')\n"
+                                    "strConstRefReturn_3 = TestModule.check_const_ref_str_conversion(strRefObject_3) #std::string& -> const std::string&\n"
+                                    "strConstRefGenerator = TestModule.GenerateConstStrRef()\n"
+                                    "strConstRefObject = strConstRefGenerator.create('hello')\n"
+                                    "strConstRefReturn_4 = TestModule.check_const_ref_str_conversion(strConstRefObject) #const std::string& -> const std::string&\n";
+
+        PyRun_SimpleString(testingScript);
+        //std:string
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<std::string>("strArgument"));
+        ASSERT_EQ("hello world", PythonEmbedder::GetAttribute<std::string>("strReturn"));
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<std::string>("bytesArgument"));
+        ASSERT_EQ("hello world", PythonEmbedder::GetAttribute<std::string>("strReturn_2"));
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<std::string&>("strRefObject"));
+        ASSERT_EQ("hello world", PythonEmbedder::GetAttribute<std::string>("strReturn_3"));
+        //std::string&
+        ASSERT_EQ("hello to all", PythonEmbedder::GetAttribute<std::string&>("strRefObject_2"));
+        ASSERT_EQ("hello to all", PythonEmbedder::GetAttribute<std::string>("strRefReturn"));
+        //const std::string&
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<std::string>("strArgument_2"));
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<const std::string&>("strConstRefReturn"));
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<std::string>("bytesArgument_2"));
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<const std::string&>("strConstRefReturn_2"));
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<std::string&>("strRefObject_3"));
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<const std::string&>("strConstRefReturn_3"));
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<const std::string&>("strConstRefObject"));
+        ASSERT_EQ("hello", PythonEmbedder::GetAttribute<const std::string&>("strConstRefReturn_4"));
     }
 
     TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {
@@ -221,7 +286,7 @@ namespace sweetPyTest {
                                     "a.SetXpireValue('Xpire Value')\n"
                                     "strRef = a.GetStr()\n";
         PyRun_SimpleString(testingScript);
-        std::string& strRef = PythonEmbedder::GetAttribute<std::string&>("strRef");
+        const std::string& strRef = PythonEmbedder::GetAttribute<const std::string&>("strRef");
         ASSERT_EQ(strRef, std::string("Xpire Value"));
     }
 
