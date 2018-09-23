@@ -122,6 +122,20 @@ namespace sweetPyTest {
         ASSERT_EQ("hello", PythonEmbedder::GetAttribute<const std::string&>("strConstRefReturn_4"));
     }
 
+    TEST(CPythonClassTest, CPythonObjectCheckCTypeStringIntegralType)
+    {
+        const char *testingScript = "bytesArgument = b'hello'\n"
+                "TestModule.check_ctype_string_conversion(bytesArgument) #Bytes array -> char*\n"
+                "ctypeStringRefGenerator = TestModule.GenerateCTypeStringRef()\n"
+                "ctypeStringRefObject = ctypeStringRefGenerator.create(b'gelo')\n"
+                "TestModule.check_ctype_string_conversion(ctypeStringRefObject) #char*& -> std::string\n";
+
+        PyRun_SimpleString(testingScript);
+        //char*
+        ASSERT_EQ(strcmp("lello",PythonEmbedder::GetAttribute<char*>("bytesArgument")), 0);
+        ASSERT_EQ(strcmp("lelo",PythonEmbedder::GetAttribute<char*>("ctypeStringRefObject")), 0);
+    }
+
     TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "a.IncBaseValue()\n"

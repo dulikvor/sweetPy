@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <string>
 #include <memory>
 #include <vector>
@@ -20,15 +21,42 @@ namespace sweetPyTest {
         std::vector<typename std::remove_const<T>::type> m_values;
     };
 
+    template<>
+    class GenerateRefTypes<char*>
+    {
+    public:
+        GenerateRefTypes(){m_values.reserve(1000);}
+        ~GenerateRefTypes()
+        {
+            for(auto& ptr : m_values)
+                delete[] ptr;
+        }
+        char*& operator()(char* value)
+        {
+            m_values.push_back(nullptr);
+            size_t size = strlen(value);
+            m_values.back() = new char[size + 1];
+            memcpy(m_values.back(), value, size);
+            m_values.back()[size] = '\0';
+            return m_values.back();
+        }
+    private:
+        std::vector<char*> m_values;
+    };
+
     int CheckIntegralIntType(int value){ return value + 1; }
     int& CheckIntegralIntType(int& value){ return ++value; }
     const int& CheckIntegralIntType(const int& value){ static std::vector<int> values(100); values.push_back(value); return values.back(); }
     void CheckIntegralIntType(int&& value){ static int i = 0; std::swap(value, i);  }
+
     std::string CheckIntegralStringType(std::string value){ return value + " world"; }
     std::string& CheckIntegralStringType(std::string& value){ return value = "hello to all"; }
     const std::string& CheckIntegralStringType(const std::string& value){ static std::vector<std::string> values(100); values.push_back(value); return values.back(); }
     void CheckIntegralStringType(std::string&& value) { static std::string str = "great!"; str = std::move(value); }
     char(&CheckIntegralCharArrayType(char(&value)[100]))[100]{ return value; }
+
+    void CheckIntegralCTypeStringType(char* value){ *value = 'l'; }
+    void CheckIntegralConstCTypeStringType(const char* value){}
 
     enum Python
     {
