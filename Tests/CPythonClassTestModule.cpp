@@ -64,6 +64,9 @@ namespace sweetPyTest {
         CPythonClass<GenerateRefTypes<const std::string>> strConstRefType(module, "GenerateConstStrRef", "Will generate instance of const string ref type");
         strConstRefType.AddMethod("create", "Will generate an const str ref", static_cast<const std::string&(GenerateRefTypes<const std::string>::*)(const std::string&)>(&GenerateRefTypes<const std::string>::operator()));
 
+        CPythonClass<GenerateRefTypes<char*>> ctypeStringRefType(module, "GenerateCTypeStringRef", "Will generate instance of c-type string ref type");
+        ctypeStringRefType.AddMethod("create", "Will generate c-type string ref", static_cast<char*&(GenerateRefTypes<char*>::*)(char*)>(&GenerateRefTypes<char*>::operator()));
+
         CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
         CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
         CPythonGlobalFunction(module, "check_const_ref_int_conversion", "check integral const ref int type conversions", static_cast<const int&(*)(const int&)>(&CheckIntegralIntType));
@@ -74,6 +77,8 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "check_ref_str_conversion", "check integral ref string type conversions", static_cast<std::string&(*)(std::string&)>(&CheckIntegralStringType));
         CPythonGlobalFunction(module, "check_rvalue_ref_str_conversion", "check integral rvalue ref string type conversions", static_cast<void(*)(std::string&&)>(&CheckIntegralStringType));
         CPythonGlobalFunction(module, "check_ref_chararray_conversion", "check integral char array type conversions", static_cast<char(&(*)(char(&)[100]))[100]>(&CheckIntegralCharArrayType));
+        CPythonGlobalFunction(module, "check_ctype_string_conversion", "check integral ctype string type conversions", static_cast<void(*)(char*)>(&CheckIntegralCTypeStringType));
+        CPythonGlobalFunction(module, "check_const_ctype_string_conversion", "check integral ctype string type conversions", static_cast<void(*)(const char*)>(&CheckIntegralConstCTypeStringType));
 
         CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
         CPythonGlobalVariable(module, "globalVariableInt", 5);
