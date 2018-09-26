@@ -1,6 +1,6 @@
 #include "CPythonEnum.h"
-#include "src/Core/Deleter.h"
-#include "src/Core/Assert.h"
+#include "Core/Deleter.h"
+#include "Core/Assert.h"
 
 namespace sweetPy
 {

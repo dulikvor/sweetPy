@@ -11,10 +11,10 @@
 #include "CPythonEnumValue.h"
 #include "CPythonType.h"
 #include "CPythonClassType.h"
-#include "src/Core/Exception.h"
-#include "src/Core/Traits.h"
-#include "src/Core/Lock.h"
-#include "src/Core/Assert.h"
+#include "Core/Exception.h"
+#include "Core/Traits.h"
+#include "Core/Lock.h"
+#include "Core/Assert.h"
 
 namespace sweetPy{
 

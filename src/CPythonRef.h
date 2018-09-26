@@ -6,8 +6,8 @@
 #include <vector>
 #include <memory>
 #include "core/Source.h"
-#include "src/Core/Exception.h"
-#include "src/Core/Dictionary.h"
+#include "Core/Exception.h"
+#include "Core/Dictionary.h"
 #include "CPyModuleContainer.h"
 #include "CPythonMember.h"
 #include "CPythonFunction.h"

@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <memory>
 #include <vector>
-#include "src/Core/Traits.h"
+#include "Core/Traits.h"
 #include "CPyModuleContainer.h"
 #include "CPythonMetaClass.h"
 #include "CPythonRef.h"

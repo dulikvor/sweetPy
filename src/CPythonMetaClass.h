@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 #include <structmember.h>
-#include "src/Core/Deleter.h"
+#include "Core/Deleter.h"
 #include "CPythonType.h"
 
 namespace sweetPy {

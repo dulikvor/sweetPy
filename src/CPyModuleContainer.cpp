@@ -1,7 +1,7 @@
 #include "CPyModuleContainer.h"
 #include "core/Source.h"
-#include "src/Core/Exception.h"
-#include "src/Core/PythonAssist.h"
+#include "Core/Exception.h"
+#include "Core/PythonAssist.h"
 
 namespace sweetPy{
 

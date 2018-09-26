@@ -3,7 +3,7 @@
 #include <Python.h>
 #include <string>
 #include <type_traits>
-#include "src/Core/Deleter.h"
+#include "Core/Deleter.h"
 #include "CPythonModule.h"
 #include "CPythonObject.h"
 #include "CPythonVariable.h"

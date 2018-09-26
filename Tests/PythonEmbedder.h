@@ -5,9 +5,9 @@
 #include <string>
 #include <functional>
 #include <memory>
-#include "src/Core/Lock.h"
-#include "src/Core/Deleter.h"
-#include "src/Core/PythonAssist.h"
+#include "Core/Lock.h"
+#include "Core/Deleter.h"
+#include "Core/PythonAssist.h"
 #include "CPythonObject.h"
 
 namespace sweetPyTest{

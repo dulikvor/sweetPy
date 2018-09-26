@@ -4,9 +4,9 @@
 #include <Python.h>
 #include "CPythonType.h"
 #include "IMemberAccessor.h"
-#include "src/Core/Exception.h"
-#include "src/Core/Assert.h"
-#include "src/Core/Dictionary.h"
+#include "Core/Exception.h"
+#include "Core/Assert.h"
+#include "Core/Dictionary.h"
 
 
 namespace sweetPy {
