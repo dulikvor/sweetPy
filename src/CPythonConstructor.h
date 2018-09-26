@@ -6,7 +6,7 @@
 #include <utility>
 #include <string>
 #include "CPythonObject.h"
-#include "src/Core/Traits.h"
+#include "Core/Traits.h"
 
 namespace sweetPy {
 

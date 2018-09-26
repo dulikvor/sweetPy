@@ -1,6 +1,6 @@
 #include "CPythonModule.h"
-#include "src/Core/Assert.h"
-#include "src/Core/PythonAssist.h"
+#include "Core/Assert.h"
+#include "Core/PythonAssist.h"
 
 using namespace std;
 

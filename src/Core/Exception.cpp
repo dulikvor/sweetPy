@@ -1,5 +1,5 @@
 #include "Exception.h"
-#include "src/Core/Lock.h"
+#include "Lock.h"
 
 namespace sweetPy{
 

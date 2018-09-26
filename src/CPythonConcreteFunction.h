@@ -4,11 +4,11 @@
 #include <memory>
 #include <utility>
 #include <Python.h>
-#include "src/Core/Lock.h"
-#include "src/Core/Traits.h"
-#include "src/Core/Exception.h"
-#include "src/Core/Stack.h"
-#include "src/Core/Dictionary.h"
+#include "Core/Lock.h"
+#include "Core/Traits.h"
+#include "Core/Exception.h"
+#include "Core/Stack.h"
+#include "Core/Dictionary.h"
 #include "CPyModuleContainer.h"
 #include "CPythonObject.h"
 #include "CPythonFunction.h"

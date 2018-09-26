@@ -8,7 +8,7 @@
 #include <utility>
 #include <unordered_map>
 #include <structmember.h>
-#include "src/Core/Lock.h"
+#include "Core/Lock.h"
 #include "CPythonConcreteFunction.h"
 #include "CPythonMember.h"
 #include "CPyModuleContainer.h"
@@ -20,7 +20,7 @@
 #include "CPythonClassType.h"
 #include "IMemberAccessor.h"
 #include "MemberAccessor.h"
-#include "src/Core/Exception.h"
+#include "Core/Exception.h"
 
 namespace sweetPy {
 
