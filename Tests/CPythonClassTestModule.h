@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Python.h>
 #include <cstring>
 #include <string>
 #include <memory>
@@ -57,6 +58,8 @@ namespace sweetPyTest {
 
     void CheckIntegralCTypeStringType(char* value){ *value = 'l'; }
     void CheckIntegralConstCTypeStringType(const char* value){}
+
+    PyObject* CheckIntegralPyObjectType(PyObject* value){ return value; }
 
     enum Python
     {

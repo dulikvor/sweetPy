@@ -136,6 +136,16 @@ namespace sweetPyTest {
         ASSERT_EQ(strcmp("lelo",PythonEmbedder::GetAttribute<char*>("ctypeStringRefObject")), 0);
     }
 
+
+    TEST(CPythonClassTest, CPythonObjectCheckPyObjectIntegralType)
+    {
+    const char *testingScript = "pyObjectArgument = 5\n"
+                                "pyObjectReturn = TestModule.check_pyobject_conversion(pyObjectArgument) #PyObject* -> PyObject*\n";
+
+    PyRun_SimpleString(testingScript);
+    ASSERT_EQ(PythonEmbedder::GetAttribute<PyObject*>("pyObjectReturn"), PythonEmbedder::GetAttribute<PyObject*>("pyObjectArgument"));
+    }
+
     TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "a.IncBaseValue()\n"
