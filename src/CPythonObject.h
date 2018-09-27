@@ -1076,7 +1076,22 @@ namespace sweetPy{
     template<>
     struct Object<PyObject*> {
     public:
-        static PyObject* ToPython(PyObject*& data){
+        typedef PyObject* FromPythonType;
+        typedef PyObject* Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static PyObject* GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            return *(PyObject**)fromBuffer;
+        }
+
+        static PyObject* FromPython(PyObject* object)
+        {
+            return object;
+        }
+
+        static PyObject* ToPython(PyObject*& data)
+        {
             Py_XINCREF(data);
             return data;
         }

@@ -79,6 +79,7 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "check_ref_chararray_conversion", "check integral char array type conversions", static_cast<char(&(*)(char(&)[100]))[100]>(&CheckIntegralCharArrayType));
         CPythonGlobalFunction(module, "check_ctype_string_conversion", "check integral ctype string type conversions", static_cast<void(*)(char*)>(&CheckIntegralCTypeStringType));
         CPythonGlobalFunction(module, "check_const_ctype_string_conversion", "check integral ctype string type conversions", static_cast<void(*)(const char*)>(&CheckIntegralConstCTypeStringType));
+        CPythonGlobalFunction(module, "check_pyobject_conversion", "check integral PyObject type conversions", static_cast<PyObject*(*)(PyObject*)>(&CheckIntegralPyObjectType));
 
         CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
         CPythonGlobalVariable(module, "globalVariableInt", 5);
