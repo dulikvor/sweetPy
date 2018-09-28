@@ -198,7 +198,7 @@ namespace sweetPy{
         static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
             PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
-            object_ptr attrName(PyUnicode_FromString("_value_"), &Deleter::Owner);
+            object_ptr attrName(PyUnicode_FromString("value"), &Deleter::Owner);
             object_ptr attr(PyObject_GetAttr(object, attrName.get()), &Deleter::Owner);
             new(toBuffer)T((T)int(PyLong_AsLongLong(attr.get())));
             return *reinterpret_cast<T*>(toBuffer);
