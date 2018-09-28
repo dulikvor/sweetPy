@@ -191,7 +191,7 @@ namespace sweetPy{
     template<typename T>
     struct Object<T, typename std::enable_if<std::is_enum<T>::value>::type> {
     public:
-        typedef int FromPythonType;
+        typedef PyObject* FromPythonType;
         typedef T Type;
         static constexpr const char* Format = "O";
         static const bool IsSimpleObjectType = false;
