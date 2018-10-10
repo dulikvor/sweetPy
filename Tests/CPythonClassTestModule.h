@@ -5,6 +5,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include "Types/DateTime.h"
 
 namespace sweetPyTest {
 
@@ -59,7 +60,21 @@ namespace sweetPyTest {
     void CheckIntegralCTypeStringType(char* value){ *value = 'l'; }
     void CheckIntegralConstCTypeStringType(const char* value){}
 
+    sweetPy::DateTime CheckDateTimeType(sweetPy::DateTime value)
+    {
+        sweetPy::DateTime newValue(1, 2, 3, 4, 5);
+        return newValue;
+    }
+    const sweetPy::DateTime& CheckConstRefDateTimeType(const sweetPy::DateTime& value)
+    {
+        static std::vector<sweetPy::DateTime> values(100);
+        values.push_back(value);
+        return values.back();
+    }
+
     PyObject* CheckIntegralPyObjectType(PyObject* value){ return value; }
+
+
 
     enum Python
     {
