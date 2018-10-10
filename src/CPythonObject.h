@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Python.h>
+#include <datetime.h>
 #include <string>
 #include <vector>
 #include <type_traits>
@@ -11,6 +12,7 @@
 #include "CPythonEnumValue.h"
 #include "CPythonType.h"
 #include "CPythonClassType.h"
+#include "Types/DateTime.h"
 #include "Core/Exception.h"
 #include "Core/Traits.h"
 #include "Core/Lock.h"
@@ -953,11 +955,30 @@ namespace sweetPy{
             else
                 throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "const int& can only originates from ref int type, ref const int type or python long object");
         }
-        static int FromPython(PyObject* obj){
+
+        static int FromPython(PyObject* object)
+        {
             GilLock lock;
-            return (int)PyLong_AsLong(obj);
+            if(Py_TYPE(object) == &PyLong_Type)
+            {
+                return int(PyLong_AsLongLong(object));
+            }
+            else if(CPythonRef<>::IsReferenceType<int>(object))
+            {
+                CPythonRefObject<int>* refObject = reinterpret_cast<CPythonRefObject<int>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<const int>(object))
+            {
+                CPythonRefObject<const int>* refObject = reinterpret_cast<CPythonRefObject<const int>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "int can only originates from ref int type, ref const int type or python long object");
         }
-        static PyObject* ToPython(const int& data){
+
+        static PyObject* ToPython(const int& data)
+        {
             return PyLong_FromLong(data);
         }
     };
@@ -1070,6 +1091,104 @@ namespace sweetPy{
         }
         static PyObject* ToPython(int&& data){
             throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "no conversion from int&& to python");
+        }
+    };
+
+    template<>
+    struct Object<DateTime>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef DateTime Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+
+        static DateTime GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            PyObject* object = *(PyObject**)fromBuffer;
+            DateTime::ImportDateTimeModule();
+            if(PyDateTime_CheckExact(object))
+            {
+                new(toBuffer)DateTime(object);
+                return *reinterpret_cast<DateTime*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const DateTime>(object))
+            {
+                CPythonRefObject<const DateTime>* refObject = reinterpret_cast<CPythonRefObject<const DateTime>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "DateTime can only originates from ref const DateTime type or datetime.datetime object");
+        }
+
+        static DateTime FromPython(PyObject* object)
+        {
+            GilLock lock;
+            DateTime::ImportDateTimeModule();
+            if(PyDateTime_CheckExact(object))
+            {
+                return DateTime(object);
+            }
+            else if(CPythonRef<>::IsReferenceType<const DateTime>(object))
+            {
+                CPythonRefObject<const DateTime>* refObject = reinterpret_cast<CPythonRefObject<const DateTime>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "DateTime can only originates from ref const DateTime type or datetime.datetime object");
+        }
+
+        static PyObject* ToPython(const DateTime& data)
+        {
+            return DateTime(data).ToPython();
+        }
+    };
+
+    template<>
+    struct Object<const DateTime&>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef DateTime Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+
+        static const DateTime& GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            PyObject* object = *(PyObject**)fromBuffer;
+            DateTime::ImportDateTimeModule();
+            if(PyDateTime_CheckExact(object))
+            {
+                new(toBuffer)DateTime(object);
+                return *reinterpret_cast<DateTime*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const DateTime>(object))
+            {
+                CPythonRefObject<const DateTime>* refObject = reinterpret_cast<CPythonRefObject<const DateTime>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "DateTime can only originates from ref const DateTime type or datetime.datetime object");
+        }
+
+        static const DateTime& FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<const DateTime>(object))
+            {
+                CPythonRefObject<const DateTime>* refObject = reinterpret_cast<CPythonRefObject<const DateTime>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "DateTime can only originates from ref const DateTime type");
+        }
+
+        static PyObject* ToPython(const DateTime& data)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<const DateTime>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
         }
     };
 
@@ -1332,6 +1451,27 @@ namespace sweetPy{
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
         static void* Destructor(char* buffer){ return nullptr; }
+    };
+
+    template<std::size_t I>
+    struct ObjectWrapper<const DateTime&, I>
+    {
+        typedef typename Object<const DateTime&>::FromPythonType FromPythonType;
+        typedef typename Object<const DateTime&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "const_datetime_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const DateTime>>()))
+                CPythonRef<const DateTime>(module, name, name);
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer)
+        {
+            Type* typedPtr = reinterpret_cast<Type*>(buffer);
+            typedPtr->~Type();
+            return nullptr;
+        }
     };
 
     template<std::size_t I>

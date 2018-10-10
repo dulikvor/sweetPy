@@ -146,6 +146,37 @@ namespace sweetPyTest {
     ASSERT_EQ(PythonEmbedder::GetAttribute<PyObject*>("pyObjectReturn"), PythonEmbedder::GetAttribute<PyObject*>("pyObjectArgument"));
     }
 
+    TEST(CPythonClassTest, CPythonObjectCheckDateTimeType)
+    {
+        const char *testingScript = "from datetime import datetime\n"
+                                    //DateTime
+                                    "datetimeArgument = datetime(2018, 1, 1, hour = 9, minute = 8, second = 7, microsecond = 6)\n"
+                                    "datetimeReturn = TestModule.check_datetime_conversion(datetimeArgument) #datetime.datetime -> DateTime\n"
+                                    "datetimeConstRefGenerator = TestModule.GenerateDateTimeConstRef()\n"
+                                    "datetimeArgument_2 = datetime(2018, 1, 1, hour = 9, minute = 8, second = 7, microsecond = 6)\n"
+                                    "datetimeConstRefObject = datetimeConstRefGenerator.create(datetimeArgument_2)\n"
+                                    "datetimeReturn_2 = TestModule.check_datetime_conversion(datetimeConstRefObject) #const DateTime& -> DateTime\n"
+                                    //const DateTime&
+                                    "datetimeArgument_3 = datetime(2018, 1, 1, hour = 9, minute = 8, second = 7, microsecond = 6)\n"
+                                    "datetimeReturn_3 = TestModule.check_const_ref_datetime_conversion(datetimeArgument_3) #datetime.datetime -> const DateTime&\n"
+                                    "datetimeArgument_4 = datetime(2018, 1, 1, hour = 9, minute = 8, second = 7, microsecond = 6)\n"
+                                    "datetimeConstRefObject_2 = datetimeConstRefGenerator.create(datetimeArgument_4)\n"
+                                    "datetimeReturn_4 = TestModule.check_const_ref_datetime_conversion(datetimeConstRefObject_2) #const DateTime& -> const DateTime&";
+
+        PyRun_SimpleString(testingScript);
+        //DateTime
+        ASSERT_EQ(sweetPy::DateTime(9, 8, 7, 0, 6), PythonEmbedder::GetAttribute<sweetPy::DateTime>("datetimeArgument"));
+        ASSERT_EQ(sweetPy::DateTime(1, 2, 3, 4, 5), PythonEmbedder::GetAttribute<sweetPy::DateTime>("datetimeReturn"));
+        ASSERT_EQ(sweetPy::DateTime(9, 8, 7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::DateTime&>("datetimeConstRefObject"));
+        ASSERT_EQ(sweetPy::DateTime(1, 2, 3, 4, 5), PythonEmbedder::GetAttribute<sweetPy::DateTime>("datetimeReturn_2"));
+        //const DateTime&
+        ASSERT_EQ(sweetPy::DateTime(9, 8, 7, 0, 6), PythonEmbedder::GetAttribute<sweetPy::DateTime>("datetimeArgument_3"));
+        ASSERT_EQ(sweetPy::DateTime(9, 8, 7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::DateTime&>("datetimeReturn_3"));
+        ASSERT_EQ(sweetPy::DateTime(9, 8, 7, 0, 6), PythonEmbedder::GetAttribute<sweetPy::DateTime>("datetimeArgument_4"));
+        ASSERT_EQ(sweetPy::DateTime(9, 8, 7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::DateTime&>("datetimeConstRefObject_2"));
+        ASSERT_EQ(sweetPy::DateTime(9, 8, 7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::DateTime&>("datetimeReturn_4"));
+    }
+
     TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "a.IncBaseValue()\n"
