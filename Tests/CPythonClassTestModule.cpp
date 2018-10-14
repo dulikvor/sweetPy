@@ -70,6 +70,9 @@ namespace sweetPyTest {
         CPythonClass<GenerateRefTypes<const sweetPy::DateTime>> dateTimeConstRefType(module, "GenerateDateTimeConstRef", "Will generate instance of datetime const ref type");
         dateTimeConstRefType.AddMethod("create", "Will generate datetime const ref", static_cast<const sweetPy::DateTime&(GenerateRefTypes<const sweetPy::DateTime>::*)(const sweetPy::DateTime&)>(&GenerateRefTypes<const DateTime>::operator()));
 
+        CPythonClass<GenerateRefTypes<const sweetPy::TimeDelta>> timeDeltaConstRefType(module, "GenerateTimeDeltaConstRef", "Will generate instance of timedelta const ref type");
+        timeDeltaConstRefType.AddMethod("create", "Will generate timedelta const ref", static_cast<const sweetPy::TimeDelta&(GenerateRefTypes<const sweetPy::TimeDelta>::*)(const sweetPy::TimeDelta&)>(&GenerateRefTypes<const TimeDelta>::operator()));
+
         CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
         CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
         CPythonGlobalFunction(module, "check_const_ref_int_conversion", "check integral const ref int type conversions", static_cast<const int&(*)(const int&)>(&CheckIntegralIntType));
@@ -85,6 +88,8 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "check_pyobject_conversion", "check integral PyObject type conversions", static_cast<PyObject*(*)(PyObject*)>(&CheckIntegralPyObjectType));
         CPythonGlobalFunction(module, "check_datetime_conversion", "check DateTime type conversions", static_cast<sweetPy::DateTime(*)(sweetPy::DateTime)>(&CheckDateTimeType));
         CPythonGlobalFunction(module, "check_const_ref_datetime_conversion", "check const DateTime& type conversions", static_cast<const sweetPy::DateTime&(*)(const sweetPy::DateTime&)>(&CheckConstRefDateTimeType));
+        CPythonGlobalFunction(module, "check_timedelta_conversion", "check TimeDelta type conversions", static_cast<sweetPy::TimeDelta(*)(sweetPy::TimeDelta)>(&CheckTimeDeltaType));
+        CPythonGlobalFunction(module, "check_const_ref_timedelta_conversion", "check const TimeDelta& type conversions", static_cast<const sweetPy::TimeDelta&(*)(const sweetPy::TimeDelta&)>(&CheckConstRefTimeDeltaType));
 
         CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
         CPythonGlobalVariable(module, "globalVariableInt", 5);

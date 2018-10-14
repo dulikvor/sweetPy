@@ -12,6 +12,7 @@
 #include "CPythonEnumValue.h"
 #include "CPythonType.h"
 #include "CPythonClassType.h"
+#include "Types/TimeDelta.h"
 #include "Types/DateTime.h"
 #include "Core/Exception.h"
 #include "Core/Traits.h"
@@ -1193,6 +1194,104 @@ namespace sweetPy{
     };
 
     template<>
+    struct Object<TimeDelta>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef TimeDelta Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+
+        static TimeDelta GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            PyObject* object = *(PyObject**)fromBuffer;
+            TimeDelta::ImportDateTimeModule();
+            if(PyDelta_CheckExact(object))
+            {
+                new(toBuffer)TimeDelta(object);
+                return *reinterpret_cast<TimeDelta*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const TimeDelta>(object))
+            {
+                CPythonRefObject<const TimeDelta>* refObject = reinterpret_cast<CPythonRefObject<const TimeDelta>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "TimeDelta can only originates from ref const TimeDelta type or datetime.timedelta object");
+        }
+
+        static TimeDelta FromPython(PyObject* object)
+        {
+            GilLock lock;
+            TimeDelta::ImportDateTimeModule();
+            if(PyDelta_CheckExact(object))
+            {
+                return TimeDelta(object);
+            }
+            else if(CPythonRef<>::IsReferenceType<const TimeDelta>(object))
+            {
+                CPythonRefObject<const TimeDelta>* refObject = reinterpret_cast<CPythonRefObject<const TimeDelta>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "TimeDelta can only originates from ref const TimeDelta type or datetime.timedelta object");
+        }
+
+        static PyObject* ToPython(const TimeDelta& data)
+        {
+            return TimeDelta(data).ToPython();
+        }
+    };
+
+    template<>
+    struct Object<const TimeDelta&>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef TimeDelta Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+
+        static const TimeDelta& GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            PyObject* object = *(PyObject**)fromBuffer;
+            TimeDelta::ImportDateTimeModule();
+            if(PyDelta_CheckExact(object))
+            {
+                new(toBuffer)TimeDelta(object);
+                return *reinterpret_cast<TimeDelta*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const TimeDelta>(object))
+            {
+                CPythonRefObject<const TimeDelta>* refObject = reinterpret_cast<CPythonRefObject<const TimeDelta>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "TimeDelta can only originates from ref const TimeDelta type or datetime.timedelta object");
+        }
+
+        static const TimeDelta& FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<const TimeDelta>(object))
+            {
+                CPythonRefObject<const TimeDelta>* refObject = reinterpret_cast<CPythonRefObject<const TimeDelta>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "TimeDelta can only originates from ref const TimeDelta type");
+        }
+
+        static PyObject* ToPython(const TimeDelta& data)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<const TimeDelta>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
+    template<>
     struct Object<PyObject*> {
     public:
         typedef PyObject* FromPythonType;
@@ -1463,6 +1562,27 @@ namespace sweetPy{
             static std::string name = "const_datetime_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const DateTime>>()))
                 CPythonRef<const DateTime>(module, name, name);
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer)
+        {
+            Type* typedPtr = reinterpret_cast<Type*>(buffer);
+            typedPtr->~Type();
+            return nullptr;
+        }
+    };
+
+    template<std::size_t I>
+    struct ObjectWrapper<const TimeDelta&, I>
+    {
+        typedef typename Object<const TimeDelta&>::FromPythonType FromPythonType;
+        typedef typename Object<const TimeDelta&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "const_timedelta_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const TimeDelta>>()))
+                CPythonRef<const TimeDelta>(module, name, name);
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}

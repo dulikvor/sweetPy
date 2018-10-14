@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include "Types/DateTime.h"
+#include "Types/TimeDelta.h"
 
 namespace sweetPyTest {
 
@@ -68,6 +69,18 @@ namespace sweetPyTest {
     const sweetPy::DateTime& CheckConstRefDateTimeType(const sweetPy::DateTime& value)
     {
         static std::vector<sweetPy::DateTime> values(100);
+        values.push_back(value);
+        return values.back();
+    }
+
+    sweetPy::TimeDelta CheckTimeDeltaType(sweetPy::TimeDelta value)
+    {
+        sweetPy::TimeDelta newValue(3, 4, 5);
+        return newValue;
+    }
+    const sweetPy::TimeDelta& CheckConstRefTimeDeltaType(const sweetPy::TimeDelta& value)
+    {
+        static std::vector<sweetPy::TimeDelta> values(100);
         values.push_back(value);
         return values.back();
     }
