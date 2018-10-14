@@ -177,6 +177,37 @@ namespace sweetPyTest {
         ASSERT_EQ(sweetPy::DateTime(9, 8, 7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::DateTime&>("datetimeReturn_4"));
     }
 
+    TEST(CPythonClassTest, CPythonObjectCheckTimeDeltaType)
+    {
+        const char *testingScript = "from datetime import timedelta\n"
+                //TimeDelta
+                "timedeltaArgument = timedelta(seconds = 7, microseconds = 6)\n"
+                "timedeltaReturn = TestModule.check_timedelta_conversion(timedeltaArgument) #datetime.timedelta -> TimeDelta\n"
+                "timedeltaConstRefGenerator = TestModule.GenerateTimeDeltaConstRef()\n"
+                "timedeltaArgument_2 = timedelta(seconds = 7, microseconds = 6)\n"
+                "timedeltaConstRefObject = timedeltaConstRefGenerator.create(timedeltaArgument_2)\n"
+                "timedeltaReturn_2 = TestModule.check_timedelta_conversion(timedeltaConstRefObject) #const TimeDelta& -> TimeDelta\n"
+                //const TimeDelta&
+                "timedeltaArgument_3 = timedelta(seconds = 7, microseconds = 6)\n"
+                "timedeltaReturn_3 = TestModule.check_const_ref_timedelta_conversion(timedeltaArgument_3) #datetime.timedelta -> const TimeDelta&\n"
+                "timedeltaArgument_4 = timedelta(seconds = 7, microseconds = 6)\n"
+                "timedeltaConstRefObject_2 = timedeltaConstRefGenerator.create(timedeltaArgument_4)\n"
+                "timedeltaReturn_4 = TestModule.check_const_ref_timedelta_conversion(timedeltaConstRefObject_2) #const TimeDelta& -> const TimeDelta&";
+
+        PyRun_SimpleString(testingScript);
+        //TimeDelta
+        ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<sweetPy::TimeDelta>("timedeltaArgument"));
+        ASSERT_EQ(sweetPy::TimeDelta(3, 4, 5), PythonEmbedder::GetAttribute<sweetPy::TimeDelta>("timedeltaReturn"));
+        ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::TimeDelta&>("timedeltaConstRefObject"));
+        ASSERT_EQ(sweetPy::TimeDelta(3, 4, 5), PythonEmbedder::GetAttribute<sweetPy::TimeDelta>("timedeltaReturn_2"));
+        //const TimeDelta&
+        ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<sweetPy::TimeDelta>("timedeltaArgument_3"));
+        ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::TimeDelta&>("timedeltaReturn_3"));
+        ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<sweetPy::TimeDelta>("timedeltaArgument_4"));
+        ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::TimeDelta&>("timedeltaConstRefObject_2"));
+        ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::TimeDelta&>("timedeltaReturn_4"));
+    }
+
     TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {
         const char *testingScript = "a = TestClass(7)\n"
                                     "a.IncBaseValue()\n"
