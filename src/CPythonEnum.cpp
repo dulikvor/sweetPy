@@ -5,7 +5,7 @@
 namespace sweetPy
 {
     CPythonEnum::CPythonEnum(CPythonModule &module, const std::string &name)
-    : m_module(module), m_name(name){}
+    : m_name(name), m_module(module){}
 
     CPythonEnum::~CPythonEnum() {
         typedef std::unique_ptr<PyObject, Deleter::Func> object_ptr;

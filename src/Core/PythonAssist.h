@@ -65,7 +65,7 @@ namespace sweetPy
             object_ptr function = GetAttribute(functionName, module.get());
 
             object_ptr tuple(nullptr, &Deleter::Owner);
-            if(objectName == "")
+            if(strcmp(objectName, "") == 0)
             {
                 tuple.reset(PyTuple_New(sizeof...(args)));
                 ObjectWrapper<int, 0>::MultiInvoker(PyTuple_SetItem(tuple.get(), I, Object<Args>::ToPython(args))...);

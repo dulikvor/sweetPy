@@ -51,7 +51,7 @@ endif()
 if(sweetPy_COMPILE_STEP)
     include_directories( ${PROJECT_DIR} ${PROJECT_DIR}/src ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 
-    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC -DSPDLOG_FOUND=${SPDLOG_FOUND} -DTHRIFT_FOUND=${THRIFT_FOUND}")
+    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC -DSPDLOG_FOUND=${SPDLOG_FOUND} -DTHRIFT_FOUND=${THRIFT_FOUND} -Wall -Werror -pedantic -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable")
     set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
     set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_DIR}/bin)

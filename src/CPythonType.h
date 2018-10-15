@@ -46,7 +46,7 @@ namespace sweetPy {
             {
             public:
                 explicit iterator(PyMemberDef* memberDef): m_memberDef(memberDef ? memberDef : &m_sentinal){}
-                iterator& operator++(){m_memberDef++;}
+                iterator& operator++(){m_memberDef++; return *this;}
                 bool operator==(const iterator& other) const{return m_memberDef == other.m_memberDef || m_memberDef->name == m_sentinal.name;} //sentinal is not actually the original sentinal, only identical by its data.
                 bool operator!=(const iterator& other) const{return m_memberDef != other.m_memberDef && m_memberDef->name != m_sentinal.name;} //sentinal is not actually the original sentinal, only identical by its data.
                 reference operator*() const{return *m_memberDef;}

@@ -50,7 +50,7 @@ namespace sweetPy{
     template<typename Type, typename MemberType, typename = void>
     class CPythonMember : public ICPythonMember
     {
-        std::unique_ptr<PyMemberDef> ToPython() const override{}
+        std::unique_ptr<PyMemberDef> ToPython() const override{ return std::unique_ptr<PyMemberDef>(nullptr); }
     };
 
     template<typename Type, typename MemberType>
@@ -94,10 +94,10 @@ namespace sweetPy{
         }
 
     private:
-        std::string m_name;
-        std::string m_doc;
         int m_offset;
         int m_typeId;
+        std::string m_name;
+        std::string m_doc;
     };
 
 
@@ -105,7 +105,7 @@ namespace sweetPy{
     class CPythonMember<Type, MemberType, typename std::enable_if<std::is_same<MemberType, const char*>::value || std::is_same<MemberType, char*>::value>::type> : public ICPythonMember{
     public:
         static constexpr bool IsNonConst = std::is_same<MemberType, typename std::remove_const<MemberType>::type>::value;
-        CPythonMember(const std::string& name, MemberType Type::*& member, const std::string& doc):m_offset(GetOffset(member)), m_name(name), m_doc(doc){}
+        CPythonMember(const std::string& name, MemberType Type::*& member, const std::string& doc):m_name(name), m_doc(doc), m_offset(GetOffset(member)){}
         std::unique_ptr<PyMemberDef> ToPython() const override{
             char* name = new char[m_name.length() + 1];
             std::copy_n(m_name.c_str(), m_name.length(), name);

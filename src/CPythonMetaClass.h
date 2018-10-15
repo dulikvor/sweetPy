@@ -50,9 +50,9 @@ namespace sweetPy {
 
     private:
         std::vector<std::shared_ptr<CPythonFunction>> m_staticMethods;
+        CPythonModule& m_module;
         object_ptr m_type;
         static NonCollectableMetaType m_staticType;
-        CPythonModule& m_module;
     };
 }
 

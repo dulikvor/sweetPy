@@ -25,8 +25,8 @@ namespace sweetPy {
             for (auto &subFormat : formatList)
                 format += subFormat;
 
-            char pythonArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value];
-            char nativeArgsBuffer[ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value];
+            char pythonArgsBuffer[std::max(1, ObjectsPackSize<typename Object<typename base<Args>::Type>::FromPythonType...>::value)];
+            char nativeArgsBuffer[std::max(1, ObjectsPackSize<typename Object<typename base<Args>::Type>::Type...>::value)];
             {
                 CPYTHON_VERIFY(PyArg_ParseTuple(args, format.c_str(), (pythonArgsBuffer + ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                         ObjectWrapper<typename base<Args>::Type, I>...>::value)...), "Invalid argument was provided");
