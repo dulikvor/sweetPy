@@ -65,8 +65,6 @@ namespace sweetPy{
             ((Type*)(object + 1))->~Type();
             type->tp_free(object);
         }
-
-    private:
     };
 
     //Reference types are not supported by CPythonObject
@@ -102,8 +100,8 @@ namespace sweetPy{
             return newObject;
         }
     private:
-        std::unique_ptr<CPythonObjectType<Type>> m_type;
         CPythonModule &m_module;
+        std::unique_ptr<CPythonObjectType<Type>> m_type;
     };
 
 
@@ -1373,6 +1371,7 @@ namespace sweetPy{
         static void* AllocateType(CPythonModule& module) {
             if(Object<T>::IsSimpleObjectType == true)
                CPythonObject<T> type(module);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -1389,7 +1388,7 @@ namespace sweetPy{
     {
         typedef typename Object<T&>::FromPythonType FromPythonType;
         typedef typename Object<T&>::Type Type;
-        static void* AllocateType(CPythonModule& module){}
+        static void* AllocateType(CPythonModule& module){ return nullptr; }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
         static void* Destructor(char* buffer){ return nullptr; }
@@ -1400,7 +1399,7 @@ namespace sweetPy{
     {
         typedef typename Object<const T&>::FromPythonType FromPythonType;
         typedef typename Object<const T&>::Type Type;
-        static void* AllocateType(CPythonModule& module){}
+        static void* AllocateType(CPythonModule& module){ return nullptr; }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
         static void* Destructor(char* buffer){ return nullptr; }
@@ -1411,7 +1410,7 @@ namespace sweetPy{
     {
         typedef typename Object<T&&>::FromPythonType FromPythonType;
         typedef typename Object<T&&>::Type Type;
-        static void* AllocateType(CPythonModule& module) {}
+        static void* AllocateType(CPythonModule& module) { return nullptr; }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
         static void* Destructor(char* buffer){
@@ -1429,12 +1428,11 @@ namespace sweetPy{
             static std::string name = "char_array_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<char[N]>>()))
                 CPythonRef<char[N]>(module, name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
-        static void* Destructor(char* buffer){
-            return nullptr;
-        }
+        static void* Destructor(char* buffer) { return nullptr; }
     };
 
     template<std::size_t I, size_t N>
@@ -1447,10 +1445,12 @@ namespace sweetPy{
             static std::string name = "const_char_array_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const char[N]>>()))
                 CPythonRef<const char[N]>(module,name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
-        static void* Destructor(char* buffer){
+        static void* Destructor(char* buffer)
+        {
             delete [] buffer;
             return nullptr;
         }
@@ -1466,6 +1466,7 @@ namespace sweetPy{
             static std::string name = "c_type_string_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<char*>>()))
                 CPythonRef<char*>(module, name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -1482,6 +1483,7 @@ namespace sweetPy{
             static std::string name = "const_c_type_string_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const char*>>()))
                 CPythonRef<const char*>(module, name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -1498,6 +1500,7 @@ namespace sweetPy{
             static std::string name = "string_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<std::string>>()))
                 CPythonRef<std::string>(module, name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -1514,6 +1517,7 @@ namespace sweetPy{
             static std::string name = "const_string_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const std::string>>()))
                 CPythonRef<const std::string>(module, name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -1530,6 +1534,7 @@ namespace sweetPy{
             static std::string name = "int_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<int>>()))
                 CPythonRef<int>(module, name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -1546,6 +1551,7 @@ namespace sweetPy{
             static std::string name = "const_int_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const int>>()))
                 CPythonRef<const int>(module, name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -1562,6 +1568,7 @@ namespace sweetPy{
             static std::string name = "const_datetime_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const DateTime>>()))
                 CPythonRef<const DateTime>(module, name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -1583,6 +1590,7 @@ namespace sweetPy{
             static std::string name = "const_timedelta_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const TimeDelta>>()))
                 CPythonRef<const TimeDelta>(module, name, name);
+            return nullptr;
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
@@ -1597,6 +1605,6 @@ namespace sweetPy{
     template<std::size_t I>
     struct ObjectWrapper<void, I>
     {
-        static void* AllocateType(CPythonModule& module) {}
+        static void* AllocateType(CPythonModule& module) { return nullptr; }
     };
 }

@@ -15,5 +15,6 @@ namespace sweetPy{
     {
         std::swap(m_name, obj.m_name);
         std::swap(m_doc, obj.m_doc);
+        return *this;
     }
 }

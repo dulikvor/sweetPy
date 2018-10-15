@@ -28,9 +28,9 @@ namespace sweetPy{
 
     private:
         std::shared_ptr<CPythonFunction> m_function;
+        CPythonModule &m_module;
         std::string m_name;
         std::string m_doc;
-        CPythonModule &m_module;
     };
 
 }

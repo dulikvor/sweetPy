@@ -33,7 +33,7 @@ namespace sweetPy {
         }
 
     private:
-        std::unique_ptr<ICPythonVariable> m_variable;
         CPythonModule &m_module;
+        std::unique_ptr<ICPythonVariable> m_variable;
     };
 }

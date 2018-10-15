@@ -186,7 +186,7 @@ namespace sweetPy {
         static NonCallableRefType m_staticType;
         std::vector<std::shared_ptr<CPythonFunction>> m_memberFunctions;
         std::vector<std::shared_ptr<ICPythonMember>> m_members;
-        object_ptr m_type;
         CPythonModule &m_module;
+        object_ptr m_type;
     };
 }

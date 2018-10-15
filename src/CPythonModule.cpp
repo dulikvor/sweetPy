@@ -7,7 +7,7 @@ using namespace std;
 namespace sweetPy{
 
     CPythonModule::CPythonModule(const string &name, const string &doc):
-            m_module(nullptr, &Deleter::Borrow), m_moduleDef{}, m_name(name), m_doc(doc)
+            m_moduleDef{}, m_module(nullptr, &Deleter::Borrow), m_name(name), m_doc(doc)
     {}
 
     CPythonModule::~CPythonModule()
