@@ -112,6 +112,12 @@ namespace sweetPy{
     template<> struct FromNativeTypeToPyType<char*>{static constexpr void* type = &PyUnicode_Type;};
     template<> struct FromNativeTypeToPyType<bool>{static constexpr void* type = &PyBool_Type;};
 
+    template<PyTypeObject* pyType> struct FromPythonToNativeType{};
+    template<> struct FromPythonToNativeType<&PyLong_Type>{typedef int type;};
+    template<> struct FromPythonToNativeType<&PyFloat_Type>{typedef double type;};
+    template<> struct FromPythonToNativeType<&PyUnicode_Type>{typedef std::string type;};
+    template<> struct FromPythonToNativeType<&PyBytes_Type>{typedef std::string type;};
+    template<> struct FromPythonToNativeType<&PyBool_Type>{typedef bool type;};
 
     template<typename T, typename = void>
     struct Object{};
@@ -928,6 +934,216 @@ namespace sweetPy{
     };
 
     template<>
+    struct Object<double> {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef double Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static double GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(Py_TYPE(object) == &PyFloat_Type)
+            {
+                new(toBuffer)double(PyFloat_AsDouble(object));
+                return *reinterpret_cast<double*>(toBuffer);
+            }
+            else if(Py_TYPE(object) == &PyLong_Type)
+            {
+                new(toBuffer)double(PyLong_AsDouble(object));
+                return *reinterpret_cast<double*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<double>(object))
+            {
+                CPythonRefObject<double>* refObject = reinterpret_cast<CPythonRefObject<double>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<const double>(object))
+            {
+                CPythonRefObject<const double>* refObject = reinterpret_cast<CPythonRefObject<const double>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<int>(object))
+            {
+                CPythonRefObject<int>* refObject = reinterpret_cast<CPythonRefObject<int>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<const int>(object))
+            {
+                CPythonRefObject<const int>* refObject = reinterpret_cast<CPythonRefObject<const int>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "double can only originates from ref double type, ref const double type, python float object, ref int type, ref const int type, python long type");
+        }
+
+        static double FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(Py_TYPE(object) == &PyFloat_Type)
+            {
+                return PyFloat_AsDouble(object);
+            }
+            else if(Py_TYPE(object) == &PyLong_Type)
+            {
+                return PyLong_AsDouble(object);
+            }
+            else if(CPythonRef<>::IsReferenceType<double>(object))
+            {
+                CPythonRefObject<double>* refObject = reinterpret_cast<CPythonRefObject<double>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<const double>(object))
+            {
+                CPythonRefObject<const double>* refObject = reinterpret_cast<CPythonRefObject<const double>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<int>(object))
+            {
+                CPythonRefObject<int>* refObject = reinterpret_cast<CPythonRefObject<int>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<const int>(object))
+            {
+                CPythonRefObject<const int>* refObject = reinterpret_cast<CPythonRefObject<const int>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "double can only originates from ref double type, ref const double type, python float object, ref int type, ref const int type, python long object");
+        }
+
+        static PyObject* ToPython(const double& data)
+        {
+            return PyFloat_FromDouble(data);
+        }
+    };
+
+    template<>
+    struct Object<const double&>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef double Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static const double& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(Py_TYPE(object) == &PyFloat_Type)
+            {
+                new(toBuffer)double(PyFloat_AsDouble(object));
+                return *reinterpret_cast<double*>(toBuffer);
+            }
+            else if(Py_TYPE(object) == &PyLong_Type)
+            {
+                new(toBuffer)double(PyLong_AsDouble(object));
+                return *reinterpret_cast<double*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const double>(object))
+            {
+                CPythonRefObject<const double>* refObject = reinterpret_cast<CPythonRefObject<const double>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<double>(object))
+            {
+                CPythonRefObject<double>* refObject = reinterpret_cast<CPythonRefObject<double>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Invalid conversion to native const double&");
+        }
+        //Conversion from python float to const double& will not be supported, due to the fact that returning rvalue encpasulate leakage scope potential.
+        static const double& FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<const double>(object))
+            {
+                CPythonRefObject<const double> *refObject = reinterpret_cast<CPythonRefObject<const double>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<double>(object))
+            {
+                CPythonRefObject<double> *refObject = reinterpret_cast<CPythonRefObject<double>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Invalid conversion to native const double&");
+        }
+        static PyObject* ToPython(const double& data)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<const double>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
+    template<>
+    struct Object<double&> {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef double Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static double& GetTyped(char* fromBuffer, char* toBuffer){
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(CPythonRef<>::IsReferenceType<double>(object))
+            {
+                CPythonRefObject<double>* refObject = reinterpret_cast<CPythonRefObject<double>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "double& can only originates from ref double type");
+        }
+        static double& FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<double>(object)) {
+                CPythonRefObject<double> *refObject = reinterpret_cast<CPythonRefObject<double> *>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "double& can only originates from ref double type");
+        }
+        static PyObject* ToPython(const double& data)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<double>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
+    template<>
+    struct Object<double&&>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef double Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        static double&& GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(CPythonRef<>::IsReferenceType<double>(object))
+            {
+                CPythonRefObject<double>* refObject = reinterpret_cast<CPythonRefObject<double>*>(object + 1);
+                return std::move(refObject->GetRef());
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "double&& can only originates from ref double type or py float type");
+        }
+        //Conversion from python float to double&& will not be supported, due to the fact that returning rvalue encpasulate leakage scope potential.
+        static double&& FromPython(PyObject* object)
+        {
+            GilLock lock;
+            throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "no python representation for double&&");
+        }
+        static PyObject* ToPython(double&& data)
+        {
+            throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "no conversion from double&& to python");
+        }
+    };
+
+    template<>
     struct Object<int> {
     public:
         typedef PyObject* FromPythonType;
@@ -1517,6 +1733,40 @@ namespace sweetPy{
             static std::string name = "const_string_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const std::string>>()))
                 CPythonRef<const std::string>(module, name, name);
+            return nullptr;
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer){ return nullptr; }
+    };
+
+    template<std::size_t I>
+    struct ObjectWrapper<double&, I>
+    {
+        typedef typename Object<double&>::FromPythonType FromPythonType;
+        typedef typename Object<double&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "double_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<double>>()))
+                CPythonRef<double>(module, name, name);
+            return nullptr;
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer){ return nullptr; }
+    };
+
+    template<std::size_t I>
+    struct ObjectWrapper<const double&, I>
+    {
+        typedef typename Object<const double&>::FromPythonType FromPythonType;
+        typedef typename Object<const double&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "const_double_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const double>>()))
+                CPythonRef<const double>(module, name, name);
             return nullptr;
         }
         template<typename... Args>

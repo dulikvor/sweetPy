@@ -77,6 +77,63 @@ namespace sweetPyTest {
         ASSERT_EQ(502, PythonEmbedder::GetAttribute<int&>("intRefObject_4"));
     }
 
+    TEST(CPythonClassTest, CPythonObjectCheckDoubleIntegralType)
+    {
+        const char *testingScript = "intArgument = 1000\n"
+                "doubleReturn = TestModule.check_double_conversion(intArgument) #PyLong -> double\n"
+                "doubleArgument = 1000.5\n"
+                "doubleReturn_2 = TestModule.check_double_conversion(doubleArgument) #PyFloat -> double\n"
+                "intRefGenerator = TestModule.GenerateIntRef()\n"
+                "intRefObject = intRefGenerator.create(500)\n"
+                "doubleReturn_3 = TestModule.check_double_conversion(intRefObject) #ref int -> double\n"
+                "intConstRefGenerator = TestModule.GenerateIntConstRef()\n"
+                "intConstRefObject = intConstRefGenerator.create(501)\n"
+                "doubleReturn_4 = TestModule.check_double_conversion(intConstRefObject) #ref const int -> double\n"
+                "doubleRefGenerator = TestModule.GenerateDoubleRef()\n"
+                "doubleRefObject = doubleRefGenerator.create(500.5)\n"
+                "doubleReturn_5 = TestModule.check_double_conversion(doubleRefObject) #ref double-> double\n"
+                "doubleConstRefGenerator = TestModule.GenerateDoubleConstRef()\n"
+                "doubleConstRefObject = doubleConstRefGenerator.create(501.5)\n"
+                "doubleReturn_6 = TestModule.check_double_conversion(doubleConstRefObject) #ref const double -> double\n"
+                "'''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'''\n"
+                "intArgument_2 = 1000\n"
+                "doubleConstRefObject_2 = TestModule.check_const_ref_double_conversion(intArgument_2) #PyLong -> const double&\n"
+                "doubleArgument_2 = 1000.5\n"
+                "doubleConstRefObject_3 = TestModule.check_const_ref_double_conversion(doubleArgument_2) #PyFloat -> const double&\n"
+                "doubleRefObject_2 = doubleRefGenerator.create(500.5)\n"
+                "doubleConstRefObject_4 = TestModule.check_const_ref_double_conversion(doubleRefObject_2) #ref double -> const int&\n"
+                "doubleConstRefObject_5 = doubleConstRefGenerator.create(501.5)\n"
+                "doubleConstRefObject_6 = TestModule.check_const_ref_double_conversion(doubleConstRefObject_5) #const ref double -> const int&\n"
+                "'''++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'''\n"
+                "doubleRefObject_3 = doubleRefGenerator.create(502.35)\n"
+                "doubleRefObject_4 = TestModule.check_ref_double_conversion(doubleRefObject_3) #ref double -> double&";
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(1000, PythonEmbedder::GetAttribute<int>("intArgument"));
+        ASSERT_EQ(1001, PythonEmbedder::GetAttribute<double>("doubleReturn"));
+        ASSERT_EQ(1000.5, PythonEmbedder::GetAttribute<double>("doubleArgument"));
+        ASSERT_EQ(1001.5, PythonEmbedder::GetAttribute<double>("doubleReturn_2"));
+        ASSERT_EQ(500, PythonEmbedder::GetAttribute<int&>("intRefObject"));
+        ASSERT_EQ(501, PythonEmbedder::GetAttribute<double>("doubleReturn_3"));
+        ASSERT_EQ(501, PythonEmbedder::GetAttribute<const int&>("intConstRefObject"));
+        ASSERT_EQ(502, PythonEmbedder::GetAttribute<double>("doubleReturn_4"));
+        ASSERT_EQ(500.5, PythonEmbedder::GetAttribute<double&>("doubleRefObject"));
+        ASSERT_EQ(501.5, PythonEmbedder::GetAttribute<double>("doubleReturn_5"));
+        ASSERT_EQ(501.5, PythonEmbedder::GetAttribute<const double&>("doubleConstRefObject"));
+        ASSERT_EQ(502.5, PythonEmbedder::GetAttribute<double>("doubleReturn_6"));
+
+        ASSERT_EQ(1000, PythonEmbedder::GetAttribute<int>("intArgument_2"));
+        ASSERT_EQ(1000, PythonEmbedder::GetAttribute<const double&>("doubleConstRefObject_2"));
+        ASSERT_EQ(1000.5, PythonEmbedder::GetAttribute<double>("doubleArgument_2"));
+        ASSERT_EQ(1000.5, PythonEmbedder::GetAttribute<const double&>("doubleConstRefObject_3"));
+        ASSERT_EQ(500.5, PythonEmbedder::GetAttribute<double&>("doubleRefObject_2"));
+        ASSERT_EQ(500.5, PythonEmbedder::GetAttribute<const double&>("doubleConstRefObject_4"));
+        ASSERT_EQ(501.5, PythonEmbedder::GetAttribute<const double&>("doubleConstRefObject_5"));
+        ASSERT_EQ(501.5, PythonEmbedder::GetAttribute<const double&>("doubleConstRefObject_6"));
+
+        ASSERT_EQ(503.35, PythonEmbedder::GetAttribute<double&>("doubleRefObject_3"));
+        ASSERT_EQ(503.35, PythonEmbedder::GetAttribute<double&>("doubleRefObject_4"));
+    }
+
     TEST(CPythonClassTest, CPythonObjectCheckStringIntegralType)
     {
         const char *testingScript = "strArgument = 'hello'\n"
