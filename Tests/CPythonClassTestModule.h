@@ -52,6 +52,11 @@ namespace sweetPyTest {
     const int& CheckIntegralIntType(const int& value){ static std::vector<int> values(100); values.push_back(value); return values.back(); }
     void CheckIntegralIntType(int&& value){ static int i = 0; std::swap(value, i);  }
 
+    double CheckIntegralDoubleType(double value){ return value + 1; }
+    double& CheckIntegralDoubleType(double& value){ return ++value; }
+    const double& CheckIntegralDoubleType(const double& value){ static std::vector<double> values(100); values.push_back(value); return values.back(); }
+    void CheckIntegralDoubleType(double&& value){ static double i = 0; std::swap(value, i);  }
+
     std::string CheckIntegralStringType(std::string value){ return value + " world"; }
     std::string& CheckIntegralStringType(std::string& value){ return value = "hello to all"; }
     const std::string& CheckIntegralStringType(const std::string& value){ static std::vector<std::string> values(100); values.push_back(value); return values.back(); }

@@ -58,6 +58,12 @@ namespace sweetPyTest {
         CPythonClass<GenerateRefTypes<const int>> intConstRefType(module, "GenerateIntConstRef", "Will generate instance of int const ref type");
         intConstRefType.AddMethod("create", "Will generate an int ref", static_cast<const int&(GenerateRefTypes<const int>::*)(const int&)>(&GenerateRefTypes<const int>::operator()));
 
+        CPythonClass<GenerateRefTypes<double>> doubleRefType(module, "GenerateDoubleRef", "Will generate instance of double ref type");
+        doubleRefType.AddMethod("create", "Will generate an double ref", static_cast<double&(GenerateRefTypes<double>::*)(const double&)>(&GenerateRefTypes<double>::operator()));
+
+        CPythonClass<GenerateRefTypes<const double>> doubleConstRefType(module, "GenerateDoubleConstRef", "Will generate instance of double const ref type");
+        doubleConstRefType.AddMethod("create", "Will generate an double ref", static_cast<const double&(GenerateRefTypes<const double>::*)(const double&)>(&GenerateRefTypes<const double>::operator()));
+
         CPythonClass<GenerateRefTypes<std::string>> strRefType(module, "GenerateStrRef", "Will generate instance of string ref type");
         strRefType.AddMethod("create", "Will generate an str ref", static_cast<std::string&(GenerateRefTypes<std::string>::*)(const std::string&)>(&GenerateRefTypes<std::string>::operator()));
 
@@ -78,6 +84,10 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "check_const_ref_int_conversion", "check integral const ref int type conversions", static_cast<const int&(*)(const int&)>(&CheckIntegralIntType));
         CPythonGlobalFunction(module, "check_ref_int_conversion", "check integral ref int type conversions", static_cast<int&(*)(int&)>(&CheckIntegralIntType));
         CPythonGlobalFunction(module, "check_rvalue_ref_int_conversion", "check integral rvalue ref int type conversions", static_cast<void(*)(int&&)>(&CheckIntegralIntType));
+        CPythonGlobalFunction(module, "check_double_conversion", "check integral double type conversions", static_cast<double(*)(double)>(&CheckIntegralDoubleType));
+        CPythonGlobalFunction(module, "check_const_ref_double_conversion", "check integral const ref double type conversions", static_cast<const double&(*)(const double&)>(&CheckIntegralDoubleType));
+        CPythonGlobalFunction(module, "check_ref_double_conversion", "check integral ref double type conversions", static_cast<double&(*)(double&)>(&CheckIntegralDoubleType));
+        CPythonGlobalFunction(module, "check_rvalue_ref_double_conversion", "check integral rvalue ref double type conversions", static_cast<void(*)(double&&)>(&CheckIntegralDoubleType));
         CPythonGlobalFunction(module, "check_str_conversion", "check integral string type conversions", static_cast<std::string(*)(std::string)>(&CheckIntegralStringType));
         CPythonGlobalFunction(module, "check_const_ref_str_conversion", "check integral const ref string type conversions", static_cast<const std::string&(*)(const std::string&)>(&CheckIntegralStringType));
         CPythonGlobalFunction(module, "check_ref_str_conversion", "check integral ref string type conversions", static_cast<std::string&(*)(std::string&)>(&CheckIntegralStringType));
