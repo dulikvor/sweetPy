@@ -12,5 +12,14 @@ namespace sweetPy {
     private:
         PyGILState_STATE m_state;
     };
+
+    struct Yield
+    {
+    public:
+        Yield():m_save(PyEval_SaveThread()){}
+        ~Yield(){PyEval_RestoreThread(m_save);}
+    private:
+        PyThreadState* m_save;
+    };
 }
 
