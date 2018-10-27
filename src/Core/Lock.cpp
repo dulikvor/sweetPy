@@ -1,5 +1,5 @@
 #include "Lock.h"
 
 namespace sweetPy{
-    thread_local PyThreadState* Yield::m_save = nullptr;
+    thread_local bool Yield::m_alreadyYield = false;
 }
