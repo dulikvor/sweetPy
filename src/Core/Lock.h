@@ -16,21 +16,25 @@ namespace sweetPy {
     struct Yield
     {
     public:
-        Yield()
+        Yield():m_save(nullptr)
         {
-            if(m_save == nullptr && PyGILState_Check())
+            if(m_alreadyYield == false && PyGILState_Check())
+            {
                 m_save = PyEval_SaveThread();
+                m_alreadyYield = true;
+            }
         }
         ~Yield()
         {
             if(m_save)
             {
                 PyEval_RestoreThread(m_save);
-                m_save = nullptr;
+                m_alreadyYield = false;
             }
         }
     private:
-        thread_local static PyThreadState* m_save;
+        thread_local static bool m_alreadyYield;
+        PyThreadState* m_save;
     };
 }
 
