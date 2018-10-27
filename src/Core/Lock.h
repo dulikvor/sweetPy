@@ -30,7 +30,7 @@ namespace sweetPy {
             }
         }
     private:
-        thread_local static PyThreadState* m_save = nullptr;
+        thread_local static PyThreadState* m_save;
     };
 }
 
