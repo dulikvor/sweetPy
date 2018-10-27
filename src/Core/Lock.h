@@ -16,18 +16,21 @@ namespace sweetPy {
     struct Yield
     {
     public:
-        Yield():m_save(nullptr)
+        Yield()
         {
-            if(PyGILState_GetThisThreadState())
+            if(m_save == nullptr && PyGILState_Check())
                 m_save = PyEval_SaveThread();
         }
         ~Yield()
         {
             if(m_save)
+            {
                 PyEval_RestoreThread(m_save);
+                m_save = nullptr;
+            }
         }
     private:
-        PyThreadState* m_save;
+        thread_local static PyThreadState* m_save = nullptr;
     };
 }
 
