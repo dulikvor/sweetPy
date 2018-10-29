@@ -18,7 +18,7 @@ namespace sweetPy {
     public:
         Yield():m_save(nullptr)
         {
-            if(m_alreadyYield == false && PyGILState_Check())
+            if(PyGILState_Check() && _PyThreadState_UncheckedGet() != nullptr && m_alreadyYield == false)
             {
                 m_save = PyEval_SaveThread();
                 m_alreadyYield = true;
