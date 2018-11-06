@@ -5,6 +5,7 @@
 #include "core/Logger.h"
 #include "PythonEmbedder.h"
 #include "CPythonClassTestModule.h"
+#include "Core/PythonAssist.h"
 
 static int _argc;
 static char **_argv;
@@ -263,6 +264,15 @@ namespace sweetPyTest {
         ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<sweetPy::TimeDelta>("timedeltaArgument_4"));
         ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::TimeDelta&>("timedeltaConstRefObject_2"));
         ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::TimeDelta&>("timedeltaReturn_4"));
+    }
+
+    TEST(CPythonClassTest, PythonFunctionInvocation) {
+        const char *testingScript = "def returnInt():\n"
+                                    "   return 5\n";
+
+        PyRun_SimpleString(testingScript);
+        sweetPy::object_ptr result = sweetPy::Python::InvokeFunction("__main__", "", "returnInt");
+        ASSERT_EQ(5, sweetPy::Object<int>::FromPython(result.get()));
     }
 
     TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {

@@ -37,7 +37,18 @@ namespace sweetPy
         template<typename... Args>
         static object_ptr InvokeFunction(const char* moduleName, const char* objectName, const char* functionName, Args&&... args)
         {
-            return invoke_function_impl(moduleName, objectName, functionName, std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
+
+            object_ptr module(PyImport_ImportModule(moduleName), &Deleter::Owner);
+            object_ptr function = GetAttribute(functionName, module.get());
+
+            object_ptr object = strcmp(objectName, "") == 0 ? nullptr : GetAttribute(objectName, module.get());
+            return invoke_function_impl(std::move(function), std::move(object), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
+        }
+
+        template<typename... Args>
+        static object_ptr InvokeFunction(object_ptr&& function, Args&&... args)
+        {
+            return invoke_function_impl(std::move(function), object_ptr(), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
         }
 
         static void RegisterOnExit(PyMethodDef& descriptor)
@@ -59,13 +70,10 @@ namespace sweetPy
         }
 
         template<std::size_t... I, typename... Args>
-        static object_ptr invoke_function_impl(const char* moduleName, const char* objectName, const char* functionName, std::index_sequence<I...> index, Args&&... args)
+        static object_ptr invoke_function_impl(object_ptr&& function, object_ptr&& object, std::index_sequence<I...> index, Args&&... args)
         {
-            object_ptr module(PyImport_ImportModule(moduleName), &Deleter::Owner);
-            object_ptr function = GetAttribute(functionName, module.get());
-
             object_ptr tuple(nullptr, &Deleter::Owner);
-            if(strcmp(objectName, "") == 0)
+            if(object.get() == nullptr)
             {
                 tuple.reset(PyTuple_New(sizeof...(args)));
                 ObjectWrapper<int, 0>::MultiInvoker(PyTuple_SetItem(tuple.get(), I, Object<Args>::ToPython(args))...);
@@ -73,7 +81,6 @@ namespace sweetPy
             else
             {
                 tuple.reset(PyTuple_New(sizeof...(args) + 1));
-                object_ptr object = GetAttribute(objectName, module.get());
                 PyTuple_SetItem(tuple.get(), 0, object.release());
                 ObjectWrapper<int, 0>::MultiInvoker(PyTuple_SetItem(tuple.get(), I + 1, Object<Args>::ToPython(args))...);
             }
