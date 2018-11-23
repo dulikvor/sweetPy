@@ -7,6 +7,7 @@
 #include <vector>
 #include "Types/DateTime.h"
 #include "Types/TimeDelta.h"
+#include "Types/Tuple.h"
 
 namespace sweetPyTest {
 
@@ -86,6 +87,24 @@ namespace sweetPyTest {
     const sweetPy::TimeDelta& CheckConstRefTimeDeltaType(const sweetPy::TimeDelta& value)
     {
         static std::vector<sweetPy::TimeDelta> values(100);
+        values.push_back(value);
+        return values.back();
+    }
+
+    sweetPy::Tuple CheckTuleType(sweetPy::Tuple value)
+    {
+        sweetPy::Tuple newValue;
+        newValue.AddElement(0, 1);
+        newValue.AddElement(1, 2.5);
+        newValue.AddElement(2, "Goodbye");
+        newValue.AddElement(3, std::string("World"));
+        newValue.AddElement(4, true);
+        return newValue;
+    }
+
+    const sweetPy::Tuple& CheckConstRefTupleType(const sweetPy::Tuple& value)
+    {
+        static std::vector<sweetPy::Tuple> values(100);
         values.push_back(value);
         return values.back();
     }
