@@ -1,6 +1,7 @@
 #include <Python.h>
 #include <type_traits>
 #include <iostream>
+#include <string>
 #include "gtest/gtest.h"
 #include "core/Logger.h"
 #include "PythonEmbedder.h"
@@ -264,6 +265,187 @@ namespace sweetPyTest {
         ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<sweetPy::TimeDelta>("timedeltaArgument_4"));
         ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::TimeDelta&>("timedeltaConstRefObject_2"));
         ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::GetAttribute<const sweetPy::TimeDelta&>("timedeltaReturn_4"));
+    }
+
+    TEST(CPythonClassTest, CPythonObjectCheckTupleType)
+    {
+
+        const char *testingScript = "from datetime import timedelta\n"
+                //Tuple
+                "tupleArgument = (1, 1.2, 'hello', True)\n"
+                "tupleReturn = TestModule.check_tuple_conversion(tupleArgument) #tuple -> Tuple\n"
+                "tupleConstRefGenerator = TestModule.GenerateTupleConstRef()\n"
+                "tupleArgument_2 = (5, 7.2)\n"
+                "tupleConstRefObject = tupleConstRefGenerator.create(tupleArgument_2)\n"
+                "tupleReturn_2 = TestModule.check_tuple_conversion(tupleConstRefObject) #const Tuple& -> Tuple\n"
+                //const Tuple&
+                "tupleArgument_3 = (False, 'to all')\n"
+                "tupleReturn_3 = TestModule.check_const_ref_tuple_conversion(tupleArgument_3) #tuple -> const Tuple&\n"
+                "tupleArgument_4 = (None,)\n"
+                "tupleConstRefObject_2 = tupleConstRefGenerator.create(tupleArgument_4)\n"
+                "tupleReturn_4 = TestModule.check_const_ref_tuple_conversion(tupleConstRefObject_2) #const Tuple& -> const Tuple&";
+
+        PyRun_SimpleString(testingScript);
+        //Tuple
+        sweetPy::Tuple tupleArgument = PythonEmbedder::GetAttribute<sweetPy::Tuple>("tupleReturn");
+        ASSERT_EQ(1, tupleArgument.GetElement<int>(0));
+        ASSERT_EQ(2.5, tupleArgument.GetElement<double>(1));
+        ASSERT_EQ(std::string("Goodbye"), tupleArgument.GetElement<std::string>(2));
+        ASSERT_EQ(std::string("World"), tupleArgument.GetElement<std::string>(3));
+        ASSERT_EQ(true, tupleArgument.GetElement<bool>(4));
+
+        const sweetPy::Tuple& tupleConstRefObject = PythonEmbedder::GetAttribute<const sweetPy::Tuple&>("tupleConstRefObject");
+        ASSERT_EQ(5, tupleConstRefObject.GetElement<int>(0));
+        ASSERT_EQ(7.2, tupleConstRefObject.GetElement<double>(1));
+
+        sweetPy::Tuple tupleReturn_2 = PythonEmbedder::GetAttribute<sweetPy::Tuple>("tupleReturn_2");
+        ASSERT_EQ(1, tupleReturn_2.GetElement<int>(0));
+        ASSERT_EQ(2.5, tupleReturn_2.GetElement<double>(1));
+        ASSERT_EQ(std::string("Goodbye"), tupleReturn_2.GetElement<std::string>(2));
+        ASSERT_EQ(std::string("World"), tupleReturn_2.GetElement<std::string>(3));
+        ASSERT_EQ(true, tupleReturn_2.GetElement<bool>(4));
+
+        sweetPy::Tuple tupleArgument_3 = PythonEmbedder::GetAttribute<sweetPy::Tuple>("tupleArgument_3");
+        ASSERT_EQ(0, tupleArgument_3.GetElement<bool>(0));
+        ASSERT_EQ(std::string("to all"), tupleArgument_3.GetElement<std::string>(1));
+
+        const sweetPy::Tuple& tupleReturn_3 = PythonEmbedder::GetAttribute<const sweetPy::Tuple&>("tupleReturn_3");
+        ASSERT_EQ(0, tupleReturn_3.GetElement<bool>(0));
+        ASSERT_EQ(std::string("to all"), tupleReturn_3.GetElement<std::string>(1));
+
+        sweetPy::Tuple tupleArgument_4 = PythonEmbedder::GetAttribute<sweetPy::Tuple>("tupleArgument_4");
+        ASSERT_EQ(nullptr, tupleArgument_4.GetElement<void*>(0));
+
+        const sweetPy::Tuple& tupleConstRefObject_2 = PythonEmbedder::GetAttribute<const sweetPy::Tuple&>("tupleConstRefObject_2");
+        ASSERT_EQ(nullptr, tupleConstRefObject_2.GetElement<void*>(0));
+
+        const sweetPy::Tuple& tupleReturn_4 = PythonEmbedder::GetAttribute<const sweetPy::Tuple&>("tupleReturn_4");
+        ASSERT_EQ(nullptr, tupleReturn_4.GetElement<void*>(0));
+
+        //Check native type
+        sweetPy::Tuple tuple;
+        //int
+        tuple.AddElement(0, 5);
+        ASSERT_EQ(5, tuple.GetElement<int>(0));
+        int int_val = 6;
+        tuple.AddElement(1, int_val);
+        ASSERT_EQ(6, tuple.GetElement<int>(1));
+        const int const_int_val = 7;
+        tuple.AddElement(2, const_int_val);
+        ASSERT_EQ(7, tuple.GetElement<int>(2));
+        tuple.Clear();
+        //double
+        tuple.AddElement(0, 5.5);
+        ASSERT_EQ(5.5, tuple.GetElement<double>(0));
+        double double_val = 6.5;
+        tuple.AddElement(1, double_val);
+        ASSERT_EQ(6.5, tuple.GetElement<double>(1));
+        const double const_double_val = 7.5;
+        tuple.AddElement(2, const_double_val);
+        ASSERT_EQ(7.5, tuple.GetElement<double>(2));
+        tuple.Clear();
+        //bool
+        tuple.AddElement(0, true);
+        ASSERT_EQ(true, tuple.GetElement<bool>(0));
+        bool bool_val = false;
+        tuple.AddElement(1, bool_val);
+        ASSERT_EQ(0, tuple.GetElement<bool>(1));
+        const bool const_bool_val = false;
+        tuple.AddElement(2, const_bool_val);
+        ASSERT_EQ(0, tuple.GetElement<bool>(2));
+        tuple.Clear();
+        //Ctype string
+        tuple.AddElement(0, "A");
+        ASSERT_EQ("A", tuple.GetElement<std::string>(0));
+        const char* cstr_val = "B";
+        tuple.AddElement(1, const_cast<char*>(cstr_val));
+        ASSERT_EQ("B", tuple.GetElement<std::string>(1));
+        const char* const_cstr_val = "C";
+        tuple.AddElement(2, const_cstr_val);
+        ASSERT_EQ("C", tuple.GetElement<std::string>(2));
+        tuple.Clear();
+        //String
+        tuple.AddElement(0, std::string("A"));
+        ASSERT_EQ(std::string("A"), tuple.GetElement<std::string>(0));
+        std::string str_val = "B";
+        tuple.AddElement(1, str_val);
+        ASSERT_EQ(std::string("B"), tuple.GetElement<std::string>(1));
+        const std::string const_str_val = "C";
+        tuple.AddElement(2, const_str_val);
+        ASSERT_EQ(std::string("C"), tuple.GetElement<std::string>(2));
+        tuple.Clear();
+        //void*
+        tuple.AddElement(0, nullptr);
+        ASSERT_EQ(nullptr, tuple.GetElement<void*>(0));
+        void* ptr_val = nullptr;
+        tuple.AddElement(1, ptr_val);
+        ASSERT_EQ(nullptr, tuple.GetElement<void*>(1));
+        const void* const_ptr_val = nullptr;
+        tuple.AddElement(2, const_ptr_val);
+        ASSERT_EQ(nullptr, tuple.GetElement<void*>(2));
+        tuple.Clear();
+        //Copy constructor
+        tuple.AddElement(0, 5);
+        tuple.AddElement(1, 5.5);
+        tuple.AddElement(2, true);
+        tuple.AddElement(3, "A");
+        tuple.AddElement(4, std::string("B"));
+        tuple.AddElement(5, nullptr);
+        sweetPy::Tuple cpy_tuple(tuple);
+        ASSERT_EQ(cpy_tuple.GetElement<int>(0), tuple.GetElement<int>(0));
+        ASSERT_EQ(cpy_tuple.GetElement<double>(1), tuple.GetElement<double>(1));
+        ASSERT_EQ(cpy_tuple.GetElement<bool>(2), tuple.GetElement<bool>(2));
+        ASSERT_EQ(cpy_tuple.GetElement<std::string>(3), tuple.GetElement<std::string>(3));
+        ASSERT_EQ(cpy_tuple.GetElement<std::string>(4), tuple.GetElement<std::string>(4));
+        ASSERT_EQ(cpy_tuple.GetElement<void*>(5), tuple.GetElement<void*>(5));
+        tuple.Clear();
+        //Copy assigment
+        tuple.AddElement(0, 5);
+        tuple.AddElement(1, 5.5);
+        tuple.AddElement(2, true);
+        tuple.AddElement(3, "A");
+        tuple.AddElement(4, std::string("B"));
+        tuple.AddElement(5, nullptr);
+        sweetPy::Tuple cpy_assign_tuple;
+        cpy_assign_tuple = tuple;
+        ASSERT_EQ(cpy_assign_tuple.GetElement<int>(0), tuple.GetElement<int>(0));
+        ASSERT_EQ(cpy_assign_tuple.GetElement<double>(1), tuple.GetElement<double>(1));
+        ASSERT_EQ(cpy_assign_tuple.GetElement<bool>(2), tuple.GetElement<bool>(2));
+        ASSERT_EQ(cpy_assign_tuple.GetElement<std::string>(3), tuple.GetElement<std::string>(3));
+        ASSERT_EQ(cpy_assign_tuple.GetElement<std::string>(4), tuple.GetElement<std::string>(4));
+        ASSERT_EQ(cpy_assign_tuple.GetElement<void*>(5), tuple.GetElement<void*>(5));
+        tuple.Clear();
+        //Move constructor
+        tuple.AddElement(0, 5);
+        tuple.AddElement(1, 5.5);
+        tuple.AddElement(2, true);
+        tuple.AddElement(3, "A");
+        tuple.AddElement(4, std::string("B"));
+        tuple.AddElement(5, nullptr);
+        sweetPy::Tuple mv_tuple(std::move(tuple));
+        ASSERT_EQ(mv_tuple.GetElement<int>(0), 5);
+        ASSERT_EQ(mv_tuple.GetElement<double>(1), 5.5);
+        ASSERT_EQ(mv_tuple.GetElement<bool>(2), true);
+        ASSERT_EQ(mv_tuple.GetElement<std::string>(3), std::string("A"));
+        ASSERT_EQ(mv_tuple.GetElement<std::string>(4), std::string("B"));
+        ASSERT_EQ(mv_tuple.GetElement<void*>(5), nullptr);
+        tuple.Clear();
+        //Move assigment
+        tuple.AddElement(0, 5);
+        tuple.AddElement(1, 5.5);
+        tuple.AddElement(2, true);
+        tuple.AddElement(3, "A");
+        tuple.AddElement(4, std::string("B"));
+        tuple.AddElement(5, nullptr);
+        sweetPy::Tuple mv_assign_tuple;
+        mv_assign_tuple = std::move(tuple);
+        ASSERT_EQ(mv_assign_tuple.GetElement<int>(0), 5);
+        ASSERT_EQ(mv_assign_tuple.GetElement<double>(1), 5.5);
+        ASSERT_EQ(mv_assign_tuple.GetElement<bool>(2), true);
+        ASSERT_EQ(mv_assign_tuple.GetElement<std::string>(3), std::string("A"));
+        ASSERT_EQ(mv_assign_tuple.GetElement<std::string>(4), std::string("B"));
+        ASSERT_EQ(mv_assign_tuple.GetElement<void*>(5), nullptr);
+        tuple.Clear();
     }
 
     TEST(CPythonClassTest, PythonFunctionInvocation) {

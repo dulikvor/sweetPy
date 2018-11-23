@@ -56,7 +56,7 @@ namespace sweetPy{
         return m_duration;
     }
 
-    PyObject* DateTime::ToPython()
+    PyObject* DateTime::ToPython() const
     {
         ImportDateTimeModule();
         auto hours = std::chrono::duration_cast<HOURS>(m_duration);

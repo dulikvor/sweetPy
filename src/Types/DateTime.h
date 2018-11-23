@@ -17,7 +17,7 @@ public:
     bool operator==(const DateTime& rhs) const;
 
     std::chrono::microseconds GetDuration() const;
-    PyObject* ToPython();
+    PyObject* ToPython() const;
     static inline __attribute__((always_inline)) void ImportDateTimeModule()
     {
         if(PyDateTimeAPI == nullptr) //No need to use fences thanks to GIL

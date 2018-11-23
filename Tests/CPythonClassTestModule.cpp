@@ -79,6 +79,9 @@ namespace sweetPyTest {
         CPythonClass<GenerateRefTypes<const sweetPy::TimeDelta>> timeDeltaConstRefType(module, "GenerateTimeDeltaConstRef", "Will generate instance of timedelta const ref type");
         timeDeltaConstRefType.AddMethod("create", "Will generate timedelta const ref", static_cast<const sweetPy::TimeDelta&(GenerateRefTypes<const sweetPy::TimeDelta>::*)(const sweetPy::TimeDelta&)>(&GenerateRefTypes<const TimeDelta>::operator()));
 
+        CPythonClass<GenerateRefTypes<const sweetPy::Tuple>> tupleConstRefType(module, "GenerateTupleConstRef", "Will generate instance of tuple const ref type");
+        tupleConstRefType.AddMethod("create", "Will generate tuple const ref", static_cast<const sweetPy::Tuple&(GenerateRefTypes<const sweetPy::Tuple>::*)(const sweetPy::Tuple&)>(&GenerateRefTypes<const Tuple>::operator()));
+
         CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
         CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
         CPythonGlobalFunction(module, "check_const_ref_int_conversion", "check integral const ref int type conversions", static_cast<const int&(*)(const int&)>(&CheckIntegralIntType));
@@ -100,6 +103,8 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "check_const_ref_datetime_conversion", "check const DateTime& type conversions", static_cast<const sweetPy::DateTime&(*)(const sweetPy::DateTime&)>(&CheckConstRefDateTimeType));
         CPythonGlobalFunction(module, "check_timedelta_conversion", "check TimeDelta type conversions", static_cast<sweetPy::TimeDelta(*)(sweetPy::TimeDelta)>(&CheckTimeDeltaType));
         CPythonGlobalFunction(module, "check_const_ref_timedelta_conversion", "check const TimeDelta& type conversions", static_cast<const sweetPy::TimeDelta&(*)(const sweetPy::TimeDelta&)>(&CheckConstRefTimeDeltaType));
+        CPythonGlobalFunction(module, "check_tuple_conversion", "check Tuple type conversions", static_cast<sweetPy::Tuple(*)(sweetPy::Tuple)>(&CheckTuleType));
+        CPythonGlobalFunction(module, "check_const_ref_tuple_conversion", "check const Tuple& type conversions", static_cast<const sweetPy::Tuple&(*)(const sweetPy::Tuple&)>(&CheckConstRefTupleType));
 
         CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
         CPythonGlobalVariable(module, "globalVariableInt", 5);

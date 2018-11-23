@@ -1,6 +1,6 @@
 if (NOT Core_FOUND)
     ExternalProject_Add(Core
-            URL                 https://github.com/Dudi119/Core/archive/v1.0.1.tar.gz
+            GIT_REPOSITORY      https://github.com/Dudi119/Core
             CONFIGURE_COMMAND   cd <SOURCE_DIR> && cmake -DCORE_3RD_PARTY_DIR:STRING=<INSTALL_DIR> -DCORE_SPDLOG_SUPPORT=OFF -DCORE_COMPILE_STEP=ON -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} .
             BUILD_COMMAND       cd <SOURCE_DIR> && make
             INSTALL_COMMAND     mkdir -p <INSTALL_DIR>/lib && cp <SOURCE_DIR>/bin/libCore${CMAKE_DEBUG_POSTFIX}.so <INSTALL_DIR>/lib

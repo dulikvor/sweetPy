@@ -46,7 +46,7 @@ namespace sweetPy{
         return m_duration;
     }
 
-    PyObject* TimeDelta::ToPython()
+    PyObject* TimeDelta::ToPython() const
     {
         ImportDateTimeModule();
         auto seconds = std::chrono::duration_cast<SECONDS>(m_duration);

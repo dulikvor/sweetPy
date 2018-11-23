@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Python.h>
+#include <cstdint>
 #include <datetime.h>
 #include <string>
 #include <vector>
@@ -14,13 +15,16 @@
 #include "CPythonClassType.h"
 #include "Types/TimeDelta.h"
 #include "Types/DateTime.h"
+#include "Types/Tuple.h"
 #include "Core/Exception.h"
 #include "Core/Traits.h"
 #include "Core/Lock.h"
 #include "Core/Assert.h"
+#include "Core/Deleter.h"
 
 namespace sweetPy{
 
+    static std::uint32_t MAGIC_WORD = 0xABBACDDC;
 
     template<typename Type>
     class CPythonObjectType : public CPythonType {
@@ -321,7 +325,7 @@ namespace sweetPy{
     struct Object<T&&>{
     public:
         typedef PyObject* FromPythonType;
-        typedef T Type;
+        typedef void* Type;
         static constexpr const char *Format = "O";
         static const bool IsSimpleObjectType = false;
         static T&& GetTyped(char* fromBuffer, char* toBuffer){
@@ -409,7 +413,7 @@ namespace sweetPy{
     struct Object<std::vector<T>&>{
     public:
         typedef PyObject* FromPythonType;
-        typedef std::vector<T> Type;
+        typedef void* Type;
         static const bool IsSimpleObjectType = false;
         static constexpr const char *Format = "O";
         static std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer){
@@ -448,7 +452,9 @@ namespace sweetPy{
         typedef std::vector<T> Type;
         static const bool IsSimpleObjectType = false;
         static constexpr const char *Format = "O";
-        static const std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer){
+        static const std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
             PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
             if(object->ob_type == &PyList_Type)
             {
@@ -466,6 +472,7 @@ namespace sweetPy{
             }
             else if(CPythonRef<>::IsReferenceType<const std::vector<T>>(object))
             {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
                 CPythonRefObject<const std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<const std::vector<T>>*>(object + 1);
                 return refObject->GetRef();
             }
@@ -726,6 +733,7 @@ namespace sweetPy{
         static const bool IsSimpleObjectType = false;
         static std::string GetTyped(char* fromBuffer, char* toBuffer)
         {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
             PyObject* object = *(PyObject**)fromBuffer;
             if(Py_TYPE(object) == &PyUnicode_Type)
             {
@@ -742,8 +750,8 @@ namespace sweetPy{
             }
             else if(CPythonRef<>::IsReferenceType<std::string>(object))
             {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
                 CPythonRefObject<std::string>* refObject = reinterpret_cast<CPythonRefObject<std::string>*>(object + 1);
-                new(toBuffer)std::string();
                 return refObject->GetRef();
             }
             else
@@ -787,7 +795,9 @@ namespace sweetPy{
         typedef std::string Type;
         static constexpr const char *Format = "O";
         static const bool IsSimpleObjectType = false;
-        static const std::string& GetTyped(char* fromBuffer, char* toBuffer){
+        static const std::string& GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
             PyObject* object = *(PyObject**)fromBuffer;
             if(Py_TYPE(object) == &PyUnicode_Type)
             {
@@ -804,11 +814,13 @@ namespace sweetPy{
             }
             else if(CPythonRef<>::IsReferenceType<const std::string>(object))
             {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
                 CPythonRefObject<const std::string>* refObject = reinterpret_cast<CPythonRefObject<const std::string>*>(object + 1);
                 return refObject->GetRef();
             }
             else if(CPythonRef<>::IsReferenceType<std::string>(object))
             {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
                 CPythonRefObject<std::string>* refObject = reinterpret_cast<CPythonRefObject<std::string>*>(object + 1);
                 return refObject->GetRef();
             }
@@ -882,7 +894,9 @@ namespace sweetPy{
         typedef std::string Type;
         static constexpr const char *Format = "O";
         static const bool IsSimpleObjectType = false;
-        static std::string&& GetTyped(char* fromBuffer, char* toBuffer){
+        static std::string&& GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
             PyObject* object = *(PyObject**)fromBuffer;
             if(Py_TYPE(object) == &PyUnicode_Type)
             {
@@ -899,6 +913,7 @@ namespace sweetPy{
             }
             else if(CPythonRef<>::IsReferenceType<std::string>(object)) //Only ref string type is supported due to possible scope leakage
             {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
                 CPythonRefObject<std::string>* refObject = reinterpret_cast<CPythonRefObject<std::string>*>(object + 1);
                 return std::move(refObject->GetRef());
             }
@@ -1320,6 +1335,7 @@ namespace sweetPy{
 
         static DateTime GetTyped(char* fromBuffer, char* toBuffer)
         {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
             PyObject* object = *(PyObject**)fromBuffer;
             DateTime::ImportDateTimeModule();
             if(PyDateTime_CheckExact(object))
@@ -1329,6 +1345,7 @@ namespace sweetPy{
             }
             else if(CPythonRef<>::IsReferenceType<const DateTime>(object))
             {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
                 CPythonRefObject<const DateTime>* refObject = reinterpret_cast<CPythonRefObject<const DateTime>*>(object + 1);
                 return refObject->GetRef();
             }
@@ -1355,7 +1372,7 @@ namespace sweetPy{
 
         static PyObject* ToPython(const DateTime& data)
         {
-            return DateTime(data).ToPython();
+            return data.ToPython();
         }
     };
 
@@ -1370,6 +1387,7 @@ namespace sweetPy{
 
         static const DateTime& GetTyped(char* fromBuffer, char* toBuffer)
         {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
             PyObject* object = *(PyObject**)fromBuffer;
             DateTime::ImportDateTimeModule();
             if(PyDateTime_CheckExact(object))
@@ -1379,6 +1397,7 @@ namespace sweetPy{
             }
             else if(CPythonRef<>::IsReferenceType<const DateTime>(object))
             {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
                 CPythonRefObject<const DateTime>* refObject = reinterpret_cast<CPythonRefObject<const DateTime>*>(object + 1);
                 return refObject->GetRef();
             }
@@ -1418,6 +1437,7 @@ namespace sweetPy{
 
         static TimeDelta GetTyped(char* fromBuffer, char* toBuffer)
         {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
             PyObject* object = *(PyObject**)fromBuffer;
             TimeDelta::ImportDateTimeModule();
             if(PyDelta_CheckExact(object))
@@ -1427,6 +1447,7 @@ namespace sweetPy{
             }
             else if(CPythonRef<>::IsReferenceType<const TimeDelta>(object))
             {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
                 CPythonRefObject<const TimeDelta>* refObject = reinterpret_cast<CPythonRefObject<const TimeDelta>*>(object + 1);
                 return refObject->GetRef();
             }
@@ -1453,7 +1474,7 @@ namespace sweetPy{
 
         static PyObject* ToPython(const TimeDelta& data)
         {
-            return TimeDelta(data).ToPython();
+            return data.ToPython();
         }
     };
 
@@ -1468,6 +1489,7 @@ namespace sweetPy{
 
         static const TimeDelta& GetTyped(char* fromBuffer, char* toBuffer)
         {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
             PyObject* object = *(PyObject**)fromBuffer;
             TimeDelta::ImportDateTimeModule();
             if(PyDelta_CheckExact(object))
@@ -1477,6 +1499,7 @@ namespace sweetPy{
             }
             else if(CPythonRef<>::IsReferenceType<const TimeDelta>(object))
             {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
                 CPythonRefObject<const TimeDelta>* refObject = reinterpret_cast<CPythonRefObject<const TimeDelta>*>(object + 1);
                 return refObject->GetRef();
             }
@@ -1499,6 +1522,105 @@ namespace sweetPy{
         static PyObject* ToPython(const TimeDelta& data)
         {
             size_t key = CPyModuleContainer::TypeHash<CPythonRefType<const TimeDelta>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+
+    template<>
+    struct Object<Tuple>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef Tuple Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+
+        static Tuple GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(PyTuple_Check(object))
+            {
+                new(toBuffer)Tuple(object);
+                return *reinterpret_cast<Tuple*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const Tuple>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<const Tuple>* refObject = reinterpret_cast<CPythonRefObject<const Tuple>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Tuple can only originates from tuple object and ref Tuple object");
+        }
+
+        static Tuple FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(PyTuple_Check(object))
+            {
+                return Tuple(object);
+            }
+            else if(CPythonRef<>::IsReferenceType<const Tuple>(object))
+            {
+                CPythonRefObject<const Tuple>* refObject = reinterpret_cast<CPythonRefObject<const Tuple>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Tuple can only originates from tuple object and ref Tuple object");
+        }
+
+        static PyObject* ToPython(const Tuple& data)
+        {
+            return data.ToPython();
+        }
+    };
+
+    template<>
+    struct Object<const Tuple&>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef Tuple Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+
+        static const Tuple& GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(PyTuple_Check(object))
+            {
+                new(toBuffer)Tuple(object);
+                return *reinterpret_cast<Tuple*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const Tuple>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<const Tuple>* refObject = reinterpret_cast<CPythonRefObject<const Tuple>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Tuple can only originates from ref const Tuple type or tuple object");
+        }
+
+        static const Tuple& FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<const Tuple>(object))
+            {
+                CPythonRefObject<const Tuple>* refObject = reinterpret_cast<CPythonRefObject<const Tuple>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Tuple can only originates from ref const Tuple type");
+        }
+
+        static PyObject* ToPython(const Tuple& data)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<const Tuple>>();
             auto& container = CPyModuleContainer::Instance();
             PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
             return CPythonRef<>::Alloc(type, data);
@@ -1593,8 +1715,11 @@ namespace sweetPy{
         static void MultiInvoker(Args&&...){}
         static void* Destructor(char* buffer)
         {
-            Type* typedPtr = reinterpret_cast<Type*>(buffer);
-            typedPtr->~Type();
+            if(*reinterpret_cast<std::uint32_t*>(buffer) != MAGIC_WORD)
+            {
+                Type* typedPtr = reinterpret_cast<Type*>(buffer);
+                typedPtr->~Type();
+            }
             return nullptr;
         }
     };
@@ -1737,7 +1862,40 @@ namespace sweetPy{
         }
         template<typename... Args>
         static void MultiInvoker(Args&&...){}
-        static void* Destructor(char* buffer){ return nullptr; }
+        static void* Destructor(char* buffer)
+        {
+            if(*reinterpret_cast<std::uint32_t*>(buffer) != MAGIC_WORD)
+            {
+                Type* typedPtr = reinterpret_cast<Type*>(buffer);
+                typedPtr->~Type();
+            }
+            return nullptr;
+        }
+    };
+
+    template<std::size_t I, typename X>
+    struct ObjectWrapper<const std::vector<X>&, I>
+    {
+        typedef typename Object<const std::vector<X>&>::FromPythonType FromPythonType;
+        typedef typename Object<const std::vector<X>&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "const_vector_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const std::vector<X>>>()))
+                CPythonRef<const std::vector<X>>(module, name, name);
+            return nullptr;
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer)
+        {
+            if(*reinterpret_cast<std::uint32_t*>(buffer) != MAGIC_WORD)
+            {
+                Type* typedPtr = reinterpret_cast<Type*>(buffer);
+                typedPtr->~Type();
+            }
+            return nullptr;
+        }
     };
 
     template<std::size_t I>
@@ -1824,8 +1982,11 @@ namespace sweetPy{
         static void MultiInvoker(Args&&...){}
         static void* Destructor(char* buffer)
         {
-            Type* typedPtr = reinterpret_cast<Type*>(buffer);
-            typedPtr->~Type();
+            if(*reinterpret_cast<std::uint32_t*>(buffer) != MAGIC_WORD)
+            {
+                Type* typedPtr = reinterpret_cast<Type*>(buffer);
+                typedPtr->~Type();
+            }
             return nullptr;
         }
     };
@@ -1846,8 +2007,37 @@ namespace sweetPy{
         static void MultiInvoker(Args&&...){}
         static void* Destructor(char* buffer)
         {
-            Type* typedPtr = reinterpret_cast<Type*>(buffer);
-            typedPtr->~Type();
+            if(*reinterpret_cast<std::uint32_t*>(buffer) != MAGIC_WORD)
+            {
+                Type* typedPtr = reinterpret_cast<Type*>(buffer);
+                typedPtr->~Type();
+            }
+            return nullptr;
+        }
+    };
+
+
+    template<std::size_t I>
+    struct ObjectWrapper<const Tuple&, I>
+    {
+        typedef typename Object<const Tuple&>::FromPythonType FromPythonType;
+        typedef typename Object<const Tuple&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "const_tuple_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const Tuple>>()))
+                CPythonRef<const Tuple>(module, name, name);
+            return nullptr;
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer)
+        {
+            if(*reinterpret_cast<std::uint32_t*>(buffer) != MAGIC_WORD)
+            {
+                Type* typedPtr = reinterpret_cast<Type*>(buffer);
+                typedPtr->~Type();
+            }
             return nullptr;
         }
     };

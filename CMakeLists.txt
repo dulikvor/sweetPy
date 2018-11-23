@@ -47,7 +47,6 @@ if(sweetPy_3RD_PARTY_INSTALL_STEP)
     include(installThirdParty)
 endif()
 
-
 if(sweetPy_COMPILE_STEP)
     include_directories( ${PROJECT_DIR} ${PROJECT_DIR}/src ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 
@@ -68,6 +67,6 @@ if(sweetPy_COMPILE_STEP)
         add_subdirectory(${PROJECT_DIR}/Tests)
     endif()
 
-    add_library(sweetPy SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Core/Traits.h src/Core/Exception.cpp src/Core/Exception.h src/CPythonClass.h src/Core/Lock.h src/Core/Deleter.h src/CPythonConcreteFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h src/CPythonMetaClass.cpp src/CPythonMetaClass.h src/CPythonConstructor.h src/CPythonObject.h Tests/PythonEmbedder.h src/CPythonEnum.h src/CPythonEnumValue.h src/CPythonEnum.cpp src/CPythonType.h src/CPythonFunction.h src/InitModule.h src/CPythonRef.cpp src/CPythonType.cpp src/CPythonClassType.h src/MemberAccessor.h src/IMemberAccessor.h src/CPythonGlobalFunction.h src/CPythonGlobalVariable.h src/CPythonVariable.h src/ICPythonVariable.h src/Core/PythonAssist.h src/Core/Assert.h src/Core/Dictionary.h src/Core/Dictionary.cpp src/CPythonFunction.cpp src/Core/Stack.cpp src/Core/Stack.h src/Types/DateTime.h src/Types/DateTime.cpp src/Types/TimeDelta.cpp src/Types/TimeDelta.h src/Core/Lock.cpp)
+    add_library(sweetPy SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Core/Traits.h src/Core/Exception.cpp src/Core/Exception.h src/CPythonClass.h src/Core/Lock.h src/Core/Deleter.h src/CPythonConcreteFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h src/CPythonMetaClass.cpp src/CPythonMetaClass.h src/CPythonConstructor.h src/CPythonObject.h Tests/PythonEmbedder.h src/CPythonEnum.h src/CPythonEnumValue.h src/CPythonEnum.cpp src/CPythonType.h src/CPythonFunction.h src/InitModule.h src/CPythonRef.cpp src/CPythonType.cpp src/CPythonClassType.h src/MemberAccessor.h src/IMemberAccessor.h src/CPythonGlobalFunction.h src/CPythonGlobalVariable.h src/CPythonVariable.h src/ICPythonVariable.h src/Core/PythonAssist.h src/Core/Assert.h src/Core/Dictionary.h src/Core/Dictionary.cpp src/CPythonFunction.cpp src/Core/Stack.cpp src/Core/Stack.h src/Types/DateTime.h src/Types/DateTime.cpp src/Types/TimeDelta.cpp src/Types/TimeDelta.h src/Core/Lock.cpp src/Types/Tuple.cpp src/Types/Tuple.h)
     target_link_libraries(sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CMAKE_DEBUG_POSTFIX}.so)
 endif()
