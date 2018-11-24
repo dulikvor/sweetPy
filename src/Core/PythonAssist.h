@@ -4,7 +4,7 @@
 #include <utility>
 #include <sstream>
 #include "../Types/Tuple.h"
-#include "CPythonObject.h"
+#include "../CPythonObject.h"
 #include "Traits.h"
 #include "Deleter.h"
 
