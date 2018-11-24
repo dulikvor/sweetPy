@@ -3,6 +3,7 @@
 #include <Python.h>
 #include <utility>
 #include <sstream>
+#include "../Types/Tuple.h"
 #include "CPythonObject.h"
 #include "Traits.h"
 #include "Deleter.h"
@@ -42,13 +43,21 @@ namespace sweetPy
             object_ptr function = GetAttribute(functionName, module.get());
 
             object_ptr object = strcmp(objectName, "") == 0 ? nullptr : GetAttribute(objectName, module.get());
-            return invoke_function_impl(std::move(function), std::move(object), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
+            return invoke_function_impl(function, std::move(object), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
         }
 
         template<typename... Args>
-        static object_ptr InvokeFunction(object_ptr&& function, Args&&... args)
+        static object_ptr InvokeFunction(const object_ptr& function, Args&&... args)
         {
-            return invoke_function_impl(std::move(function), object_ptr(), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
+            return invoke_function_impl(function, object_ptr(), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
+        }
+
+        static object_ptr InvokeFunction(const object_ptr& function, const Tuple& arguments)
+        {
+            object_ptr _arguments(arguments.ToPython(), &Deleter::Owner);
+            object_ptr returnValue(PyObject_CallObject(function.get(), _arguments.get()), &Deleter::Owner);
+            CPYTHON_VERIFY_EXC(returnValue.get()!=nullptr);
+            return returnValue;
         }
 
         static void RegisterOnExit(PyMethodDef& descriptor)
@@ -70,7 +79,7 @@ namespace sweetPy
         }
 
         template<std::size_t... I, typename... Args>
-        static object_ptr invoke_function_impl(object_ptr&& function, object_ptr&& object, std::index_sequence<I...> index, Args&&... args)
+        static object_ptr invoke_function_impl(const object_ptr& function, object_ptr&& object, std::index_sequence<I...> index, Args&&... args)
         {
             object_ptr tuple(nullptr, &Deleter::Owner);
             if(object.get() == nullptr)
