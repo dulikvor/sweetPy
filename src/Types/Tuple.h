@@ -68,12 +68,16 @@ namespace sweetPy{
             std::string _element = element;
             m_elements.emplace_back(new core::TypedParam<std::string>(_element));
         }
-        void AddElement(size_t index, void* element)
+        void AddElement(size_t index, void* element, const Converter::ConveterFunc& converterFunc = Converter::ConveterFunc())
         {
+            if(element)
+                m_converters.emplace(std::piecewise_construct, std::make_tuple(index), std::make_tuple(element, converterFunc));
             m_elements.emplace_back(new core::TypedParam<void*>(element));
         }
-        void AddElement(size_t index, const void* element)
+        void AddElement(size_t index, const void* element, const Converter::ConveterFunc& converterFunc = Converter::ConveterFunc())
         {
+            if(element)
+                m_converters.emplace(std::piecewise_construct, std::make_tuple(index), std::make_tuple(element, converterFunc));
             m_elements.emplace_back(new core::TypedParam<void*>(element));
         }
         void AddElement(size_t index, const std::nullptr_t& element)
