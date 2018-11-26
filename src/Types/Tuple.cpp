@@ -3,6 +3,13 @@
 
 namespace sweetPy{
 
+    Tuple::Converter::Converter(void const * value, const ConveterFunc &converter): m_value(value), m_converter(converter) {}
+
+    Tuple::Converter::operator PyObject *() const
+    {
+       return m_converter(m_value);
+    }
+
     Tuple::Tuple() {}
 
     Tuple::Tuple(PyObject *tuple)
@@ -123,8 +130,16 @@ namespace sweetPy{
                 object = Object<bool>::ToPython(static_cast<core::TypedParam<bool>&>(*m_elements[idx]).Get<bool>());
             else
             {
-                Py_XINCREF(Py_None);
-                object = Py_None;
+                auto it = m_converters.find(idx);
+                if(it != m_converters.end())
+                {
+                    object = it->second;
+                }
+                else
+                {
+                    Py_XINCREF(Py_None);
+                    object = Py_None;
+                }
             }
             PyTuple_SetItem(tuple.get(), idx, object);
         }

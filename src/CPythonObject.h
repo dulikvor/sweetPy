@@ -96,11 +96,35 @@ namespace sweetPy{
             }
         }
 
-        template<typename Y>
-        static PyObject* Alloc(PyTypeObject* type, Y&& object)
+        template<typename X = Type, typename std::enable_if<std::is_copy_constructible<X>::value,bool>::type = true>
+        static PyObject* Alloc(PyTypeObject* type, Type& object)
         {
             PyObject* newObject = type->tp_alloc(type, 0);
-            new(newObject + 1)Type(std::forward<Y>(object));
+            new(newObject + 1)Type(object);
+            return newObject;
+        }
+
+        template<typename X = Type, typename std::enable_if<std::is_move_constructible<X>::value,bool>::type = true>
+        static PyObject* Alloc(PyTypeObject* type, Type&& object)
+        {
+            PyObject* newObject = type->tp_alloc(type, 0);
+            new(newObject + 1)Type(std::move(object));
+            return newObject;
+        }
+
+        template<typename X = Type, typename std::enable_if<std::is_copy_constructible<X>::value,bool>::type = true>
+        static PyObject* Alloc(PyTypeObject* type, const Type& object)
+        {
+            PyObject* newObject = type->tp_alloc(type, 0);
+            new(newObject + 1)Type(object);
+            return newObject;
+        }
+
+        template<typename X = Type, typename std::enable_if<std::is_move_constructible<X>::value,bool>::type = true>
+        static PyObject* Alloc(PyTypeObject* type, const Type&& object)
+        {
+            PyObject* newObject = type->tp_alloc(type, 0);
+            new(newObject + 1)Type(std::move(object));
             return newObject;
         }
     private:
@@ -134,19 +158,80 @@ namespace sweetPy{
         typedef T Type;
         static constexpr const char* Format = "O";
         static const bool IsSimpleObjectType = true;
-        static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
+        static T GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
-            T* obj = (T*)(reinterpret_cast<PyObject*>(*reinterpret_cast<PyObject**>(fromBuffer)) + 1);
-            new(toBuffer)T(*obj);
-            return *reinterpret_cast<T*>(toBuffer);
+            PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
+            if(CPythonRef<>::IsReferenceType<T>(object))
+            {
+                CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<const T>(object))
+            {
+                CPythonRefObject<const T>* refObject = reinterpret_cast<CPythonRefObject<const T>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(&CPythonRef<>::GetStaticType() == object->ob_type)
+            {
+                CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1); //Peircing const modifier
+                return refObject->GetRef();
+            }
+            else
+            {
+                new(toBuffer)T(*(T*)object);
+                return *reinterpret_cast<T*>(toBuffer);
+            }
         }
 
-        static T& FromPython(PyObject* obj)
+        static T FromPython(PyObject* object)
         {
-            return *reinterpret_cast<T*>(obj + 1);
+            if(CPythonRef<>::IsReferenceType<T>(object))
+            {
+                CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<const T>(object))
+            {
+                CPythonRefObject<const T>* refObject = reinterpret_cast<CPythonRefObject<const T>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(&CPythonRef<>::GetStaticType() == object->ob_type)
+            {
+                CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1); //Peircing const modifier
+                return refObject->GetRef();
+            }
+            else
+            {
+                return *reinterpret_cast<T*>(object + 1);
+            }
         }
 
+        template<typename X = Type, typename std::enable_if<std::is_copy_constructible<X>::value,bool>::type = true>
         static PyObject* ToPython(T& obj)
+        {
+            return CPythonObject<T>::Alloc(GetType(), obj);
+        }
+
+        template<typename X = Type, typename std::enable_if<std::is_move_constructible<X>::value,bool>::type = true>
+        static PyObject* ToPython(T&& obj)
+        {
+            return CPythonObject<T>::Alloc(GetType(), std::move(obj));
+        }
+
+        template<typename X = Type, typename std::enable_if<std::is_copy_constructible<X>::value,bool>::type = true>
+        static PyObject* ToPython(const T& obj)
+        {
+            return CPythonObject<T>::Alloc(GetType(), obj);
+        }
+
+        template<typename X = Type, typename std::enable_if<std::is_move_constructible<X>::value,bool>::type = true>
+        static PyObject* ToPython(const T&& obj)
+        {
+            return CPythonObject<T>::Alloc(GetType(), std::move(obj));
+        }
+
+    private:
+        static PyTypeObject* GetType()
         {
             auto& container = CPyModuleContainer::Instance();
             size_t classTypeKey = CPyModuleContainer::TypeHash<CPythonClassType<T>>();
@@ -158,7 +243,7 @@ namespace sweetPy{
                 type = container.GetType(objectTypeKey);
 
             CPYTHON_VERIFY(type != nullptr, "Requested PyObjectType does not exists");
-            return CPythonObject<T>::Alloc(type, obj);
+            return type;
         }
     };
 
@@ -171,20 +256,65 @@ namespace sweetPy{
         typedef T Type;
         static constexpr const char* Format = "O";
         static const bool IsSimpleObjectType = true;
-        static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
+        static T GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
-            T* obj = (T*)(reinterpret_cast<PyObject*>(*reinterpret_cast<PyObject**>(fromBuffer)) + 1);
-            new(toBuffer)T(std::move(*obj));
-            return *reinterpret_cast<T*>(toBuffer);
+            PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
+            if(CPythonRef<>::IsReferenceType<T>(object))
+            {
+                CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1);
+                return std::move(refObject->GetRef());
+            }
+            else if(&CPythonRef<>::GetStaticType() == object->ob_type)
+            {
+                CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1); //Peircing const modifier
+                return std::move(refObject->GetRef());
+            }
+            else
+            {
+                new(toBuffer)T(std::move(*(T*)(object + 1)));
+                return std::move(*reinterpret_cast<T*>(toBuffer));
+            }
         }
 
-        static T& FromPython(PyObject* obj)
+        static T FromPython(PyObject* object)
         {
-            return *reinterpret_cast<T*>(obj + 1);
+            if(CPythonRef<>::IsReferenceType<T>(object))
+            {
+                CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1);
+                return std::move(refObject->GetRef());
+            }
+            else if(CPythonRef<>::IsReferenceType<const T>(object))
+            {
+                CPythonRefObject<const T>* refObject = reinterpret_cast<CPythonRefObject<const T>*>(object + 1);
+                return std::move(refObject->GetRef());
+            }
+            else if(&CPythonRef<>::GetStaticType() == object->ob_type)
+            {
+                CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1); //Peircing const modifier
+                return std::move(refObject->GetRef());
+            }
+            else
+            {
+                return std::move(*reinterpret_cast<T*>(object + 1));
+            }
         }
 
-        static PyObject* ToPython(T& obj)
+        template<typename X = Type, typename std::enable_if<std::is_move_constructible<X>::value,bool>::type = true>
+        static PyObject* ToPython(T&& obj)
         {
+            return CPythonObject<T>::Alloc(GetType(), std::move(obj));
+        }
+
+        template<typename X = Type, typename std::enable_if<std::is_move_constructible<X>::value,bool>::type = true>
+        static PyObject* ToPython(const T&& obj)
+        {
+            return CPythonObject<T>::Alloc(GetType(), std::move(obj));
+        }
+
+    private:
+        static PyTypeObject* GetType()
+        {
+
             auto& container = CPyModuleContainer::Instance();
             size_t classTypeKey = CPyModuleContainer::TypeHash<CPythonClassType<T>>();
             size_t objectTypeKey = CPyModuleContainer::TypeHash<CPythonObjectType<T>>();
@@ -195,8 +325,9 @@ namespace sweetPy{
                 type = container.GetType(objectTypeKey);
 
             CPYTHON_VERIFY(type != nullptr, "Requested PyObjectType does not exists");
-            return CPythonObject<T>::Alloc(type, std::move(obj));
+            return type;
         }
+
     };
 
     template<typename T>
@@ -206,7 +337,7 @@ namespace sweetPy{
         typedef T Type;
         static constexpr const char* Format = "O";
         static const bool IsSimpleObjectType = false;
-        static T& GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
+        static T GetTyped(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
             PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
             object_ptr attrName(PyUnicode_FromString("value"), &Deleter::Owner);
@@ -217,7 +348,8 @@ namespace sweetPy{
     };
 
     template<typename T>
-    struct Object<T&>{
+    struct Object<T&>
+    {
     public:
         typedef PyObject* FromPythonType;
         typedef void* Type;
@@ -254,7 +386,7 @@ namespace sweetPy{
             else
                 return *reinterpret_cast<T*>(object + 1);
         }
-        static PyObject* ToPython(T& instance)
+        static PyObject* ToPython(const T& instance)
         {
             size_t key = CPyModuleContainer::TypeHash<CPythonRefType<T>>();
             auto& container = CPyModuleContainer::Instance();
@@ -328,16 +460,18 @@ namespace sweetPy{
         typedef void* Type;
         static constexpr const char *Format = "O";
         static const bool IsSimpleObjectType = false;
-        static T&& GetTyped(char* fromBuffer, char* toBuffer){
+        static T&& GetTyped(char* fromBuffer, char* toBuffer)
+        {
             PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
-            if(CPythonRef<>::IsReferenceType<T>(object)){
+            if(CPythonRef<>::IsReferenceType<T>(object))
+            {
                 CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1);
                 return std::move(refObject->GetRef());
             }
             else if(&CPythonRef<>::GetStaticType() == object->ob_type)
             {
                 CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1); //Peircing const modifier
-                return refObject->GetRef();
+                return std::move(refObject->GetRef());
             }
             else
             {
@@ -354,7 +488,7 @@ namespace sweetPy{
             else if(&CPythonRef<>::GetStaticType() == object->ob_type)
             {
                 CPythonRefObject<T>* refObject = reinterpret_cast<CPythonRefObject<T>*>(object + 1); //Peircing const modifier
-                return refObject->GetRef();
+                return std::move(refObject->GetRef());
             }
             else
                 return std::move(*reinterpret_cast<T*>(object + 1));

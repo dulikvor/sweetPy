@@ -105,6 +105,7 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "check_const_ref_timedelta_conversion", "check const TimeDelta& type conversions", static_cast<const sweetPy::TimeDelta&(*)(const sweetPy::TimeDelta&)>(&CheckConstRefTimeDeltaType));
         CPythonGlobalFunction(module, "check_tuple_conversion", "check Tuple type conversions", static_cast<sweetPy::Tuple(*)(sweetPy::Tuple)>(&CheckTuleType));
         CPythonGlobalFunction(module, "check_const_ref_tuple_conversion", "check const Tuple& type conversions", static_cast<const sweetPy::Tuple&(*)(const sweetPy::Tuple&)>(&CheckConstRefTupleType));
+        CPythonGlobalFunction(module, "generate_native_element_tuple", "Will generate a native tuple which will hold non supported element type", static_cast<sweetPy::Tuple(*)()>(&GenerateNativeElementTuple));
 
         CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
         CPythonGlobalVariable(module, "globalVariableInt", 5);
