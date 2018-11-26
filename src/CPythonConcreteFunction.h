@@ -16,6 +16,19 @@
 
 namespace sweetPy {
 
+    template<typename T, typename std::enable_if<std::is_copy_constructible<T>::value, bool>::type = true>
+    static PyObject* ConvertReturn(T& returnValue)
+    {
+        return Object<T>::ToPython(returnValue);
+    }
+
+    template<typename T, typename std::enable_if<!std::is_copy_constructible<T>::value &&
+                                                 std::is_move_constructible<T>::value, bool>::type = true>
+    static PyObject* ConvertReturn(T& returnValue)
+    {
+        return Object<T>::ToPython(std::move(returnValue));
+    }
+
     template<typename Return, typename... Args>
     class CPythonMemberFunction: public CPythonFunction {
         virtual ~CPythonMemberFunction(){}
@@ -80,7 +93,7 @@ namespace sweetPy {
                     ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                             ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
 
-            return Object<Return>::ToPython(returnValue);
+            return ConvertReturn<Return>(returnValue);
         }
 
         template<bool Enable = true, std::size_t... I>
@@ -207,7 +220,7 @@ namespace sweetPy {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                                                                                                                     ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
-            return Object<Return>::ToPython(returnValue);
+            return ConvertReturn<Return>(returnValue);
         }
 
         template<bool Enable = true, std::size_t... I>
@@ -330,7 +343,7 @@ namespace sweetPy {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                             ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                                                                                                                     ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
-            return Object<Return>::ToPython(returnValue);
+            return ConvertReturn<Return>(returnValue);
         }
 
         template<bool Enable = true, std::size_t... I>
@@ -446,7 +459,7 @@ namespace sweetPy {
             ObjectWrapper<int, 0>::MultiInvoker(ObjectWrapper<typename base<Args>::Type, I>::Destructor(nativeArgsBuffer +
                                                                                                         ObjectOffset<ToNative, ObjectWrapper<typename base<Args>::Type, I>,
                                                                                                                             ObjectWrapper<typename base<Args>::Type, I>...>::value)...);
-            return Object<Return>::ToPython(returnValue);
+            return ConvertReturn<Return>(returnValue);
         }
 
         template<bool Enable = true, std::size_t... I>

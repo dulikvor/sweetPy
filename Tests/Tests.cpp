@@ -283,7 +283,10 @@ namespace sweetPyTest {
                 "tupleReturn_3 = TestModule.check_const_ref_tuple_conversion(tupleArgument_3) #tuple -> const Tuple&\n"
                 "tupleArgument_4 = (None,)\n"
                 "tupleConstRefObject_2 = tupleConstRefGenerator.create(tupleArgument_4)\n"
-                "tupleReturn_4 = TestModule.check_const_ref_tuple_conversion(tupleConstRefObject_2) #const Tuple& -> const Tuple&";
+                "tupleReturn_4 = TestModule.check_const_ref_tuple_conversion(tupleConstRefObject_2) #const Tuple& -> const Tuple&\n"
+                //Transformation of non supported type element into python representation
+                "tupleReturn_5 = TestModule.generate_native_element_tuple()\n"
+                "value = tupleReturn_5[0]";
 
         PyRun_SimpleString(testingScript);
         //Tuple
@@ -304,7 +307,7 @@ namespace sweetPyTest {
         ASSERT_EQ(std::string("Goodbye"), tupleReturn_2.GetElement<std::string>(2));
         ASSERT_EQ(std::string("World"), tupleReturn_2.GetElement<std::string>(3));
         ASSERT_EQ(true, tupleReturn_2.GetElement<bool>(4));
-
+        //const Tuple&
         sweetPy::Tuple tupleArgument_3 = PythonEmbedder::GetAttribute<sweetPy::Tuple>("tupleArgument_3");
         ASSERT_EQ(0, tupleArgument_3.GetElement<bool>(0));
         ASSERT_EQ(std::string("to all"), tupleArgument_3.GetElement<std::string>(1));
@@ -321,6 +324,10 @@ namespace sweetPyTest {
 
         const sweetPy::Tuple& tupleReturn_4 = PythonEmbedder::GetAttribute<const sweetPy::Tuple&>("tupleReturn_4");
         ASSERT_EQ(nullptr, tupleReturn_4.GetElement<void*>(0));
+        //Transformation of non supported type element into python representation
+        TestSubjectB& value = PythonEmbedder::GetAttribute<TestSubjectB&>("value");
+        ASSERT_EQ(value.GetValue(), 0);
+        ASSERT_EQ(value.GetStr(), "Hello World");
 
         //Check native type
         sweetPy::Tuple tuple;
