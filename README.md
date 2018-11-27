@@ -1,7 +1,9 @@
 [![Build Status](https://travis-ci.org/Dudi119/sweetPy.svg?branch=master)](https://travis-ci.org/Dudi119/sweetPy)
 # sweetPy
 
-sweetPy is a seamless binding library, intended to export your C++ code with ease into Python 2.7.
+sweetPy is a seamless binding library, intended to export your C++ code with ease into Python 3.
+
+The library was only tested as of now on Python 3.7.
 
 sweetPy will allow you to export your C++ code in an object oriented style, with out the need to learn python’s data model and C-API.
 
@@ -19,7 +21,7 @@ Gnu - version 5.0 and higher.
 
 CMake - version 3.0 and higher.
 
-Python - version 2.7.
+Python - version 3.7.
 
 GoogleTest - version 1.8.0 and higher - not mandatory.
 
