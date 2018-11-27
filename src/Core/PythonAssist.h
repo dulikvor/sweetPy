@@ -52,7 +52,7 @@ namespace sweetPy
             return invoke_function_impl(function, object_ptr(), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
         }
 
-        static object_ptr InvokeFunction(const object_ptr& function, const Tuple& arguments)
+        static object_ptr FastInvokeFunction(const object_ptr& function, const Tuple& arguments)
         {
             object_ptr _arguments(arguments.ToPython(), &Deleter::Owner);
             object_ptr returnValue(PyObject_CallObject(function.get(), _arguments.get()), &Deleter::Owner);
