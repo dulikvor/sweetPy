@@ -13,27 +13,27 @@ namespace sweetPy {
         PyGILState_STATE m_state;
     };
 
-    struct Yield
+    struct GilRelease
     {
     public:
-        Yield():m_save(nullptr)
+        GilRelease():m_save(nullptr)
         {
-            if(PyGILState_Check() && _PyThreadState_UncheckedGet() != nullptr && m_alreadyYield == false)
+            if(PyGILState_Check() && _PyThreadState_UncheckedGet() != nullptr && m_alreadyReleased == false)
             {
                 m_save = PyEval_SaveThread();
-                m_alreadyYield = true;
+                m_alreadyReleased = true;
             }
         }
-        ~Yield()
+        ~GilRelease()
         {
             if(m_save)
             {
                 PyEval_RestoreThread(m_save);
-                m_alreadyYield = false;
+                m_alreadyReleased = false;
             }
         }
     private:
-        thread_local static bool m_alreadyYield;
+        thread_local static bool m_alreadyReleased;
         PyThreadState* m_save;
     };
 }

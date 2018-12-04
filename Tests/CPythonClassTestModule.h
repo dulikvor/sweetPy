@@ -8,6 +8,7 @@
 #include "Types/DateTime.h"
 #include "Types/TimeDelta.h"
 #include "Types/Tuple.h"
+#include "Types/AsciiString.h"
 #include "CPythonObject.h"
 
 namespace sweetPyTest {
@@ -238,6 +239,18 @@ namespace sweetPyTest {
     const sweetPy::Tuple& CheckConstRefTupleType(const sweetPy::Tuple& value)
     {
         static std::vector<sweetPy::Tuple> values(100);
+        values.push_back(value);
+        return values.back();
+    }
+    
+    sweetPy::AsciiString CheckAsciiStringType(sweetPy::AsciiString value)
+    {
+        sweetPy::AsciiString newValue("Babylon 5 Rulezzzzz!");
+        return newValue;
+    }
+    const sweetPy::AsciiString& CheckConstRefAsciiStringType(const sweetPy::AsciiString& value)
+    {
+        static std::vector<sweetPy::AsciiString> values(100);
         values.push_back(value);
         return values.back();
     }
