@@ -23,3 +23,31 @@ The name will be your python type’s name, and the way to access it via the mod
 ```python
 from MyModule import MyType
 ```
+
+## Constructor:
+It is possible to explicitly define a constructor for the exported user type.
+
+This can be done by using a special constructor method accessiable via your newly created CPythonClass object, wrapping your to be exported UserType:
+```c++
+myType.AddConstructor<>();
+```
+If more than one Constructor exists, its up to the user to select the one it wishes to export, as of now, only a single constructor is supported.
+
+The user may select his constructor of choice by explicitly initialising the templated constructor method with a matching arguments types depicting its constructor of choice:
+```c++
+Class MyType
+{
+public:
+	MyType(int, std::string){...}
+...
+myType.AddConstructor<int, std::string>();
+```
+
+The constructor must be made public and accessible, as if a type trait of ```std::is_constructiable<…>``` was being used.
+
+If the constructed method is being initialised with no types at all, default constructor will be used.
+```c++
+myType.AddConstructor<>();
+```
+
+If the user didn’t declared any specific constructor, it is as if - default constructor was declared.
