@@ -16,6 +16,7 @@
 #include "Types/TimeDelta.h"
 #include "Types/DateTime.h"
 #include "Types/Tuple.h"
+#include "Types/AsciiString.h"
 #include "Core/Exception.h"
 #include "Core/Traits.h"
 #include "Core/Lock.h"
@@ -1760,6 +1761,105 @@ namespace sweetPy{
             return CPythonRef<>::Alloc(type, data);
         }
     };
+    
+    template<>
+    struct Object<AsciiString>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef AsciiString Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        
+        static AsciiString GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(PyUnicode_CheckExact(object))
+            {
+                new(toBuffer)AsciiString(object);
+                return *reinterpret_cast<AsciiString*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const AsciiString>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<const AsciiString>* refObject = reinterpret_cast<CPythonRefObject<const AsciiString>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "AsciiString can only originates from ref const AsciiString type or unicode object");
+        }
+        
+        static AsciiString FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(PyUnicode_CheckExact(object))
+            {
+                return AsciiString(object);
+            }
+            else if(CPythonRef<>::IsReferenceType<const AsciiString>(object))
+            {
+                CPythonRefObject<const AsciiString>* refObject = reinterpret_cast<CPythonRefObject<const AsciiString>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "AsciiString can only originates from ref const AsciiString type or unicode object");
+        }
+        
+        static PyObject* ToPython(const AsciiString& data)
+        {
+            return data.ToPython();
+        }
+    };
+    
+    template<>
+    struct Object<const AsciiString&>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef AsciiString Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        
+        static const AsciiString& GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(PyUnicode_CheckExact(object))
+            {
+                new(toBuffer)AsciiString(object);
+                return *reinterpret_cast<AsciiString*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const AsciiString>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<const AsciiString>* refObject = reinterpret_cast<CPythonRefObject<const AsciiString>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "AsciiString can only originates from ref const AsciiString type or unicode object");
+        }
+        
+        static const AsciiString& FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<const AsciiString>(object))
+            {
+                CPythonRefObject<const AsciiString>* refObject = reinterpret_cast<CPythonRefObject<const AsciiString>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "AsciiString can only originates from ref const AsciiString type or unicode object");
+        }
+        
+        static PyObject* ToPython(const AsciiString& data)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<const AsciiString>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
 
     template<>
     struct Object<PyObject*> {
@@ -2161,6 +2261,31 @@ namespace sweetPy{
             static std::string name = "const_tuple_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const Tuple>>()))
                 CPythonRef<const Tuple>(module, name, name);
+            return nullptr;
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer)
+        {
+            if(*reinterpret_cast<std::uint32_t*>(buffer) != MAGIC_WORD)
+            {
+                Type* typedPtr = reinterpret_cast<Type*>(buffer);
+                typedPtr->~Type();
+            }
+            return nullptr;
+        }
+    };
+    
+    template<std::size_t I>
+    struct ObjectWrapper<const AsciiString&, I>
+    {
+        typedef typename Object<const AsciiString&>::FromPythonType FromPythonType;
+        typedef typename Object<const AsciiString&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "const_asciistring_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const AsciiString>>()))
+                CPythonRef<const AsciiString>(module, name, name);
             return nullptr;
         }
         template<typename... Args>

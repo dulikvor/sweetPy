@@ -454,6 +454,37 @@ namespace sweetPyTest {
         ASSERT_EQ(mv_assign_tuple.GetElement<void*>(5), nullptr);
         tuple.Clear();
     }
+    
+    TEST(CPythonClassTest, CPythonObjectCheckAsciiStringType)
+    {
+        const char *testingScript = "unicodeArgument = 'Hello World'\n"
+                                    "asciistrReturn = TestModule.check_asciistr_conversion(unicodeArgument) #unicode -> AsciiString\n"
+                                    "asciistrConstRefGenerator = TestModule.GenerateAsciiStringConstRef()\n"
+                                    "asciistrArgument_2 = 'Justice to all'\n"
+                                    "asciistrConstRefObject = asciistrConstRefGenerator.create(asciistrArgument_2)\n"
+                                    "asciistrReturn_2 = TestModule.check_asciistr_conversion(asciistrConstRefObject) #const AsciiString& -> AsciiString\n"
+                                    //const TimeDelta&
+                                    "asciistrArgument_3 = 'Death magnetic is not bad'\n"
+                                    "asciistrReturn_3 = TestModule.check_const_ref_asciistr_conversion(asciistrArgument_3) #unicode -> const AsciiString&\n"
+                                    "asciistrArgument_4 = 'Lulu? come on?!'\n"
+                                    "asciistrConstRefObject_2 = asciistrConstRefGenerator.create(asciistrArgument_4)\n"
+                                    "asciistrReturn_4 = TestModule.check_const_ref_asciistr_conversion(asciistrConstRefObject_2) #const AsciiString& -> const AsciiString&";
+        
+        PyRun_SimpleString(testingScript);
+        //TimeDelta
+        ASSERT_EQ(std::string("Babylon 5 Rulezzzzz!"), static_cast<const std::string&>(PythonEmbedder::GetAttribute<sweetPy::AsciiString>("asciistrReturn")));
+        ASSERT_EQ(std::string("Justice to all"), static_cast<const std::string&>(PythonEmbedder::GetAttribute<const sweetPy::AsciiString&>("asciistrConstRefObject")));
+        ASSERT_EQ(std::string("Babylon 5 Rulezzzzz!"), static_cast<const std::string&>(PythonEmbedder::GetAttribute<sweetPy::AsciiString>("asciistrReturn_2")));
+        //const TimeDelta&
+        ASSERT_EQ(std::string("Death magnetic is not bad"), static_cast<const std::string&>(PythonEmbedder::GetAttribute<const sweetPy::AsciiString&>("asciistrReturn_3")));
+        ASSERT_EQ(std::string("Lulu? come on?!"), static_cast<const std::string&>(PythonEmbedder::GetAttribute<const sweetPy::AsciiString&>("asciistrConstRefObject_2")));
+        ASSERT_EQ(std::string("Lulu? come on?!"), static_cast<const std::string&>(PythonEmbedder::GetAttribute<const sweetPy::AsciiString&>("asciistrReturn_4")));
+        
+        //Native
+        sweetPy::AsciiString str("Lulu? come on?!");
+        ASSERT_EQ(std::string("Lulu? come on?!"), static_cast<const std::string&>(str));
+        ASSERT_EQ(std::string("Lulu? come on?!"), static_cast<std::string>(str));
+    }
 
     TEST(CPythonClassTest, PythonFunctionInvocation) {
         const char *testingScript = "def returnInt():\n"

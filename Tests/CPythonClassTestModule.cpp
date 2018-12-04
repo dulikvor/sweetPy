@@ -81,6 +81,9 @@ namespace sweetPyTest {
 
         CPythonClass<GenerateRefTypes<const sweetPy::Tuple>> tupleConstRefType(module, "GenerateTupleConstRef", "Will generate instance of tuple const ref type");
         tupleConstRefType.AddMethod("create", "Will generate tuple const ref", static_cast<const sweetPy::Tuple&(GenerateRefTypes<const sweetPy::Tuple>::*)(const sweetPy::Tuple&)>(&GenerateRefTypes<const Tuple>::operator()));
+        
+        CPythonClass<GenerateRefTypes<const sweetPy::AsciiString>> asciiStringConstRefType(module, "GenerateAsciiStringConstRef", "Will generate instance of asciistr const ref type");
+        asciiStringConstRefType.AddMethod("create", "Will generate asciistr const ref", static_cast<const sweetPy::AsciiString&(GenerateRefTypes<const sweetPy::AsciiString>::*)(const sweetPy::AsciiString&)>(&GenerateRefTypes<const AsciiString>::operator()));
 
         CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
         CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
@@ -106,6 +109,8 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "check_tuple_conversion", "check Tuple type conversions", static_cast<sweetPy::Tuple(*)(sweetPy::Tuple)>(&CheckTuleType));
         CPythonGlobalFunction(module, "check_const_ref_tuple_conversion", "check const Tuple& type conversions", static_cast<const sweetPy::Tuple&(*)(const sweetPy::Tuple&)>(&CheckConstRefTupleType));
         CPythonGlobalFunction(module, "generate_native_element_tuple", "Will generate a native tuple which will hold non supported element type", static_cast<sweetPy::Tuple(*)()>(&GenerateNativeElementTuple));
+        CPythonGlobalFunction(module, "check_asciistr_conversion", "check AsciiString type conversions", static_cast<sweetPy::AsciiString(*)(sweetPy::AsciiString)>(&CheckAsciiStringType));
+        CPythonGlobalFunction(module, "check_const_ref_asciistr_conversion", "check const AsciiString& type conversions", static_cast<const sweetPy::AsciiString&(*)(const sweetPy::AsciiString&)>(&CheckConstRefAsciiStringType));
 
         CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
         CPythonGlobalVariable(module, "globalVariableInt", 5);
