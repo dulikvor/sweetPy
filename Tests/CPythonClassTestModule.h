@@ -5,6 +5,8 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include "core/Assert.h"
+#include "Core/Deleter.h"
 #include "Types/DateTime.h"
 #include "Types/TimeDelta.h"
 #include "Types/Tuple.h"
@@ -150,11 +152,26 @@ namespace sweetPyTest {
     {
     public:
         GenerateRefTypes(){m_values.reserve(1000);}
-        T& operator()(typename std::remove_const<T>::type const& value)
+        template<typename X = T>
+        typename std::enable_if<std::is_copy_constructible<X>::value, X&>::type operator()(typename std::remove_const<X>::type const& value)
         {
             m_values.push_back(value);
             return m_values.back();
         }
+    
+        template<typename X = T, typename  = typename std::enable_if<std::is_same<typename std::remove_const<X>::type, sweetPy::object_ptr>::value>::type>
+        const sweetPy::object_ptr& operator()(sweetPy::object_ptr const& value)
+        {
+            Py_XINCREF(value.get());
+            m_values.emplace_back(value.get(), &sweetPy::Deleter::Owner);
+            return m_values.back();
+        }
+        
+        void Clear()
+        {
+            m_values.clear();
+        }
+        
     private:
         std::vector<typename std::remove_const<T>::type> m_values;
     };
@@ -208,7 +225,8 @@ namespace sweetPyTest {
     }
     const sweetPy::DateTime& CheckConstRefDateTimeType(const sweetPy::DateTime& value)
     {
-        static std::vector<sweetPy::DateTime> values(100);
+        static std::vector<sweetPy::DateTime> values;
+        values.reserve(100);
         values.push_back(value);
         return values.back();
     }
@@ -220,7 +238,8 @@ namespace sweetPyTest {
     }
     const sweetPy::TimeDelta& CheckConstRefTimeDeltaType(const sweetPy::TimeDelta& value)
     {
-        static std::vector<sweetPy::TimeDelta> values(100);
+        static std::vector<sweetPy::TimeDelta> values;
+        values.reserve(100);
         values.push_back(value);
         return values.back();
     }
@@ -238,7 +257,8 @@ namespace sweetPyTest {
 
     const sweetPy::Tuple& CheckConstRefTupleType(const sweetPy::Tuple& value)
     {
-        static std::vector<sweetPy::Tuple> values(100);
+        static std::vector<sweetPy::Tuple> values;
+        values.reserve(100);
         values.push_back(value);
         return values.back();
     }
@@ -248,13 +268,35 @@ namespace sweetPyTest {
         sweetPy::AsciiString newValue("Babylon 5 Rulezzzzz!");
         return newValue;
     }
+    
     const sweetPy::AsciiString& CheckConstRefAsciiStringType(const sweetPy::AsciiString& value)
     {
-        static std::vector<sweetPy::AsciiString> values(100);
+        static std::vector<sweetPy::AsciiString> values;
+        values.reserve(100);
         values.push_back(value);
         return values.back();
     }
-
+    
+    sweetPy::object_ptr CheckObjectPtrType(sweetPy::object_ptr value)
+    {
+        CPYTHON_VERIFY_EXC(Py_TYPE(value.get()) == &PyLong_Type);
+        int newInteger = sweetPy::Object<int>::FromPython(value.get()) + 1;
+        return sweetPy::object_ptr(sweetPy::Object<int>::ToPython(newInteger), &sweetPy::Deleter::Owner);
+    }
+    
+    const sweetPy::object_ptr& CheckConstRefObjectPtrType(const sweetPy::object_ptr& value)
+    {
+        CPYTHON_VERIFY_EXC(Py_TYPE(value.get()) == &PyLong_Type);
+        int newInteger = sweetPy::Object<int>::FromPython(value.get()) + 1;
+        
+        static std::vector<sweetPy::object_ptr> values;
+        values.reserve(100);
+    
+        sweetPy::object_ptr newValue(sweetPy::Object<int>::ToPython(newInteger), &sweetPy::Deleter::Borrow); //Python will not be there when the unique_ptr will try to deallocate the memory.
+        values.emplace_back(std::move(newValue));
+        return static_cast<const sweetPy::object_ptr&>(values.back());
+    }
+    
     sweetPy::Tuple GenerateNativeElementTuple()
     {
         sweetPy::Tuple tuple;
