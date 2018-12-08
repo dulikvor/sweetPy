@@ -485,6 +485,28 @@ namespace sweetPyTest {
         ASSERT_EQ(std::string("Lulu? come on?!"), static_cast<const std::string&>(str));
         ASSERT_EQ(std::string("Lulu? come on?!"), static_cast<std::string>(str));
     }
+    
+    TEST(CPythonClassTest, CPythonObjectCheckObjectPtrType)
+    {
+        const char *testingScript = "pyLongArgument = 5\n"
+                                    "objectptrReturn = TestModule.check_objectptr_conversion(pyLongArgument) #PyLong -> object_ptr\n"
+                                    //const object_ptr&
+                                    "objectptrConstRefGenerator = TestModule.GenerateObjectPtrConstRef()\n"
+                                    "pyLongArgument_2 = 3\n"
+                                    "objectptrReturn_2 = TestModule.check_const_ref_objectptr_conversion(pyLongArgument_2) #const object_ptr& -> object_ptr\n"
+                                    "pyLongArgument_3 = 4\n"
+                                    "objectptrConstRefObject = objectptrConstRefGenerator.create(pyLongArgument_3)\n"
+                                    "objectptrReturn_3 = TestModule.check_const_ref_objectptr_conversion(objectptrConstRefObject) #const object_ptr& -> object_ptr\n";
+        
+        PyRun_SimpleString(testingScript);
+        //object_ptr
+        ASSERT_EQ(6, PythonEmbedder::GetAttribute<int>("objectptrReturn"));
+        //const object_ptr&
+        ASSERT_EQ(4, sweetPy::Object<int>::FromPython(static_cast<const sweetPy::object_ptr&>(PythonEmbedder::GetAttribute<const sweetPy::object_ptr&>("objectptrReturn_2")).get()));
+        ASSERT_EQ(5, sweetPy::Object<int>::FromPython(static_cast<const sweetPy::object_ptr&>(PythonEmbedder::GetAttribute<const sweetPy::object_ptr&>("objectptrReturn_3")).get()));
+        auto& generator = PythonEmbedder::GetAttribute<GenerateRefTypes<const sweetPy::object_ptr>&>("objectptrConstRefGenerator");
+        generator.Clear();
+    }
 
     TEST(CPythonClassTest, PythonFunctionInvocation) {
         const char *testingScript = "def returnInt():\n"

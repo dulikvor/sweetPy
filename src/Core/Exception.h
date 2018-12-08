@@ -18,6 +18,6 @@ namespace sweetPy{
         void Raise() const;
 
     private:
-        std::unique_ptr<PyObject, Deleter::Func> m_pyError;
+        object_ptr m_pyError;
     };
 }

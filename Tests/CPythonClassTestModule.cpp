@@ -74,16 +74,19 @@ namespace sweetPyTest {
         ctypeStringRefType.AddMethod("create", "Will generate c-type string ref", static_cast<char*&(GenerateRefTypes<char*>::*)(char*)>(&GenerateRefTypes<char*>::operator()));
 
         CPythonClass<GenerateRefTypes<const sweetPy::DateTime>> dateTimeConstRefType(module, "GenerateDateTimeConstRef", "Will generate instance of datetime const ref type");
-        dateTimeConstRefType.AddMethod("create", "Will generate datetime const ref", static_cast<const sweetPy::DateTime&(GenerateRefTypes<const sweetPy::DateTime>::*)(const sweetPy::DateTime&)>(&GenerateRefTypes<const DateTime>::operator()));
+        dateTimeConstRefType.AddMethod("create", "Will generate datetime const ref", static_cast<const sweetPy::DateTime&(GenerateRefTypes<const sweetPy::DateTime>::*)(const sweetPy::DateTime&)>(&GenerateRefTypes<const sweetPy::DateTime>::operator()));
 
         CPythonClass<GenerateRefTypes<const sweetPy::TimeDelta>> timeDeltaConstRefType(module, "GenerateTimeDeltaConstRef", "Will generate instance of timedelta const ref type");
-        timeDeltaConstRefType.AddMethod("create", "Will generate timedelta const ref", static_cast<const sweetPy::TimeDelta&(GenerateRefTypes<const sweetPy::TimeDelta>::*)(const sweetPy::TimeDelta&)>(&GenerateRefTypes<const TimeDelta>::operator()));
+        timeDeltaConstRefType.AddMethod("create", "Will generate timedelta const ref", static_cast<const sweetPy::TimeDelta&(GenerateRefTypes<const sweetPy::TimeDelta>::*)(const sweetPy::TimeDelta&)>(&GenerateRefTypes<const sweetPy::TimeDelta>::operator()));
 
         CPythonClass<GenerateRefTypes<const sweetPy::Tuple>> tupleConstRefType(module, "GenerateTupleConstRef", "Will generate instance of tuple const ref type");
-        tupleConstRefType.AddMethod("create", "Will generate tuple const ref", static_cast<const sweetPy::Tuple&(GenerateRefTypes<const sweetPy::Tuple>::*)(const sweetPy::Tuple&)>(&GenerateRefTypes<const Tuple>::operator()));
+        tupleConstRefType.AddMethod("create", "Will generate tuple const ref", static_cast<const sweetPy::Tuple&(GenerateRefTypes<const sweetPy::Tuple>::*)(const sweetPy::Tuple&)>(&GenerateRefTypes<const sweetPy::Tuple>::operator()));
         
         CPythonClass<GenerateRefTypes<const sweetPy::AsciiString>> asciiStringConstRefType(module, "GenerateAsciiStringConstRef", "Will generate instance of asciistr const ref type");
-        asciiStringConstRefType.AddMethod("create", "Will generate asciistr const ref", static_cast<const sweetPy::AsciiString&(GenerateRefTypes<const sweetPy::AsciiString>::*)(const sweetPy::AsciiString&)>(&GenerateRefTypes<const AsciiString>::operator()));
+        asciiStringConstRefType.AddMethod("create", "Will generate asciistr const ref", static_cast<const sweetPy::AsciiString&(GenerateRefTypes<const sweetPy::AsciiString>::*)(const sweetPy::AsciiString&)>(&GenerateRefTypes<const sweetPy::AsciiString>::operator()));
+        
+        CPythonClass<GenerateRefTypes<const sweetPy::object_ptr>> objectPtrConstRefType(module, "GenerateObjectPtrConstRef", "Will generate instance of object_ptr const ref type");
+        objectPtrConstRefType.AddMethod("create", "Will generate object_ptr const ref", static_cast<const sweetPy::object_ptr&(GenerateRefTypes<const sweetPy::object_ptr>::*)(const sweetPy::object_ptr&)>(&GenerateRefTypes<const sweetPy::object_ptr>::operator()));
 
         CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
         CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
@@ -111,6 +114,8 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "generate_native_element_tuple", "Will generate a native tuple which will hold non supported element type", static_cast<sweetPy::Tuple(*)()>(&GenerateNativeElementTuple));
         CPythonGlobalFunction(module, "check_asciistr_conversion", "check AsciiString type conversions", static_cast<sweetPy::AsciiString(*)(sweetPy::AsciiString)>(&CheckAsciiStringType));
         CPythonGlobalFunction(module, "check_const_ref_asciistr_conversion", "check const AsciiString& type conversions", static_cast<const sweetPy::AsciiString&(*)(const sweetPy::AsciiString&)>(&CheckConstRefAsciiStringType));
+        CPythonGlobalFunction(module, "check_objectptr_conversion", "check object_ptr type conversions", static_cast<sweetPy::object_ptr(*)(sweetPy::object_ptr)>(&CheckObjectPtrType));
+        CPythonGlobalFunction(module, "check_const_ref_objectptr_conversion", "check const object_ptr& type conversions", static_cast<const sweetPy::object_ptr&(*)(const sweetPy::object_ptr&)>(&CheckConstRefObjectPtrType));
 
         CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
         CPythonGlobalVariable(module, "globalVariableInt", 5);

@@ -1860,7 +1860,112 @@ namespace sweetPy{
             return CPythonRef<>::Alloc(type, data);
         }
     };
-
+    
+    template<>
+    struct Object<object_ptr>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef object_ptr Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        
+        static object_ptr GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(CPythonRef<>::IsReferenceType<const object_ptr>(object) || CPythonRef<>::IsReferenceType<object_ptr>(object))
+            {
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "object_ptr is not copy constructiable");
+            }
+            else
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                Py_XINCREF(object);
+                return object_ptr(object, &Deleter::Owner);
+            }
+        }
+        
+        static object_ptr FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<const object_ptr>(object) || CPythonRef<>::IsReferenceType<object_ptr>(object))
+            {
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "object_ptr is not copy constructiable");
+            }
+            else
+            {
+                Py_XINCREF(object);
+                return object_ptr(object, &Deleter::Owner);
+            }
+        }
+        
+        static PyObject* ToPython(const object_ptr& data)
+        {
+            Py_XINCREF(data.get());
+            return data.get();
+        }
+    };
+    
+    template<>
+    struct Object<const object_ptr&>
+    {
+    public:
+        typedef PyObject *FromPythonType;
+        typedef object_ptr Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+    
+        static const object_ptr &GetTyped(char *fromBuffer, char *toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
+            PyObject *object = *(PyObject **) fromBuffer;
+            if (CPythonRef<>::IsReferenceType<const object_ptr>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<const object_ptr> *refObject = reinterpret_cast<CPythonRefObject<const object_ptr> *>(object + 1);
+                return refObject->GetRef();
+            }
+            else if (CPythonRef<>::IsReferenceType<object_ptr>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<object_ptr> *refObject = reinterpret_cast<CPythonRefObject<object_ptr> *>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+            {
+                Py_XINCREF(object);
+                new(toBuffer)object_ptr(object, &Deleter::Owner);
+                return *reinterpret_cast<object_ptr *>(toBuffer);
+            }
+        }
+    
+        static const object_ptr &FromPython(PyObject *object)
+        {
+            GilLock lock;
+            if (CPythonRef<>::IsReferenceType<const object_ptr>(object))
+            {
+                CPythonRefObject<const object_ptr> *refObject = reinterpret_cast<CPythonRefObject<const object_ptr> *>(object + 1);
+                return refObject->GetRef();
+            }
+            else if (CPythonRef<>::IsReferenceType<object_ptr>(object))
+            {
+                CPythonRefObject<object_ptr> *refObject = reinterpret_cast<CPythonRefObject<object_ptr> *>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "const object_ptr& can only originates from ref const object_ptr type or ref object_ptr");
+        }
+    
+        static PyObject *ToPython(const object_ptr& data)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<const object_ptr>>();
+            auto &container = CPyModuleContainer::Instance();
+            PyTypeObject *type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+    
     template<>
     struct Object<PyObject*> {
     public:
@@ -1870,6 +1975,8 @@ namespace sweetPy{
         static const bool IsSimpleObjectType = false;
         static PyObject* GetTyped(char* fromBuffer, char* toBuffer)
         {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
+            new(toBuffer)std::uint32_t(MAGIC_WORD);
             return *(PyObject**)fromBuffer;
         }
 
@@ -2286,6 +2393,48 @@ namespace sweetPy{
             static std::string name = "const_asciistring_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const AsciiString>>()))
                 CPythonRef<const AsciiString>(module, name, name);
+            return nullptr;
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer)
+        {
+            if(*reinterpret_cast<std::uint32_t*>(buffer) != MAGIC_WORD)
+            {
+                Type* typedPtr = reinterpret_cast<Type*>(buffer);
+                typedPtr->~Type();
+            }
+            return nullptr;
+        }
+    };
+    
+    template<std::size_t I>
+    struct ObjectWrapper<object_ptr&, I>
+    {
+        typedef typename Object<object_ptr&>::FromPythonType FromPythonType;
+        typedef typename Object<object_ptr&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "object_ptr_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<object_ptr>>()))
+                CPythonRef<object_ptr>(module, name, name);
+            return nullptr;
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer){ return nullptr; }
+    };
+    
+    template<std::size_t I>
+    struct ObjectWrapper<const object_ptr&, I>
+    {
+        typedef typename Object<const object_ptr&>::FromPythonType FromPythonType;
+        typedef typename Object<const object_ptr&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "const_object_ptr_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const object_ptr>>()))
+                CPythonRef<const object_ptr>(module, name, name);
             return nullptr;
         }
         template<typename... Args>
