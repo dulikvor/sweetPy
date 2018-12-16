@@ -133,21 +133,6 @@ namespace sweetPy{
         std::unique_ptr<CPythonObjectType<Type>> m_type;
     };
 
-
-    template<typename T> struct FromNativeTypeToPyType{};
-    template<> struct FromNativeTypeToPyType<int>{static constexpr void* type = &PyLong_Type;};
-    template<> struct FromNativeTypeToPyType<std::string>{static constexpr void* type = &PyUnicode_Type;};
-    template<> struct FromNativeTypeToPyType<const char*>{static constexpr void* type = &PyUnicode_Type;};
-    template<> struct FromNativeTypeToPyType<char*>{static constexpr void* type = &PyUnicode_Type;};
-    template<> struct FromNativeTypeToPyType<bool>{static constexpr void* type = &PyBool_Type;};
-
-    template<PyTypeObject* pyType> struct FromPythonToNativeType{};
-    template<> struct FromPythonToNativeType<&PyLong_Type>{typedef int type;};
-    template<> struct FromPythonToNativeType<&PyFloat_Type>{typedef double type;};
-    template<> struct FromPythonToNativeType<&PyUnicode_Type>{typedef std::string type;};
-    template<> struct FromPythonToNativeType<&PyBytes_Type>{typedef std::string type;};
-    template<> struct FromPythonToNativeType<&PyBool_Type>{typedef bool type;};
-
     template<typename T, typename = void>
     struct Object{};
 
@@ -632,7 +617,6 @@ namespace sweetPy{
                 for(int index = 0; index < numOfElements; index++)
                 {
                     PyObject* element = PyList_GetItem(object, index);
-                    CPYTHON_VERIFY(element->ob_type == FromNativeTypeToPyType<T>::type, "PyListObject type must match a transition to type T");
                     vectorObject.emplace_back(Object<T>::FromPython(element));
                 }
                 return *reinterpret_cast<std::vector<T>*>(toBuffer);
