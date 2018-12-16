@@ -504,7 +504,8 @@ namespace sweetPy{
         typedef std::vector<T> Type;
         static const bool IsSimpleObjectType = false;
         static constexpr const char *Format = "O";
-        static std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer){
+        static std::vector<T> GetTyped(char* fromBuffer, char* toBuffer)
+        {
             PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
             if(object->ob_type == &PyList_Type)
             {
@@ -535,7 +536,8 @@ namespace sweetPy{
                 throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "std::vector can only originates from python list type or ref to std::vector type, const ref to std::vector type");
         }
 
-        static std::vector<T> FromPython(PyObject* object){
+        static std::vector<T> FromPython(PyObject* object)
+        {
             GilLock lock;
             if(object->ob_type == &PyList_Type)
             {
@@ -563,7 +565,8 @@ namespace sweetPy{
                 throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "std::vector can only originates from python list type or ref to std::vector type, const ref to std::vector type");
         }
 
-        static PyObject* ToPython(const std::vector<T>& object){
+        static PyObject* ToPython(const std::vector<T>& object)
+        {
             PyObject* pyListObject = PyList_New(object.size());
             for( int index = 0; index < object.size(); index++)
                 PyList_SetItem(pyListObject, index, Object<T>::ToPython(object[index]));
