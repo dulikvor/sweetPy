@@ -505,34 +505,62 @@ namespace sweetPy{
         static const bool IsSimpleObjectType = false;
         static constexpr const char *Format = "O";
         static std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer){
-            PyObject* pyListObject = *reinterpret_cast<PyObject**>(fromBuffer);
-            CPYTHON_VERIFY(pyListObject->ob_type == &PyList_Type, "It is mandatory for the received type to be of PyList_Type");
-            Py_ssize_t numOfElements = PyList_Size(pyListObject);
-            new(toBuffer)std::vector<T>;
-            std::vector<T>& vectorObject = *(std::vector<T>*)(toBuffer);
-            vectorObject.reserve(numOfElements);
-            for(int index = 0; index < numOfElements; index++)
+            PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
+            if(object->ob_type == &PyList_Type)
             {
-                PyObject* element = PyList_GetItem(pyListObject, index);
-                CPYTHON_VERIFY(element->ob_type == FromNativeTypeToPyType<T>::type, "PyListObject type must match a transition to type T");
-                vectorObject.emplace_back(Object<T>::FromPython(element));
+                Py_ssize_t numOfElements = PyList_Size(object);
+                new(toBuffer)std::vector<T>;
+                std::vector<T>& vectorObject = *(std::vector<T>*)(toBuffer);
+                vectorObject.reserve(numOfElements);
+                for(int index = 0; index < numOfElements; index++)
+                {
+                    PyObject* element = PyList_GetItem(object, index);
+                    vectorObject.emplace_back(Object<T>::FromPython(element));
+                }
+                return *reinterpret_cast<std::vector<T>*>(toBuffer);
             }
-            return *reinterpret_cast<std::vector<T>*>(toBuffer);
+            else if(CPythonRef<>::IsReferenceType<std::vector<T>>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<const std::vector<T>>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<const std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<const std::vector<T>>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "std::vector can only originates from python list type or ref to std::vector type, const ref to std::vector type");
         }
 
         static std::vector<T> FromPython(PyObject* object){
             GilLock lock;
-            CPYTHON_VERIFY(object->ob_type == &PyList_Type, "It is mandatory for the received type to be of PyList_Type");
-            Py_ssize_t numOfElements = PyList_Size(object);
-            std::vector<T> vectorObject;
-            vectorObject.reserve(numOfElements);
-            for(int index = 0; index < numOfElements; index++)
+            if(object->ob_type == &PyList_Type)
             {
-                PyObject* element = PyList_GetItem(object, index);
-                CPYTHON_VERIFY(element->ob_type == FromNativeTypeToPyType<T>::type, "PyListObject type must match a transition to type T");
-                vectorObject.emplace_back(Object<T>::FromPython(element));
+                Py_ssize_t numOfElements = PyList_Size(object);
+                std::vector<T> vec;
+                vec.reserve(numOfElements);
+                for(int index = 0; index < numOfElements; index++)
+                {
+                    PyObject* element = PyList_GetItem(object, index);
+                    vec.emplace_back(Object<T>::FromPython(element));
+                }
+                return vec;
             }
-            return vectorObject;
+            else if(CPythonRef<>::IsReferenceType<std::vector<T>>(object))
+            {
+                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else if(CPythonRef<>::IsReferenceType<const std::vector<T>>(object))
+            {
+                CPythonRefObject<const std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<const std::vector<T>>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "std::vector can only originates from python list type or ref to std::vector type, const ref to std::vector type");
         }
 
         static PyObject* ToPython(const std::vector<T>& object){
@@ -551,7 +579,8 @@ namespace sweetPy{
         typedef void* Type;
         static const bool IsSimpleObjectType = false;
         static constexpr const char *Format = "O";
-        static std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer){
+        static std::vector<T>& GetTyped(char* fromBuffer, char* toBuffer)
+        {
             PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
             if(CPythonRef<>::IsReferenceType<std::vector<T>>(object))
             {
@@ -605,6 +634,12 @@ namespace sweetPy{
                 }
                 return *reinterpret_cast<std::vector<T>*>(toBuffer);
             }
+            else if(CPythonRef<>::IsReferenceType<std::vector<T>>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(object + 1);
+                return refObject->GetRef();
+            }
             else if(CPythonRef<>::IsReferenceType<const std::vector<T>>(object))
             {
                 new(toBuffer)std::uint32_t(MAGIC_WORD);
@@ -612,17 +647,23 @@ namespace sweetPy{
                 return refObject->GetRef();
             }
             else
-                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "std::vector can only originates from python list type or ref to std::vector type");
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "const ref std::vector can only originates from python list type or ref to std::vector type or const ref to std::vector type");
         }
 
-        static const std::vector<T>& FromPython(PyObject* obj){
-            if(CPythonRef<>::IsReferenceType<std::vector<T>>(obj)){
-                CPythonRefObject<const std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<const std::vector<T>>*>(obj + 1);
+        static const std::vector<T>& FromPython(PyObject* object)
+        {
+            if(CPythonRef<>::IsReferenceType<std::vector<T>>(object))
+            {
+                CPythonRefObject<const std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<const std::vector<T>>*>(object + 1);
                 return refObject->GetRef();
             }
-            else{
-                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "conversion between python list object to std::vector is not possible");
+            else if(CPythonRef<>::IsReferenceType<std::vector<T>>(object))
+            {
+                CPythonRefObject<std::vector<T>>* refObject = reinterpret_cast<CPythonRefObject<std::vector<T>>*>(object + 1);
+                return refObject->GetRef();
             }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "const ref std::vector can only originates from ref to std::vector type or const ref to std::vector type");
         }
 
         static PyObject* ToPython(const std::vector<T>& data){ //Only l_value, no xpire value
@@ -2213,7 +2254,7 @@ namespace sweetPy{
             return nullptr;
         }
     };
-
+    
     template<std::size_t I, typename X>
     struct ObjectWrapper<const std::vector<X>&, I>
     {
