@@ -25,7 +25,7 @@ namespace sweetPy{
         void AddModule(const std::string& key, const std::shared_ptr<CPythonModule>& module);
         CPythonModule& GetModule(const std::string& key);
         const Modules& GetModules() const;
-        void AddType(size_t key, object_ptr&& type);
+        void AddType(size_t key, object_ptr&& type, bool force = false);
         void AddMethod(int key, std::shared_ptr<CPythonFunction>& method);
         void AddStaticMethod(int key, std::shared_ptr<CPythonFunction>& staticMethod);
         void AddGlobalFunction(int key, std::shared_ptr<CPythonFunction>& function);

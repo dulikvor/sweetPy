@@ -1,6 +1,9 @@
 #include "CPythonModule.h"
 #include "Core/Assert.h"
 #include "Core/PythonAssist.h"
+#include "CPythonVariable.h"
+#include "CPythonFunction.h"
+#include "CPythonType.h"
 
 using namespace std;
 
@@ -28,8 +31,13 @@ namespace sweetPy{
     void CPythonModule::AddType(CPythonType* type) {
         m_types.emplace_back(type);
     }
+    
+    void CPythonModule::EraseType(CPythonType* type)
+    {
+        m_types.remove(type);
+    }
 
-    void CPythonModule::AddVariable(std::unique_ptr<ICPythonVariable>&& variable){
+    void CPythonModule::AddVariable(std::unique_ptr<CPythonVariable>&& variable){
         m_variables.emplace_back(std::move(variable));
     }
 

@@ -53,10 +53,18 @@ namespace sweetPy{
         return m_modules;
     }
 
-    void CPyModuleContainer::AddType(size_t key, object_ptr&& type){
-        if( m_types.find(key) != m_types.end())
+    void CPyModuleContainer::AddType(size_t key, object_ptr&& type, bool force){
+        auto it = m_types.find(key);
+        if(force == false && it != m_types.end())
             throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "Key already exists - %d", key);
-        m_types.insert(std::make_pair(key, std::move(type)));
+        if(it != m_types.end())
+        {
+            for(auto& module : m_modules)
+                module.second->EraseType(reinterpret_cast<CPythonType*>(it->second.get()));
+            m_types[key] = std::move(type);
+        }
+        else
+            m_types.insert(std::make_pair(key, std::move(type)));
     }
 
 

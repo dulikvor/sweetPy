@@ -14,8 +14,7 @@ namespace sweetPy {
         tp_basicsize = (Py_ssize_t)(sizeof(PyHeapTypeObject) + extendedSize);
         tp_dealloc = &Dealloc;
         tp_doc = m_doc.c_str();
-        tp_is_gc = &IsCollectable;
-        tp_base = &PyType_Type;
+        tp_base = &CPythonMetaClass::GetStaticMetaType();
     }
 
     int CPythonMetaClassType::IsCollectable(PyObject *obj) {
@@ -35,7 +34,7 @@ namespace sweetPy {
 
         type->tp_free(object);
     }
-
+    
     static int IsCollectable(PyObject *obj) {
         return CPythonMetaClassType::Collectable::False;
     }
@@ -50,9 +49,27 @@ namespace sweetPy {
         tp_doc = "CPython meta class";
         tp_base = &PyType_Type;
         tp_is_gc = &IsCollectable;
+        tp_dealloc = &Dealloc;
+        tp_free = &Free;
     }
 
     typename CPythonMetaClass::NonCollectableMetaType CPythonMetaClass::m_staticType{};
+    
+    void CPythonMetaClass::NonCollectableMetaType::Dealloc(PyObject* object)
+    {
+        PyTypeObject& cls = *reinterpret_cast<PyTypeObject*>(object);
+        _Py_ForgetReference(object);
+        Py_XDECREF(cls.tp_dict);
+        Py_XDECREF(cls.tp_base);
+        Py_XDECREF(cls.tp_bases);
+        Py_XDECREF(cls.tp_mro);
+        Py_TYPE(object)->tp_free(object);
+    }
+    
+    void CPythonMetaClass::NonCollectableMetaType::Free(void* object)
+    {
+        delete reinterpret_cast<PyObject*>(object);
+    }
 
     CPythonMetaClass::CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc, int extendedSize)
             :m_module(module), m_type((PyObject*)new CPythonMetaClassType(name, doc, extendedSize), &Deleter::Owner){

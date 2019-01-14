@@ -87,6 +87,9 @@ namespace sweetPyTest {
         
         CPythonClass<GenerateRefTypes<const sweetPy::object_ptr>> objectPtrConstRefType(module, "GenerateObjectPtrConstRef", "Will generate instance of object_ptr const ref type");
         objectPtrConstRefType.AddMethod("create", "Will generate object_ptr const ref", static_cast<const sweetPy::object_ptr&(GenerateRefTypes<const sweetPy::object_ptr>::*)(const sweetPy::object_ptr&)>(&GenerateRefTypes<const sweetPy::object_ptr>::operator()));
+        
+        CPythonClass<GenerateRefTypes<const char*>> ctypestrConstRefType(module, "GenerateCTypeStrConstRef", "Will generate instance of c-type str const ref type");
+        ctypestrConstRefType.AddMethod("create", "Will generate c-type str const ref", static_cast<const char*&(GenerateRefTypes<const char*>::*)(const char*&)>(&GenerateRefTypes<const char*>::operator()));
 
         CPythonGlobalFunction(module, "globalFunction", "global function", &globalFunction);
         CPythonGlobalFunction(module, "check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
@@ -103,7 +106,8 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "check_rvalue_ref_str_conversion", "check integral rvalue ref string type conversions", static_cast<void(*)(std::string&&)>(&CheckIntegralStringType));
         CPythonGlobalFunction(module, "check_ref_chararray_conversion", "check integral char array type conversions", static_cast<char(&(*)(char(&)[100]))[100]>(&CheckIntegralCharArrayType));
         CPythonGlobalFunction(module, "check_ctype_string_conversion", "check integral ctype string type conversions", static_cast<void(*)(char*)>(&CheckIntegralCTypeStringType));
-        CPythonGlobalFunction(module, "check_const_ctype_string_conversion", "check integral ctype string type conversions", static_cast<void(*)(const char*)>(&CheckIntegralConstCTypeStringType));
+        CPythonGlobalFunction(module, "check_const_ctype_string_conversion", "check integral ctype string type conversions", static_cast<const char*(*)(const char*)>(&CheckIntegralConstCTypeStringType));
+        CPythonGlobalFunction(module, "check_const_ref_ctype_string_conversion", "check integral ctype string ref type conversions", static_cast<const char*&(*)(const char*&)>(&CheckIntegralConstRefCTypeStrType));
         CPythonGlobalFunction(module, "check_pyobject_conversion", "check integral PyObject type conversions", static_cast<PyObject*(*)(PyObject*)>(&CheckIntegralPyObjectType));
         CPythonGlobalFunction(module, "check_datetime_conversion", "check DateTime type conversions", static_cast<sweetPy::DateTime(*)(sweetPy::DateTime)>(&CheckDateTimeType));
         CPythonGlobalFunction(module, "check_const_ref_datetime_conversion", "check const DateTime& type conversions", static_cast<const sweetPy::DateTime&(*)(const sweetPy::DateTime&)>(&CheckConstRefDateTimeType));
@@ -117,8 +121,17 @@ namespace sweetPyTest {
         CPythonGlobalFunction(module, "check_objectptr_conversion", "check object_ptr type conversions", static_cast<sweetPy::object_ptr(*)(sweetPy::object_ptr)>(&CheckObjectPtrType));
         CPythonGlobalFunction(module, "check_const_ref_objectptr_conversion", "check const object_ptr& type conversions", static_cast<const sweetPy::object_ptr&(*)(const sweetPy::object_ptr&)>(&CheckConstRefObjectPtrType));
 
-        CPythonGlobalVariable(module, "globalVariableStr", "Hello World");
-        CPythonGlobalVariable(module, "globalVariableInt", 5);
+        //Integral types (lvalue, rvalue, const modifier)
+        const int var = 6;
+        TestSubjectB b;
+        CPythonGlobalVariable(module, "globalVariableLiteral", "Hello World");
+        CPythonGlobalVariable(module, "globalVariableInt_rvalue", 5);
+        CPythonGlobalVariable(module, "globalVariableInt_lvalue_const", var);
+        //standard user type, which is supported
+        CPythonGlobalVariable(module, "globalVariableStr_rvalue", std::string("Hello World"));
+        //Non supported user type
+        CPythonGlobalVariable(module, "globalVariableUserType_rvalue", TestSubjectB());
+        CPythonGlobalVariable(module, "globalVariableUserType_lvalue", b);
     }
 
 }
