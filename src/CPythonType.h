@@ -15,6 +15,9 @@ namespace sweetPy {
     struct CPythonType : public PyTypeObject
     {
     public:
+        template<typename T>
+        struct CPythonTypeHash{};
+        
         CPythonType(const std::string& name, const std::string& doc)
                 :PyTypeObject{}, m_name(name), m_doc(doc){}
         ~CPythonType()

@@ -16,7 +16,6 @@
 #include "CPythonMetaClass.h"
 #include "CPythonConstructor.h"
 #include "CPythonRef.h"
-#include "CPythonObject.h"
 #include "CPythonClassType.h"
 #include "IMemberAccessor.h"
 #include "MemberAccessor.h"
@@ -85,10 +84,11 @@ namespace sweetPy {
             typename std::remove_reference<T>::type>::type>::type>
     class CPythonClass {
     public:
+        typedef CPythonType::CPythonTypeHash<Type> hash_type;
         typedef CPythonClass<T> Self;
 
         CPythonClass(CPythonModule &module, const std::string &name, const std::string &doc)
-                : m_module(module), m_type((PyObject*)new CPythonClassType<Type>(name, doc), &Deleter::Owner) {
+                : m_module(module), m_type((PyObject*)new CPythonClassType<Type>(name, doc), [](PyObject* ptr){Py_TYPE(ptr)->tp_dealloc(ptr);}) {
             Py_IncRef((PyObject *)m_type.get()); //Making sure the true owner of the type is CPythonClass
         }
 
@@ -105,8 +105,7 @@ namespace sweetPy {
             refType.AddMembers(m_members);
 
             m_module.AddType((CPythonType*)m_type.get());
-            CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<CPythonClassType<Type>>(), std::move(m_type));
-
+            CPyModuleContainer::Instance().AddType(CPyModuleContainer::TypeHash<hash_type>(), std::move(m_type), true);
         }
 
         template<typename X, typename std::enable_if<std::is_member_function_pointer<X>::value, bool>::type = true>

@@ -20,7 +20,7 @@ namespace sweetPyTest {
         void SetUp() override {
             core::Logger::Instance().Start(core::TraceSeverity::Info);
             PythonEmbedder::Instance().InitiateInterperter("CPythonClassTest", _argc, _argv);
-            const char *testingScript = "from CPythonClassTestModule import TestClass, Enum_Python, TestClassB, TestClassC, globalFunction, globalVariableStr, globalVariableInt\n"
+            const char *testingScript = "from CPythonClassTestModule import TestClass, Enum_Python, TestClassB, TestClassC, globalFunction, globalVariableLiteral, globalVariableInt_rvalue, globalVariableInt_lvalue_const, globalVariableStr_rvalue, globalVariableUserType_rvalue, globalVariableUserType_lvalue\n"
                                         "import CPythonClassTestModule as TestModule";
             PyRun_SimpleString(testingScript);
         }
@@ -486,6 +486,31 @@ namespace sweetPyTest {
         ASSERT_EQ(std::string("Lulu? come on?!"), static_cast<std::string>(str));
     }
     
+    TEST(CPythonClassTest, CPythonObjectCheckConstCTypeSrType)
+    {
+        const char *testingScript = "pyUnicodeArgument = 'Make love'\n"
+                                    "constCTypeStrReturn = TestModule.check_const_ctype_string_conversion(pyUnicodeArgument) #PyUniCode -> const char*\n"
+                                    "ctypestrConstRefGenerator = TestModule.GenerateCTypeStrConstRef()\n"
+                                    "pyUnicodeArgument_2 = 'Fever is no joke'\n"
+                                    "constCTypeStrReturn_2 = ctypestrConstRefGenerator.create(pyUnicodeArgument_2)\n"
+                                    "constCTypeStrReturn_3 = TestModule.check_const_ctype_string_conversion(constCTypeStrReturn_2) #const char*& -> const char*\n"
+                                    "pyUnicodeArgument_3 = b'Long live Sheridan'\n"
+                                    "constCTypeStrReturn_4 = TestModule.check_const_ctype_string_conversion(pyUnicodeArgument_3) #PyBytes -> const char*\n"
+                                    "constCTypeStrReturn_5 = TestModule.check_const_ref_ctype_string_conversion(pyUnicodeArgument) #PyUnicode -> const char*&\n"
+                                    "constCTypeStrReturn_6 = TestModule.check_const_ref_ctype_string_conversion(pyUnicodeArgument_3) #PyBytes -> const char*&\n"
+                                    "constCTypeStrReturn_7 = TestModule.check_const_ref_ctype_string_conversion(constCTypeStrReturn_2) #const char*& -> const char*&\n";
+        
+        PyRun_SimpleString(testingScript);
+        //const char*
+        ASSERT_EQ("Make love", PythonEmbedder::GetAttribute<std::string>("constCTypeStrReturn"));
+        ASSERT_EQ("Fever is no joke", PythonEmbedder::GetAttribute<std::string>("constCTypeStrReturn_3"));
+        ASSERT_EQ("Long live Sheridan", PythonEmbedder::GetAttribute<std::string>("constCTypeStrReturn_4"));
+        //const char*&
+        ASSERT_EQ(std::string(PythonEmbedder::GetAttribute<const char*>("constCTypeStrReturn_5")), "Make love");
+        ASSERT_EQ(std::string(PythonEmbedder::GetAttribute<const char*>("constCTypeStrReturn_6")), "Long live Sheridan");
+        ASSERT_EQ(std::string(PythonEmbedder::GetAttribute<const char*>("constCTypeStrReturn_7")), "Fever is no joke");
+    }
+    
     TEST(CPythonClassTest, CPythonObjectCheckObjectPtrType)
     {
         const char *testingScript = "pyLongArgument = 5\n"
@@ -695,10 +720,18 @@ namespace sweetPyTest {
         ASSERT_EQ(intVector[1], 6);
     }
 
-    TEST(CPythonClassTest, AccessingGlobalVariable) {
-    std::string variable = PythonEmbedder::GetAttribute<std::string>("globalVariableStr");
-    ASSERT_EQ(variable, std::string("Hello World"));
-    ASSERT_EQ(PythonEmbedder::GetAttribute<int>("globalVariableInt"), 5);
+    TEST(CPythonClassTest, AccessingGlobalVariable)
+    {
+        ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("globalVariableLiteral"), "Hello World");
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("globalVariableInt_rvalue"), 5);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<int>("globalVariableInt_lvalue_const"), 6);
+        ASSERT_EQ(PythonEmbedder::GetAttribute<std::string>("globalVariableStr_rvalue"), "Hello World");
+        TestSubjectB& b_rvalue = PythonEmbedder::GetAttribute<TestSubjectB&>("globalVariableUserType_rvalue");
+        ASSERT_EQ(b_rvalue.m_str, "Hello World");
+        ASSERT_EQ(b_rvalue.m_value, 0);
+        TestSubjectB& b_lvalue = PythonEmbedder::GetAttribute<TestSubjectB&>("globalVariableUserType_lvalue");
+        ASSERT_EQ(b_lvalue.m_str, "Hello World");
+        ASSERT_EQ(b_lvalue.m_value, 0);
     }
 
 }

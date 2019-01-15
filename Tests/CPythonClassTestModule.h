@@ -198,6 +198,29 @@ namespace sweetPyTest {
     private:
         std::vector<char*> m_values;
     };
+    
+    template<>
+    class GenerateRefTypes<const char*>
+    {
+    public:
+        GenerateRefTypes(){m_values.reserve(1000);}
+        ~GenerateRefTypes()
+        {
+            for(auto& ptr : m_values)
+                delete[] ptr;
+        }
+        char const *& operator()(const char*& value)
+        {
+            m_values.push_back(nullptr);
+            size_t size = strlen(value);
+            m_values.back() = new char[size + 1];
+            memcpy(m_values.back(), value, size);
+            m_values.back()[size] = '\0';
+            return const_cast<const char*&>(m_values.back());
+        }
+    private:
+        std::vector<char*> m_values;
+    };
 
     int CheckIntegralIntType(int value){ return value + 1; }
     int& CheckIntegralIntType(int& value){ return ++value; }
@@ -216,7 +239,18 @@ namespace sweetPyTest {
     char(&CheckIntegralCharArrayType(char(&value)[100]))[100]{ return value; }
 
     void CheckIntegralCTypeStringType(char* value){ *value = 'l'; }
-    void CheckIntegralConstCTypeStringType(const char* value){}
+    const char* CheckIntegralConstCTypeStringType(const char* value){ static std::string str; str = value; return str.c_str(); }
+    const char*& CheckIntegralConstRefCTypeStrType(const char*& value)
+    {
+        static std::vector<char*> values; //Known leakage.
+        values.reserve(1000);
+        size_t size = strlen(value);
+        values.push_back(nullptr);
+        values.back() = new char[size + 1];
+        memcpy(values.back(), value, size);
+        values.back()[size] = '\0';
+        return const_cast<const char*&>(values.back());
+    }
 
     sweetPy::DateTime CheckDateTimeType(sweetPy::DateTime value)
     {
@@ -307,7 +341,7 @@ namespace sweetPyTest {
         });
         return tuple;
     }
-
+    
     PyObject* CheckIntegralPyObjectType(PyObject* value){ return value; }
 }
 

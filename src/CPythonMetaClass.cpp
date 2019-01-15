@@ -15,7 +15,7 @@ namespace sweetPy {
         tp_dealloc = &Dealloc;
         tp_doc = m_doc.c_str();
         tp_is_gc = &IsCollectable;
-        tp_base = &PyType_Type;
+        tp_base = &CPythonMetaClass::GetStaticMetaType();
     }
 
     int CPythonMetaClassType::IsCollectable(PyObject *obj) {
@@ -35,7 +35,7 @@ namespace sweetPy {
 
         type->tp_free(object);
     }
-
+    
     static int IsCollectable(PyObject *obj) {
         return CPythonMetaClassType::Collectable::False;
     }
@@ -50,9 +50,49 @@ namespace sweetPy {
         tp_doc = "CPython meta class";
         tp_base = &PyType_Type;
         tp_is_gc = &IsCollectable;
+        tp_dealloc = &Dealloc;
+        tp_free = &Free;
     }
 
     typename CPythonMetaClass::NonCollectableMetaType CPythonMetaClass::m_staticType{};
+    
+    void CPythonMetaClass::NonCollectableMetaType::Dealloc(PyObject* object)
+    {
+        PyTypeObject& cls = *reinterpret_cast<PyTypeObject*>(object);
+        _Py_ForgetReference(object);
+        RemoveSubClasses(cls, cls.tp_bases);
+        Py_XDECREF(cls.tp_dict);
+        Py_XDECREF(cls.tp_base);
+        Py_XDECREF(cls.tp_bases);
+        Py_XDECREF(cls.tp_mro);
+        Py_XDECREF(cls.tp_cache);
+        Py_XDECREF(cls.tp_subclasses);
+        Py_TYPE(object)->tp_free(object);
+    }
+    
+    void CPythonMetaClass::NonCollectableMetaType::Free(void* object)
+    {
+        delete reinterpret_cast<PyObject*>(object);
+    }
+    
+    void CPythonMetaClass::NonCollectableMetaType::RemoveSubClasses(PyTypeObject& type, PyObject* bases)
+    {
+        if(bases == nullptr)
+            return;
+        
+        for (Py_ssize_t i = 0; i < PyTuple_GET_SIZE(bases); i++)
+        {
+            PyObject *base = PyTuple_GET_ITEM(bases, i);
+            if (PyType_Check(base))
+            {
+                object_ptr dict(reinterpret_cast<PyTypeObject*>(base)->tp_subclasses, &Deleter::Borrow);
+                if(dict == nullptr)
+                    continue;
+                object_ptr key(PyLong_FromVoidPtr(&type), &Deleter::Owner);
+                PyDict_DelItem(dict.get(), key.get());
+            }
+        }
+    }
 
     CPythonMetaClass::CPythonMetaClass(CPythonModule& module, const std::string& name, const std::string& doc, int extendedSize)
             :m_module(module), m_type((PyObject*)new CPythonMetaClassType(name, doc, extendedSize), &Deleter::Owner){

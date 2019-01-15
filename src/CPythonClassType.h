@@ -14,6 +14,7 @@ namespace sweetPy {
     template<typename Type>
     class CPythonClassType : public CPythonType {
     public:
+        typedef CPythonType::CPythonTypeHash<Type> hash_type;
         typedef CPythonClassType<Type> self;
 
         CPythonClassType(const std::string &name, const std::string &doc)
@@ -72,7 +73,7 @@ namespace sweetPy {
         }
 
         static int SetAttribute(PyObject *object, PyObject *attrName, PyObject *value) {
-            PyTypeObject *type = CPyModuleContainer::Instance().GetType(CPyModuleContainer::TypeHash<self>());
+            PyTypeObject *type = CPyModuleContainer::Instance().GetType(CPyModuleContainer::TypeHash<hash_type>());
             CPYTHON_VERIFY(type != nullptr, "was unable to locate type");
             CPYTHON_VERIFY(attrName->ob_type == &PyUnicode_Type, "attrName must be py string type");
             object_ptr bytesObject(PyUnicode_AsASCIIString(attrName), &Deleter::Owner);
@@ -93,7 +94,7 @@ namespace sweetPy {
 
         static PyObject* GetAttribute(PyObject *object, PyObject *attrName)
         {
-            PyTypeObject *type = CPyModuleContainer::Instance().GetType(CPyModuleContainer::TypeHash<self>());
+            PyTypeObject *type = CPyModuleContainer::Instance().GetType(CPyModuleContainer::TypeHash<hash_type>());
             CPYTHON_VERIFY(type != nullptr, "was unable to locate type");
             CPYTHON_VERIFY(attrName->ob_type == &PyUnicode_Type, "attrName must be py unicode type");
             object_ptr bytesObject(PyUnicode_AsASCIIString(attrName), &Deleter::Owner);

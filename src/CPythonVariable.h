@@ -4,43 +4,36 @@
 #include <string>
 #include <Python.h>
 #include "Core/Deleter.h"
-#include "ICPythonVariable.h"
 #include "CPythonObject.h"
 
 namespace sweetPy {
-
-    //Since a copy is due to happen we only want to support pod types to reduce overhead (huge pod structs are unlikeable)
-    //If an array is received it will be decayed into pointer, no copy intialization is supported via array.
-    template<typename T, typename Type = typename std::conditional<std::is_array<T>::value, typename std::decay<T>::type, T>::type, typename = typename std::enable_if<std::is_pod<Type>::value>::type>
-    class CPythonVariable : public ICPythonVariable
-    {
+    
+    class CPythonVariable {
     public:
-        template<typename Y, typename = typename std::enable_if<std::is_convertible<Y, Type>::value>::type>
-        CPythonVariable(const std::string &name, Y&& value)
-                : ICPythonVariable(name), m_value(value) {}
-
-        std::unique_ptr <PyObject, Deleter::Func> ToPython() const override {
-            return std::unique_ptr<PyObject, Deleter::Func>(Object<Type>::ToPython(m_value), &Deleter::Owner);
-        }
-
+        CPythonVariable(const std::string &name) : m_name(name) {}
+        
+        virtual ~CPythonVariable() {}
+        virtual std::unique_ptr <PyObject, Deleter::Func> ToPython() const = 0;
+        const std::string &GetName() const { return m_name; }
+    
     private:
-        Type m_value;
+        std::string m_name;
     };
-
+    
     template<typename T>
-    class CPythonVariable<T, const char*, void> : public ICPythonVariable
+    class CPythonTypedVariable : public CPythonVariable
     {
     public:
-        template<typename Y, typename = typename std::enable_if<std::is_convertible<Y, std::string>::value>::type>
-        CPythonVariable(const std::string &name, Y&& value)
-                : ICPythonVariable(name), m_value(value) {}
-
-        std::unique_ptr <PyObject, Deleter::Func> ToPython() const override
-        {
-            return std::unique_ptr<PyObject, Deleter::Func>(Object<std::string>::ToPython(m_value), &Deleter::Owner);
+        template<typename Y>
+        CPythonTypedVariable(const std::string &name, Y&& value)
+                : CPythonVariable(name), m_value(value) {}
+        
+        std::unique_ptr <PyObject, Deleter::Func> ToPython() const override {
+            return std::unique_ptr<PyObject, Deleter::Func>(Object<T>::ToPython(m_value), &Deleter::Owner);
         }
-
+    
     private:
-        std::string m_value;
+        T m_value;
     };
 }
+
