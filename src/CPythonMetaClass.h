@@ -47,6 +47,7 @@ namespace sweetPy {
         private:
             static void Dealloc(PyObject* object);
             static void Free(void* object);
+            static void RemoveSubClasses(PyTypeObject& type, PyObject* bases);
         };
 
     private:

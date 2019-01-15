@@ -45,7 +45,6 @@ namespace sweetPy{
             tp_flags = Py_TPFLAGS_HAVE_GC;
             tp_doc = m_doc.c_str();
             tp_traverse = &Traverse;
-            tp_new = PyBaseObject_Type.tp_new;
         }
 
     private:
