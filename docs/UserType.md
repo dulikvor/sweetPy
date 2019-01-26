@@ -51,3 +51,58 @@ myType.AddConstructor<>();
 ```
 
 If the user didn’t declared any specific constructor, it is as if - default constructor was declared.
+
+## Methods:
+
+Publicly accessible methods can be exported.
+This can be done by using a specific method via the CPythonClass object, and by providing the method - python's name, description and the method virtual address.
+```c++
+Class MyType
+{
+public:
+	int foo(const int&){...}
+...
+myType.AddMethod("foo", "foo method", &MyType::foo);
+```
+The method prototype, including its - parameters and return type are deducted automatically, only the method virtual address is required, both virtual and non virtual methods are supported this way:
+
+Few restrictions:
+If an overload set exists, its up to the user to explicitly choose the overloaded version he wishes to export.
+```c++
+Class MyType
+{
+public:
+	int foo(const int&){...}
+	float foo(std::string&, float){...}
+...
+myType.AddMethod("foo", "foo method", static_cast<float(MyType::*)(std::string&, float)>(&MyType::foo));
+```
+Every overload version will need to have a different python’s name.
+```c++
+myType.AddMethod("foo_1", "foo method", static_cast<int(MyType::*)(const int&)>(&MyType::foo));
+myType.AddMethod("foo_2", "foo method", static_cast<float(MyType::*)(std::string&, float)>(&MyType::foo));
+```
+Templated function will need to be explicitly initialised with the version wishes to be exported.
+```c++
+Class MyType
+{
+public:
+	template<typename T> int foo(const T&){...}
+...
+myType.AddMethod("foo", "foo method", &MyType::foo<int>);
+```
+
+## Members:
+Publicly accessible members can be exported.
+This can be done by using a specific method via the CPythonClass Object and by providing the member python’s name, virtual address, and description. 
+```c++
+Class MyType
+{
+public:
+	int m_val;
+...
+myType.AddMember("val", &MyType::m_val, "val member");
+```
+all deductions, including the member offset with in the instance image and its type, will be done automatically.
+
+All members are considered read/write accessible.
