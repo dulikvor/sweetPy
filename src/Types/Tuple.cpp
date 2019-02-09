@@ -16,7 +16,7 @@ namespace sweetPy{
     {
         size_t size = PyTuple_Size(tuple);
         for(int idx = 0; idx < size; idx++)
-            AddElement(idx, object_ptr(PyTuple_GetItem(tuple, idx), &Deleter::Borrow));
+            AddElement(object_ptr(PyTuple_GetItem(tuple, idx), &Deleter::Borrow));
     }
 
     Tuple::Tuple(const Tuple &obj)
@@ -90,8 +90,62 @@ namespace sweetPy{
 
     Tuple::Tuple(Tuple &&obj): m_elements(std::move(obj.m_elements)){}
     Tuple& Tuple::operator=(Tuple &&rhs){m_elements = std::move(rhs.m_elements); return *this;}
+    
+    bool Tuple::operator==(const sweetPy::Tuple &rhs) const
+    {
+        bool rangeEqual = std::equal(begin(), end(), rhs.begin(), [](Tuple::const_iterator::reference lhs, Tuple::const_iterator::reference rhs){
+            if(lhs.IsInt())
+            {
+                if(rhs.IsInt() == false)
+                    return false;
+                const core::TypedParam<int> &typedElement_lhs = static_cast<const core::TypedParam<int> &>(lhs);
+                const core::TypedParam<int> &typedElement_rhs = static_cast<const core::TypedParam<int> &>(rhs);
+                if(typedElement_lhs.Get<int>() != typedElement_rhs.Get<int>())
+                    return false;
+            }
+            else if(lhs.IsDouble())
+            {
+                if(rhs.IsDouble() == false)
+                    return false;
+                const core::TypedParam<double> &typedElement_lhs = static_cast<const core::TypedParam<double> &>(lhs);
+                const core::TypedParam<double> &typedElement_rhs = static_cast<const core::TypedParam<double> &>(rhs);
+                if(typedElement_lhs.Get<double>() != typedElement_rhs.Get<double>())
+                    return false;
+            }
+            else if(lhs.IsBool())
+            {
+                if(rhs.IsBool() == false)
+                    return false;
+                const core::TypedParam<bool> &typedElement_lhs = static_cast<const core::TypedParam<bool> &>(lhs);
+                const core::TypedParam<bool> &typedElement_rhs = static_cast<const core::TypedParam<bool> &>(rhs);
+                if(typedElement_lhs.Get<bool>() != typedElement_rhs.Get<bool>())
+                    return false;
+            }
+            else if(lhs.IsString())
+            {
+                if(rhs.IsString() == false)
+                    return false;
+                const core::TypedParam<std::string> &typedElement_lhs = static_cast<const core::TypedParam<std::string> &>(lhs);
+                const core::TypedParam<std::string> &typedElement_rhs = static_cast<const core::TypedParam<std::string> &>(rhs);
+                if(typedElement_lhs.Get<std::string>() != typedElement_rhs.Get<std::string>())
+                    return false;
+            }
+            else if(lhs.IsPointer())
+            {
+                if(rhs.IsPointer() == false)
+                    return false;
+                const core::TypedParam<void*> &typedElement_lhs = static_cast<const core::TypedParam<void*> &>(lhs);
+                const core::TypedParam<void*> &typedElement_rhs = static_cast<const core::TypedParam<void*> &>(rhs);
+                if(typedElement_lhs.Get<void*>() != typedElement_rhs.Get<void*>())
+                    return false;
+            }
+            return true;
+        });
+        
+        return rangeEqual && m_converters == rhs.m_converters;
+    }
 
-    void Tuple::AddElement(size_t index, const object_ptr &element)
+    void Tuple::AddElement(const object_ptr &element)
     {
         if(element->ob_type == &PyLong_Type)
             m_elements.emplace_back(new core::TypedParam<int>(Object<int>::FromPython(element.get())));

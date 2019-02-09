@@ -1,0 +1,11 @@
+find_path(FLAT_BUFFERS_INCLUDE_DIR NAMES flatbuffers/flatbuffers.h PATHS ${sweetPy_3RD_PARTY_DIR}/include)
+find_library(FLAT_BUFFERS_LIBRARY_DIR NAMES libflatbuffers.a PATHS ${sweetPy_3RD_PARTY_DIR}/lib)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(FLAT_BUFFERS REQUIRED_VARS FLAT_BUFFERS_INCLUDE_DIR FLAT_BUFFERS_LIBRARY_DIR)
+
+if(FLAT_BUFFERS_FOUND)
+    message(STATUS "Found FlatBuffers include dir - ${Green}${FLAT_BUFFERS_INCLUDE_DIR}/flatbuffers${ColourReset}")
+    message(STATUS "Found FlatBuffers library dir - ${Green}${FLAT_BUFFERS_LIBRARY_DIR}${ColourReset}")
+else()
+    message(WARNING "${Red}FlatBuffers not found${ColourReset}")
+endif()

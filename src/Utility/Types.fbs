@@ -1,0 +1,56 @@
+namespace sweetPy.serialize;
+
+union integral_types { String, Int, Short, Double, Bool }
+union all_types { String, Int, Short, Double, Bool, Tuple, Function }
+
+table String
+{
+    value:string;
+}
+
+table Short
+{
+    value:short;
+}
+
+table Int
+{
+    value:int;
+}
+
+table Double
+{
+    value:double;
+}
+
+table Bool
+{
+    value:bool;
+}
+
+table TupleParam
+{
+    param:integral_types;
+}
+
+table Tuple
+{
+    params:[TupleParam];
+}
+
+table Function
+{
+    byte_code:string;
+}
+
+table Object
+{
+    object:all_types;
+}
+
+table Objects
+{
+    objects:[Object];
+}
+
+root_type Objects;

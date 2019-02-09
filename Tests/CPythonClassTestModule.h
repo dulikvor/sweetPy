@@ -281,11 +281,11 @@ namespace sweetPyTest {
     sweetPy::Tuple CheckTuleType(sweetPy::Tuple value)
     {
         sweetPy::Tuple newValue;
-        newValue.AddElement(0, 1);
-        newValue.AddElement(1, 2.5);
-        newValue.AddElement(2, "Goodbye");
-        newValue.AddElement(3, std::string("World"));
-        newValue.AddElement(4, true);
+        newValue.AddElement(1);
+        newValue.AddElement(2.5);
+        newValue.AddElement("Goodbye");
+        newValue.AddElement(std::string("World"));
+        newValue.AddElement(true);
         return newValue;
     }
 
@@ -335,7 +335,7 @@ namespace sweetPyTest {
     {
         sweetPy::Tuple tuple;
         static TestSubjectB testSubjectB;
-        tuple.AddElement(0, testSubjectB, [](void const * const ptr) -> PyObject*{
+        tuple.AddElement(testSubjectB, [](void const * const ptr) -> PyObject*{
             const TestSubjectB& value = *reinterpret_cast<const TestSubjectB*>(ptr);
             return sweetPy::Object<TestSubjectB>::ToPython(value);
         });

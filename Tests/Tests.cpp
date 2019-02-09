@@ -7,6 +7,8 @@
 #include "PythonEmbedder.h"
 #include "CPythonClassTestModule.h"
 #include "Core/PythonAssist.h"
+#include "Utility/Types_generated.h"
+#include "Utility/Serialize.h"
 
 static int _argc;
 static char **_argv;
@@ -332,72 +334,72 @@ namespace sweetPyTest {
         //Check native type
         sweetPy::Tuple tuple;
         //int
-        tuple.AddElement(0, 5);
+        tuple.AddElement(5);
         ASSERT_EQ(5, tuple.GetElement<int>(0));
         int int_val = 6;
-        tuple.AddElement(1, int_val);
+        tuple.AddElement(int_val);
         ASSERT_EQ(6, tuple.GetElement<int>(1));
         const int const_int_val = 7;
-        tuple.AddElement(2, const_int_val);
+        tuple.AddElement(const_int_val);
         ASSERT_EQ(7, tuple.GetElement<int>(2));
         tuple.Clear();
         //double
-        tuple.AddElement(0, 5.5);
+        tuple.AddElement(5.5);
         ASSERT_EQ(5.5, tuple.GetElement<double>(0));
         double double_val = 6.5;
-        tuple.AddElement(1, double_val);
+        tuple.AddElement(double_val);
         ASSERT_EQ(6.5, tuple.GetElement<double>(1));
         const double const_double_val = 7.5;
-        tuple.AddElement(2, const_double_val);
+        tuple.AddElement(const_double_val);
         ASSERT_EQ(7.5, tuple.GetElement<double>(2));
         tuple.Clear();
         //bool
-        tuple.AddElement(0, true);
+        tuple.AddElement(true);
         ASSERT_EQ(true, tuple.GetElement<bool>(0));
         bool bool_val = false;
-        tuple.AddElement(1, bool_val);
+        tuple.AddElement(bool_val);
         ASSERT_EQ(0, tuple.GetElement<bool>(1));
         const bool const_bool_val = false;
-        tuple.AddElement(2, const_bool_val);
+        tuple.AddElement(const_bool_val);
         ASSERT_EQ(0, tuple.GetElement<bool>(2));
         tuple.Clear();
         //Ctype string
-        tuple.AddElement(0, "A");
+        tuple.AddElement("A");
         ASSERT_EQ("A", tuple.GetElement<std::string>(0));
         const char* cstr_val = "B";
-        tuple.AddElement(1, const_cast<char*>(cstr_val));
+        tuple.AddElement(const_cast<char*>(cstr_val));
         ASSERT_EQ("B", tuple.GetElement<std::string>(1));
         const char* const_cstr_val = "C";
-        tuple.AddElement(2, const_cstr_val);
+        tuple.AddElement(const_cstr_val);
         ASSERT_EQ("C", tuple.GetElement<std::string>(2));
         tuple.Clear();
         //String
-        tuple.AddElement(0, std::string("A"));
+        tuple.AddElement(std::string("A"));
         ASSERT_EQ(std::string("A"), tuple.GetElement<std::string>(0));
         std::string str_val = "B";
-        tuple.AddElement(1, str_val);
+        tuple.AddElement(str_val);
         ASSERT_EQ(std::string("B"), tuple.GetElement<std::string>(1));
         const std::string const_str_val = "C";
-        tuple.AddElement(2, const_str_val);
+        tuple.AddElement(const_str_val);
         ASSERT_EQ(std::string("C"), tuple.GetElement<std::string>(2));
         tuple.Clear();
         //void*
-        tuple.AddElement(0, nullptr);
+        tuple.AddElement(nullptr);
         ASSERT_EQ(nullptr, tuple.GetElement<void*>(0));
         void* ptr_val = nullptr;
-        tuple.AddElement(1, ptr_val);
+        tuple.AddElement(ptr_val);
         ASSERT_EQ(nullptr, tuple.GetElement<void*>(1));
         const void* const_ptr_val = nullptr;
-        tuple.AddElement(2, const_ptr_val);
+        tuple.AddElement(const_ptr_val);
         ASSERT_EQ(nullptr, tuple.GetElement<void*>(2));
         tuple.Clear();
         //Copy constructor
-        tuple.AddElement(0, 5);
-        tuple.AddElement(1, 5.5);
-        tuple.AddElement(2, true);
-        tuple.AddElement(3, "A");
-        tuple.AddElement(4, std::string("B"));
-        tuple.AddElement(5, nullptr);
+        tuple.AddElement(5);
+        tuple.AddElement(5.5);
+        tuple.AddElement(true);
+        tuple.AddElement("A");
+        tuple.AddElement(std::string("B"));
+        tuple.AddElement(nullptr);
         sweetPy::Tuple cpy_tuple(tuple);
         ASSERT_EQ(cpy_tuple.GetElement<int>(0), tuple.GetElement<int>(0));
         ASSERT_EQ(cpy_tuple.GetElement<double>(1), tuple.GetElement<double>(1));
@@ -407,12 +409,12 @@ namespace sweetPyTest {
         ASSERT_EQ(cpy_tuple.GetElement<void*>(5), tuple.GetElement<void*>(5));
         tuple.Clear();
         //Copy assigment
-        tuple.AddElement(0, 5);
-        tuple.AddElement(1, 5.5);
-        tuple.AddElement(2, true);
-        tuple.AddElement(3, "A");
-        tuple.AddElement(4, std::string("B"));
-        tuple.AddElement(5, nullptr);
+        tuple.AddElement(5);
+        tuple.AddElement(5.5);
+        tuple.AddElement(true);
+        tuple.AddElement("A");
+        tuple.AddElement(std::string("B"));
+        tuple.AddElement(nullptr);
         sweetPy::Tuple cpy_assign_tuple;
         cpy_assign_tuple = tuple;
         ASSERT_EQ(cpy_assign_tuple.GetElement<int>(0), tuple.GetElement<int>(0));
@@ -423,12 +425,12 @@ namespace sweetPyTest {
         ASSERT_EQ(cpy_assign_tuple.GetElement<void*>(5), tuple.GetElement<void*>(5));
         tuple.Clear();
         //Move constructor
-        tuple.AddElement(0, 5);
-        tuple.AddElement(1, 5.5);
-        tuple.AddElement(2, true);
-        tuple.AddElement(3, "A");
-        tuple.AddElement(4, std::string("B"));
-        tuple.AddElement(5, nullptr);
+        tuple.AddElement(5);
+        tuple.AddElement(5.5);
+        tuple.AddElement(true);
+        tuple.AddElement("A");
+        tuple.AddElement(std::string("B"));
+        tuple.AddElement(nullptr);
         sweetPy::Tuple mv_tuple(std::move(tuple));
         ASSERT_EQ(mv_tuple.GetElement<int>(0), 5);
         ASSERT_EQ(mv_tuple.GetElement<double>(1), 5.5);
@@ -438,12 +440,12 @@ namespace sweetPyTest {
         ASSERT_EQ(mv_tuple.GetElement<void*>(5), nullptr);
         tuple.Clear();
         //Move assigment
-        tuple.AddElement(0, 5);
-        tuple.AddElement(1, 5.5);
-        tuple.AddElement(2, true);
-        tuple.AddElement(3, "A");
-        tuple.AddElement(4, std::string("B"));
-        tuple.AddElement(5, nullptr);
+        tuple.AddElement(5);
+        tuple.AddElement(5.5);
+        tuple.AddElement(true);
+        tuple.AddElement("A");
+        tuple.AddElement(std::string("B"));
+        tuple.AddElement(nullptr);
         sweetPy::Tuple mv_assign_tuple;
         mv_assign_tuple = std::move(tuple);
         ASSERT_EQ(mv_assign_tuple.GetElement<int>(0), 5);
@@ -733,7 +735,99 @@ namespace sweetPyTest {
         ASSERT_EQ(b_lvalue.m_str, "Hello World");
         ASSERT_EQ(b_lvalue.m_value, 0);
     }
-
+    
+    TEST(CPythonClassTest, Serialize)
+    {
+        const char *testingScript = "int_val = 6\n"
+                                    "double_val = 5.4324213123\n"
+                                    "bool_val = True\n"
+                                    "str_val = 'literal string seems to work'\n"
+                                    "tuple_val = (7, 3.213123, True, 'also tuple works')\n";
+        PyRun_SimpleString(testingScript);
+        auto contextSend = sweetPy::SweetPickleFactory::Instance().CreateContext(sweetPy::SerializeType::FlatBuffers);
+        auto sweetPickleSend = sweetPy::SweetPickleFactory::Instance().Create(sweetPy::SerializeType::FlatBuffers);
+        sweetPickleSend->Write(*contextSend, 5);
+        sweetPickleSend->Write(*contextSend, 7.5313123);
+        sweetPickleSend->Write(*contextSend, true);
+        sweetPickleSend->Write(*contextSend, "its working");
+        sweetPickleSend->Write(*contextSend, std::string("yes it really works"));
+        sweetPy::Tuple tuple;
+        tuple.AddElement(5);
+        tuple.AddElement(5.5);
+        tuple.AddElement(true);
+        tuple.AddElement("A");
+        sweetPickleSend->Write(*contextSend, tuple);
+        sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("int_val"),
+                                                                    &sweetPy::Deleter::Borrow));
+        sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("double_val"),
+                                                                 &sweetPy::Deleter::Borrow));
+        sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("bool_val"),
+                                                                 &sweetPy::Deleter::Borrow));
+        sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("str_val"),
+                                                                 &sweetPy::Deleter::Borrow));
+        sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("tuple_val"),
+                                                                 &sweetPy::Deleter::Borrow));
+    
+        sweetPy::SerializeContext::String buffer = contextSend->Finish(false);
+    
+        auto contextReceive = sweetPy::SweetPickleFactory::Instance().CreateContext(sweetPy::SerializeType::FlatBuffers);
+        auto sweetPickleReceive = sweetPy::SweetPickleFactory::Instance().Create(sweetPy::SerializeType::FlatBuffers);
+        sweetPickleReceive->StartRead(*contextReceive, buffer);
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::Int);
+        int valInt = 0;
+        sweetPickleReceive->Read(valInt);
+        ASSERT_EQ(valInt, 5);
+        
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::Double);
+        double valDouble = 0;
+        sweetPickleReceive->Read(valDouble);
+        ASSERT_EQ(valDouble, 7.5313123);
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::Bool);
+        bool valBool = false;
+        sweetPickleReceive->Read(valBool);
+        ASSERT_EQ(valBool, true);
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::String);
+        std::string valStr;
+        sweetPickleReceive->Read(valStr);
+        ASSERT_EQ(valStr, "its working");
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::String);
+        std::string valStr_2;
+        sweetPickleReceive->Read(valStr_2);
+        ASSERT_EQ(valStr_2, "yes it really works");
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::Tuple);
+        sweetPy::Tuple valTuple;
+        sweetPickleReceive->Read(valTuple);
+        ASSERT_EQ(valTuple, tuple);
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::Int);
+        int valPyInt = 0;
+        sweetPickleReceive->Read(valPyInt);
+        ASSERT_EQ(valPyInt, 6);
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::Double);
+        double valPyDouble = 0;
+        sweetPickleReceive->Read(valPyDouble);
+        ASSERT_EQ(valPyDouble, 5.4324213123);
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::Bool);
+        bool valPyBool = false;
+        sweetPickleReceive->Read(valPyBool);
+        ASSERT_EQ(valPyBool, true);
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::String);
+        std::string valPyStr;
+        sweetPickleReceive->Read(valPyStr);
+        ASSERT_EQ(valPyStr, "literal string seems to work");
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::Tuple);
+        sweetPy::Tuple valPyTuple;
+        sweetPickleReceive->Read(valPyTuple);
+        ASSERT_EQ(valPyTuple, PythonEmbedder::GetAttribute<sweetPy::Tuple>("tuple_val"));
+    }
 }
 
 int main(int argc, char **argv) {
