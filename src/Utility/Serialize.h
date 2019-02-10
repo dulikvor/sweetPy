@@ -28,6 +28,7 @@ namespace sweetPy
         virtual void Write(SerializeContext& context, bool value) const = 0;
         virtual void Write(SerializeContext& context, const Tuple& value) const = 0;
         virtual void StartRead(SerializeContext& context, const SerializeContext::String& buffer) = 0;
+        virtual void StartRead(SerializeContext& context, char* buffer, std::size_t size) = 0;
         virtual void Read(int& value) = 0;
         virtual void Read(double& value) = 0;
         virtual void Read(bool& value) = 0;
@@ -82,6 +83,11 @@ namespace sweetPy
             throw core::Exception(__CORE_SOURCE, "Unsupported method");
         }
     
+        void StartRead(SerializeContext& context, char* buffer, std::size_t size) override
+        {
+            throw core::Exception(__CORE_SOURCE, "Unsupported method");
+        }
+    
         void Read(int& value) override
         {
             throw core::Exception(__CORE_SOURCE, "Unsupported method");
@@ -126,6 +132,7 @@ namespace sweetPy
         void Write(SerializeContext& context, bool value) const override;
         void Write(SerializeContext& context, const Tuple& value) const override;
         void StartRead(SerializeContext& context, const SerializeContext::String& buffer) override;
+        void StartRead(SerializeContext& context, char* buffer, std::size_t size) override;
         void Read(int& value) override;
         void Read(double& value) override;
         void Read(bool& value) override;
@@ -261,6 +268,16 @@ namespace sweetPy
     {
         auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
         m_it.reset(new _Context::const_iterator(flatContext.StartRead(buffer)));
+    }
+    
+    void SweetPickleImpl<SerializeType::FlatBuffers>::StartRead(SerializeContext& context, char* buffer, std::size_t size)
+    {
+        auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
+        static auto _deallocate = [](char*){};
+        SerializeContext::String _buffer(std::make_pair(
+                SerializeContext::_Buffer(buffer, _deallocate),
+                size));
+        m_it.reset(new _Context::const_iterator(flatContext.StartRead(_buffer)));
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::Read(int& value)
