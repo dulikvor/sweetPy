@@ -39,7 +39,7 @@ As of now the list of supported types is narrowed to:
 | -------------   | ------------- |
 | C++ Integral + POD types    | int, short, bool, double, const char*  |
 | C++ standard types            | std::string  |
-| sweetPy types  | Tuple |
+| sweetPy types  | Tuple, List |
 
 any type of C++ value category expressions is supported when provided the to be serialize instances.
 
