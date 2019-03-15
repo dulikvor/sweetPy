@@ -1,39 +1,39 @@
-#include "Tuple.h"
+#include "List.h"
 #include "CPythonObject.h"
 
 namespace sweetPy{
     
-    Tuple::Tuple(PyObject *tuple)
+    List::List(PyObject *list)
     {
-        size_t size = PyTuple_Size(tuple);
+        size_t size = PyList_Size(list);
         for(int idx = 0; idx < size; idx++)
-            AddElement(object_ptr(PyTuple_GetItem(tuple, idx), &Deleter::Borrow));
+            AddElement(object_ptr(PyList_GetItem(list, idx), &Deleter::Borrow));
     }
     
-    Tuple::Tuple(const Tuple &obj)
+    List::List(const List &obj)
             :_Container(obj){}
     
-    Tuple& Tuple::operator=(const Tuple &rhs)
+    List& List::operator=(const List &rhs)
     {
         static_cast<_Container&>(*this) = static_cast<const _Container&>(rhs);
         return *this;
     }
     
-    Tuple::Tuple(Tuple &&obj): _Container(std::move(static_cast<_Container&>(obj))){}
-    Tuple& Tuple::operator=(Tuple &&rhs)
+    List::List(List &&obj) NOEXCEPT(true) : _Container(std::move(static_cast<_Container&>(obj))){}
+    List& List::operator=(List &&rhs) NOEXCEPT(true)
     {
         static_cast<_Container&>(*this) = std::move(static_cast<_Container&>(rhs));
         return *this;
     }
     
-    bool Tuple::operator==(const sweetPy::Tuple &rhs) const
+    bool List::operator==(const sweetPy::List &rhs) const
     {
         return static_cast<const _Container&>(*this) == static_cast<const _Container&>(rhs);
     }
     
-    PyObject* Tuple::ToPython() const
+    PyObject* List::ToPython() const
     {
-        object_ptr tuple(PyTuple_New(m_elements.size()), &Deleter::Owner);
+        object_ptr list(PyList_New(m_elements.size()), &Deleter::Owner);
         for(int idx = 0; idx < m_elements.size(); idx++)
         {
             PyObject* object = nullptr;
@@ -58,8 +58,9 @@ namespace sweetPy{
                     object = Py_None;
                 }
             }
-            PyTuple_SetItem(tuple.get(), idx, object);
+            PyList_SetItem(list.get(), idx, object);
         }
-        return tuple.release();
+        return list.release();
     }
 }
+

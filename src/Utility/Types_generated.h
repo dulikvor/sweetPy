@@ -19,11 +19,13 @@ struct Double;
 
 struct Bool;
 
-struct TupleParam;
+struct ContainerParam;
+
+struct Container;
 
 struct Tuple;
 
-struct Function;
+struct List;
 
 struct Object;
 
@@ -104,13 +106,14 @@ enum class all_types : uint8_t {
   Short = 3,
   Double = 4,
   Bool = 5,
-  Tuple = 6,
-  Function = 7,
+  Container = 6,
+  Tuple = 7,
+  List = 8,
   MIN = NONE,
-  MAX = Function
+  MAX = List
 };
 
-inline const all_types (&EnumValuesall_types())[8] {
+inline const all_types (&EnumValuesall_types())[9] {
   static const all_types values[] = {
     all_types::NONE,
     all_types::String,
@@ -118,8 +121,9 @@ inline const all_types (&EnumValuesall_types())[8] {
     all_types::Short,
     all_types::Double,
     all_types::Bool,
+    all_types::Container,
     all_types::Tuple,
-    all_types::Function
+    all_types::List
   };
   return values;
 }
@@ -132,8 +136,9 @@ inline const char * const *EnumNamesall_types() {
     "Short",
     "Double",
     "Bool",
+    "Container",
     "Tuple",
-    "Function",
+    "List",
     nullptr
   };
   return names;
@@ -168,12 +173,16 @@ template<> struct all_typesTraits<Bool> {
   static const all_types enum_value = all_types::Bool;
 };
 
+template<> struct all_typesTraits<Container> {
+  static const all_types enum_value = all_types::Container;
+};
+
 template<> struct all_typesTraits<Tuple> {
   static const all_types enum_value = all_types::Tuple;
 };
 
-template<> struct all_typesTraits<Function> {
-  static const all_types enum_value = all_types::Function;
+template<> struct all_typesTraits<List> {
+  static const all_types enum_value = all_types::List;
 };
 
 bool Verifyall_types(flatbuffers::Verifier &verifier, const void *obj, all_types type);
@@ -388,7 +397,7 @@ inline flatbuffers::Offset<Bool> CreateBool(
   return builder_.Finish();
 }
 
-struct TupleParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct ContainerParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_PARAM_TYPE = 4,
     VT_PARAM = 6
@@ -424,63 +433,63 @@ struct TupleParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const String *TupleParam::param_as<String>() const {
+template<> inline const String *ContainerParam::param_as<String>() const {
   return param_as_String();
 }
 
-template<> inline const Int *TupleParam::param_as<Int>() const {
+template<> inline const Int *ContainerParam::param_as<Int>() const {
   return param_as_Int();
 }
 
-template<> inline const Short *TupleParam::param_as<Short>() const {
+template<> inline const Short *ContainerParam::param_as<Short>() const {
   return param_as_Short();
 }
 
-template<> inline const Double *TupleParam::param_as<Double>() const {
+template<> inline const Double *ContainerParam::param_as<Double>() const {
   return param_as_Double();
 }
 
-template<> inline const Bool *TupleParam::param_as<Bool>() const {
+template<> inline const Bool *ContainerParam::param_as<Bool>() const {
   return param_as_Bool();
 }
 
-struct TupleParamBuilder {
+struct ContainerParamBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_param_type(integral_types param_type) {
-    fbb_.AddElement<uint8_t>(TupleParam::VT_PARAM_TYPE, static_cast<uint8_t>(param_type), 0);
+    fbb_.AddElement<uint8_t>(ContainerParam::VT_PARAM_TYPE, static_cast<uint8_t>(param_type), 0);
   }
   void add_param(flatbuffers::Offset<void> param) {
-    fbb_.AddOffset(TupleParam::VT_PARAM, param);
+    fbb_.AddOffset(ContainerParam::VT_PARAM, param);
   }
-  explicit TupleParamBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ContainerParamBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  TupleParamBuilder &operator=(const TupleParamBuilder &);
-  flatbuffers::Offset<TupleParam> Finish() {
+  ContainerParamBuilder &operator=(const ContainerParamBuilder &);
+  flatbuffers::Offset<ContainerParam> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<TupleParam>(end);
+    auto o = flatbuffers::Offset<ContainerParam>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<TupleParam> CreateTupleParam(
+inline flatbuffers::Offset<ContainerParam> CreateContainerParam(
     flatbuffers::FlatBufferBuilder &_fbb,
     integral_types param_type = integral_types::NONE,
     flatbuffers::Offset<void> param = 0) {
-  TupleParamBuilder builder_(_fbb);
+  ContainerParamBuilder builder_(_fbb);
   builder_.add_param(param);
   builder_.add_param_type(param_type);
   return builder_.Finish();
 }
 
-struct Tuple FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct Container FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_PARAMS = 4
   };
-  const flatbuffers::Vector<flatbuffers::Offset<TupleParam>> *params() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<TupleParam>> *>(VT_PARAMS);
+  const flatbuffers::Vector<flatbuffers::Offset<ContainerParam>> *params() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<ContainerParam>> *>(VT_PARAMS);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -491,11 +500,60 @@ struct Tuple FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
+struct ContainerBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_params(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ContainerParam>>> params) {
+    fbb_.AddOffset(Container::VT_PARAMS, params);
+  }
+  explicit ContainerBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  ContainerBuilder &operator=(const ContainerBuilder &);
+  flatbuffers::Offset<Container> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Container>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Container> CreateContainer(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<ContainerParam>>> params = 0) {
+  ContainerBuilder builder_(_fbb);
+  builder_.add_params(params);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Container> CreateContainerDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<flatbuffers::Offset<ContainerParam>> *params = nullptr) {
+  return sweetPy::serialize::CreateContainer(
+      _fbb,
+      params ? _fbb.CreateVector<flatbuffers::Offset<ContainerParam>>(*params) : 0);
+}
+
+struct Tuple FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_VALUE = 4
+  };
+  const Container *value() const {
+    return GetPointer<const Container *>(VT_VALUE);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VALUE) &&
+           verifier.VerifyTable(value()) &&
+           verifier.EndTable();
+  }
+};
+
 struct TupleBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_params(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<TupleParam>>> params) {
-    fbb_.AddOffset(Tuple::VT_PARAMS, params);
+  void add_value(flatbuffers::Offset<Container> value) {
+    fbb_.AddOffset(Tuple::VT_VALUE, value);
   }
   explicit TupleBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -511,67 +569,51 @@ struct TupleBuilder {
 
 inline flatbuffers::Offset<Tuple> CreateTuple(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<TupleParam>>> params = 0) {
+    flatbuffers::Offset<Container> value = 0) {
   TupleBuilder builder_(_fbb);
-  builder_.add_params(params);
+  builder_.add_value(value);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Tuple> CreateTupleDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<TupleParam>> *params = nullptr) {
-  return sweetPy::serialize::CreateTuple(
-      _fbb,
-      params ? _fbb.CreateVector<flatbuffers::Offset<TupleParam>>(*params) : 0);
-}
-
-struct Function FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct List FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
-    VT_BYTE_CODE = 4
+    VT_VALUE = 4
   };
-  const flatbuffers::String *byte_code() const {
-    return GetPointer<const flatbuffers::String *>(VT_BYTE_CODE);
+  const Container *value() const {
+    return GetPointer<const Container *>(VT_VALUE);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
-           VerifyOffset(verifier, VT_BYTE_CODE) &&
-           verifier.VerifyString(byte_code()) &&
+           VerifyOffset(verifier, VT_VALUE) &&
+           verifier.VerifyTable(value()) &&
            verifier.EndTable();
   }
 };
 
-struct FunctionBuilder {
+struct ListBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_byte_code(flatbuffers::Offset<flatbuffers::String> byte_code) {
-    fbb_.AddOffset(Function::VT_BYTE_CODE, byte_code);
+  void add_value(flatbuffers::Offset<Container> value) {
+    fbb_.AddOffset(List::VT_VALUE, value);
   }
-  explicit FunctionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit ListBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  FunctionBuilder &operator=(const FunctionBuilder &);
-  flatbuffers::Offset<Function> Finish() {
+  ListBuilder &operator=(const ListBuilder &);
+  flatbuffers::Offset<List> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Function>(end);
+    auto o = flatbuffers::Offset<List>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<Function> CreateFunction(
+inline flatbuffers::Offset<List> CreateList(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::String> byte_code = 0) {
-  FunctionBuilder builder_(_fbb);
-  builder_.add_byte_code(byte_code);
+    flatbuffers::Offset<Container> value = 0) {
+  ListBuilder builder_(_fbb);
+  builder_.add_value(value);
   return builder_.Finish();
-}
-
-inline flatbuffers::Offset<Function> CreateFunctionDirect(
-    flatbuffers::FlatBufferBuilder &_fbb,
-    const char *byte_code = nullptr) {
-  return sweetPy::serialize::CreateFunction(
-      _fbb,
-      byte_code ? _fbb.CreateString(byte_code) : 0);
 }
 
 struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -601,11 +643,14 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const Bool *object_as_Bool() const {
     return object_type() == all_types::Bool ? static_cast<const Bool *>(object()) : nullptr;
   }
+  const Container *object_as_Container() const {
+    return object_type() == all_types::Container ? static_cast<const Container *>(object()) : nullptr;
+  }
   const Tuple *object_as_Tuple() const {
     return object_type() == all_types::Tuple ? static_cast<const Tuple *>(object()) : nullptr;
   }
-  const Function *object_as_Function() const {
-    return object_type() == all_types::Function ? static_cast<const Function *>(object()) : nullptr;
+  const List *object_as_List() const {
+    return object_type() == all_types::List ? static_cast<const List *>(object()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -636,12 +681,16 @@ template<> inline const Bool *Object::object_as<Bool>() const {
   return object_as_Bool();
 }
 
+template<> inline const Container *Object::object_as<Container>() const {
+  return object_as_Container();
+}
+
 template<> inline const Tuple *Object::object_as<Tuple>() const {
   return object_as_Tuple();
 }
 
-template<> inline const Function *Object::object_as<Function>() const {
-  return object_as_Function();
+template<> inline const List *Object::object_as<List>() const {
+  return object_as_List();
 }
 
 struct ObjectBuilder {
@@ -791,12 +840,16 @@ inline bool Verifyall_types(flatbuffers::Verifier &verifier, const void *obj, al
       auto ptr = reinterpret_cast<const Bool *>(obj);
       return verifier.VerifyTable(ptr);
     }
+    case all_types::Container: {
+      auto ptr = reinterpret_cast<const Container *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
     case all_types::Tuple: {
       auto ptr = reinterpret_cast<const Tuple *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case all_types::Function: {
-      auto ptr = reinterpret_cast<const Function *>(obj);
+    case all_types::List: {
+      auto ptr = reinterpret_cast<const List *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return false;

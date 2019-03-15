@@ -457,6 +457,194 @@ namespace sweetPyTest {
         tuple.Clear();
     }
     
+    TEST(CPythonClassTest, CPythonObjectCheckListType)
+    {
+        
+        const char *testingScript = "from datetime import timedelta\n"
+                                    //List
+                                    "listArgument = [1, 1.2, 'hello', True]\n"
+                                    "listReturn = TestModule.check_list_conversion(listArgument) #list -> List\n"
+                                    "listConstRefGenerator = TestModule.GenerateListConstRef()\n"
+                                    "listArgument_2 = [5, 7.2]\n"
+                                    "listConstRefObject = listConstRefGenerator.create(listArgument_2)\n"
+                                    "listReturn_2 = TestModule.check_list_conversion(listConstRefObject) #const List& -> List\n"
+                                    //const List&
+                                    "listArgument_3 = [False, 'to all']\n"
+                                    "listReturn_3 = TestModule.check_const_ref_list_conversion(listArgument_3) #list -> const List&\n"
+                                    "listArgument_4 = [None,]\n"
+                                    "listConstRefObject_2 = listConstRefGenerator.create(listArgument_4)\n"
+                                    "listReturn_4 = TestModule.check_const_ref_list_conversion(listConstRefObject_2) #const List& -> const List&\n"
+                                    //Transformation of non supported type element into python representation
+                                    "listReturn_5 = TestModule.generate_native_element_list()\n"
+                                    "value = listReturn_5[0]";
+        
+        PyRun_SimpleString(testingScript);
+        //List
+        sweetPy::List listArgument = PythonEmbedder::GetAttribute<sweetPy::List>("listReturn");
+        ASSERT_EQ(1, listArgument.GetElement<int>(0));
+        ASSERT_EQ(2.5, listArgument.GetElement<double>(1));
+        ASSERT_EQ(std::string("Goodbye"), listArgument.GetElement<std::string>(2));
+        ASSERT_EQ(std::string("World"), listArgument.GetElement<std::string>(3));
+        ASSERT_EQ(true, listArgument.GetElement<bool>(4));
+        
+        const sweetPy::List& listConstRefObject = PythonEmbedder::GetAttribute<const sweetPy::List&>("listConstRefObject");
+        ASSERT_EQ(5, listConstRefObject.GetElement<int>(0));
+        ASSERT_EQ(7.2, listConstRefObject.GetElement<double>(1));
+        
+        sweetPy::List listReturn_2 = PythonEmbedder::GetAttribute<sweetPy::List>("listReturn_2");
+        ASSERT_EQ(1, listReturn_2.GetElement<int>(0));
+        ASSERT_EQ(2.5, listReturn_2.GetElement<double>(1));
+        ASSERT_EQ(std::string("Goodbye"), listReturn_2.GetElement<std::string>(2));
+        ASSERT_EQ(std::string("World"), listReturn_2.GetElement<std::string>(3));
+        ASSERT_EQ(true, listReturn_2.GetElement<bool>(4));
+        //const List&
+        sweetPy::List listArgument_3 = PythonEmbedder::GetAttribute<sweetPy::List>("listArgument_3");
+        ASSERT_EQ(0, listArgument_3.GetElement<bool>(0));
+        ASSERT_EQ(std::string("to all"), listArgument_3.GetElement<std::string>(1));
+        
+        const sweetPy::List& listReturn_3 = PythonEmbedder::GetAttribute<const sweetPy::List&>("listReturn_3");
+        ASSERT_EQ(0, listReturn_3.GetElement<bool>(0));
+        ASSERT_EQ(std::string("to all"), listReturn_3.GetElement<std::string>(1));
+        
+        sweetPy::List listArgument_4 = PythonEmbedder::GetAttribute<sweetPy::List>("listArgument_4");
+        ASSERT_EQ(nullptr, listArgument_4.GetElement<void*>(0));
+        
+        const sweetPy::List& listConstRefObject_2 = PythonEmbedder::GetAttribute<const sweetPy::List&>("listConstRefObject_2");
+        ASSERT_EQ(nullptr, listConstRefObject_2.GetElement<void*>(0));
+        
+        const sweetPy::List& listReturn_4 = PythonEmbedder::GetAttribute<const sweetPy::List&>("listReturn_4");
+        ASSERT_EQ(nullptr, listReturn_4.GetElement<void*>(0));
+        //Transformation of non supported type element into python representation
+        TestSubjectB& value = PythonEmbedder::GetAttribute<TestSubjectB&>("value");
+        ASSERT_EQ(value.GetValue(), 0);
+        ASSERT_EQ(value.GetStr(), "Hello World");
+        
+        //Check native type
+        sweetPy::List list;
+        //int
+        list.AddElement(5);
+        ASSERT_EQ(5, list.GetElement<int>(0));
+        int int_val = 6;
+        list.AddElement(int_val);
+        ASSERT_EQ(6, list.GetElement<int>(1));
+        const int const_int_val = 7;
+        list.AddElement(const_int_val);
+        ASSERT_EQ(7, list.GetElement<int>(2));
+        list.Clear();
+        //double
+        list.AddElement(5.5);
+        ASSERT_EQ(5.5, list.GetElement<double>(0));
+        double double_val = 6.5;
+        list.AddElement(double_val);
+        ASSERT_EQ(6.5, list.GetElement<double>(1));
+        const double const_double_val = 7.5;
+        list.AddElement(const_double_val);
+        ASSERT_EQ(7.5, list.GetElement<double>(2));
+        list.Clear();
+        //bool
+        list.AddElement(true);
+        ASSERT_EQ(true, list.GetElement<bool>(0));
+        bool bool_val = false;
+        list.AddElement(bool_val);
+        ASSERT_EQ(0, list.GetElement<bool>(1));
+        const bool const_bool_val = false;
+        list.AddElement(const_bool_val);
+        ASSERT_EQ(0, list.GetElement<bool>(2));
+        list.Clear();
+        //Ctype string
+        list.AddElement("A");
+        ASSERT_EQ("A", list.GetElement<std::string>(0));
+        const char* cstr_val = "B";
+        list.AddElement(const_cast<char*>(cstr_val));
+        ASSERT_EQ("B", list.GetElement<std::string>(1));
+        const char* const_cstr_val = "C";
+        list.AddElement(const_cstr_val);
+        ASSERT_EQ("C", list.GetElement<std::string>(2));
+        list.Clear();
+        //String
+        list.AddElement(std::string("A"));
+        ASSERT_EQ(std::string("A"), list.GetElement<std::string>(0));
+        std::string str_val = "B";
+        list.AddElement(str_val);
+        ASSERT_EQ(std::string("B"), list.GetElement<std::string>(1));
+        const std::string const_str_val = "C";
+        list.AddElement(const_str_val);
+        ASSERT_EQ(std::string("C"), list.GetElement<std::string>(2));
+        list.Clear();
+        //void*
+        list.AddElement(nullptr);
+        ASSERT_EQ(nullptr, list.GetElement<void*>(0));
+        void* ptr_val = nullptr;
+        list.AddElement(ptr_val);
+        ASSERT_EQ(nullptr, list.GetElement<void*>(1));
+        const void* const_ptr_val = nullptr;
+        list.AddElement(const_ptr_val);
+        ASSERT_EQ(nullptr, list.GetElement<void*>(2));
+        list.Clear();
+        //Copy constructor
+        list.AddElement(5);
+        list.AddElement(5.5);
+        list.AddElement(true);
+        list.AddElement("A");
+        list.AddElement(std::string("B"));
+        list.AddElement(nullptr);
+        sweetPy::List cpy_list(list);
+        ASSERT_EQ(cpy_list.GetElement<int>(0), list.GetElement<int>(0));
+        ASSERT_EQ(cpy_list.GetElement<double>(1), list.GetElement<double>(1));
+        ASSERT_EQ(cpy_list.GetElement<bool>(2), list.GetElement<bool>(2));
+        ASSERT_EQ(cpy_list.GetElement<std::string>(3), list.GetElement<std::string>(3));
+        ASSERT_EQ(cpy_list.GetElement<std::string>(4), list.GetElement<std::string>(4));
+        ASSERT_EQ(cpy_list.GetElement<void*>(5), list.GetElement<void*>(5));
+        list.Clear();
+        //Copy assigment
+        list.AddElement(5);
+        list.AddElement(5.5);
+        list.AddElement(true);
+        list.AddElement("A");
+        list.AddElement(std::string("B"));
+        list.AddElement(nullptr);
+        sweetPy::List cpy_assign_list;
+        cpy_assign_list = list;
+        ASSERT_EQ(cpy_assign_list.GetElement<int>(0), list.GetElement<int>(0));
+        ASSERT_EQ(cpy_assign_list.GetElement<double>(1), list.GetElement<double>(1));
+        ASSERT_EQ(cpy_assign_list.GetElement<bool>(2), list.GetElement<bool>(2));
+        ASSERT_EQ(cpy_assign_list.GetElement<std::string>(3), list.GetElement<std::string>(3));
+        ASSERT_EQ(cpy_assign_list.GetElement<std::string>(4), list.GetElement<std::string>(4));
+        ASSERT_EQ(cpy_assign_list.GetElement<void*>(5), list.GetElement<void*>(5));
+        list.Clear();
+        //Move constructor
+        list.AddElement(5);
+        list.AddElement(5.5);
+        list.AddElement(true);
+        list.AddElement("A");
+        list.AddElement(std::string("B"));
+        list.AddElement(nullptr);
+        sweetPy::List mv_list(std::move(list));
+        ASSERT_EQ(mv_list.GetElement<int>(0), 5);
+        ASSERT_EQ(mv_list.GetElement<double>(1), 5.5);
+        ASSERT_EQ(mv_list.GetElement<bool>(2), true);
+        ASSERT_EQ(mv_list.GetElement<std::string>(3), std::string("A"));
+        ASSERT_EQ(mv_list.GetElement<std::string>(4), std::string("B"));
+        ASSERT_EQ(mv_list.GetElement<void*>(5), nullptr);
+        list.Clear();
+        //Move assigment
+        list.AddElement(5);
+        list.AddElement(5.5);
+        list.AddElement(true);
+        list.AddElement("A");
+        list.AddElement(std::string("B"));
+        list.AddElement(nullptr);
+        sweetPy::List mv_assign_list;
+        mv_assign_list = std::move(list);
+        ASSERT_EQ(mv_assign_list.GetElement<int>(0), 5);
+        ASSERT_EQ(mv_assign_list.GetElement<double>(1), 5.5);
+        ASSERT_EQ(mv_assign_list.GetElement<bool>(2), true);
+        ASSERT_EQ(mv_assign_list.GetElement<std::string>(3), std::string("A"));
+        ASSERT_EQ(mv_assign_list.GetElement<std::string>(4), std::string("B"));
+        ASSERT_EQ(mv_assign_list.GetElement<void*>(5), nullptr);
+        list.Clear();
+    }
+    
     TEST(CPythonClassTest, CPythonObjectCheckAsciiStringType)
     {
         const char *testingScript = "unicodeArgument = 'Hello World'\n"
@@ -742,7 +930,8 @@ namespace sweetPyTest {
                                     "double_val = 5.4324213123\n"
                                     "bool_val = True\n"
                                     "str_val = 'literal string seems to work'\n"
-                                    "tuple_val = (7, 3.213123, True, 'also tuple works')\n";
+                                    "tuple_val = (7, 3.213123, True, 'also tuple works')\n"
+                                    "list_val = [7, 3.213123, True, 'also tuple works']\n";
         PyRun_SimpleString(testingScript);
         auto contextSend = sweetPy::SweetPickleFactory::Instance().CreateContext(sweetPy::SerializeType::FlatBuffers);
         auto sweetPickleSend = sweetPy::SweetPickleFactory::Instance().Create(sweetPy::SerializeType::FlatBuffers);
@@ -757,6 +946,12 @@ namespace sweetPyTest {
         tuple.AddElement(true);
         tuple.AddElement("A");
         sweetPickleSend->Write(*contextSend, tuple);
+        sweetPy::List list;
+        list.AddElement(5);
+        list.AddElement(5.5);
+        list.AddElement(true);
+        list.AddElement("A");
+        sweetPickleSend->Write(*contextSend, list);
         sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("int_val"),
                                                                     &sweetPy::Deleter::Borrow));
         sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("double_val"),
@@ -766,6 +961,8 @@ namespace sweetPyTest {
         sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("str_val"),
                                                                  &sweetPy::Deleter::Borrow));
         sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("tuple_val"),
+                                                                 &sweetPy::Deleter::Borrow));
+        sweetPickleSend->Write(*contextSend, sweetPy::object_ptr(PythonEmbedder::GetAttribute<PyObject*>("list_val"),
                                                                  &sweetPy::Deleter::Borrow));
     
         sweetPy::SerializeContext::String buffer = contextSend->Finish(false);
@@ -803,6 +1000,11 @@ namespace sweetPyTest {
         sweetPickleReceive->Read(valTuple);
         ASSERT_EQ(valTuple, tuple);
     
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::List);
+        sweetPy::List valList;
+        sweetPickleReceive->Read(valList);
+        ASSERT_EQ(valList, list);
+    
         ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::Int);
         int valPyInt = 0;
         sweetPickleReceive->Read(valPyInt);
@@ -827,6 +1029,11 @@ namespace sweetPyTest {
         sweetPy::Tuple valPyTuple;
         sweetPickleReceive->Read(valPyTuple);
         ASSERT_EQ(valPyTuple, PythonEmbedder::GetAttribute<sweetPy::Tuple>("tuple_val"));
+    
+        ASSERT_EQ(sweetPickleReceive->GetType(), sweetPy::serialize::all_types::List);
+        sweetPy::List valPyList;
+        sweetPickleReceive->Read(valPyList);
+        ASSERT_EQ(valPyList, PythonEmbedder::GetAttribute<sweetPy::List>("list_val"));
     }
 }
 
