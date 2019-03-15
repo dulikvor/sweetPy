@@ -10,6 +10,7 @@
 #include "Types/DateTime.h"
 #include "Types/TimeDelta.h"
 #include "Types/Tuple.h"
+#include "Types/List.h"
 #include "Types/AsciiString.h"
 #include "CPythonObject.h"
 
@@ -297,6 +298,25 @@ namespace sweetPyTest {
         return values.back();
     }
     
+    sweetPy::List CheckListType(sweetPy::List value)
+    {
+        sweetPy::List newValue;
+        newValue.AddElement(1);
+        newValue.AddElement(2.5);
+        newValue.AddElement("Goodbye");
+        newValue.AddElement(std::string("World"));
+        newValue.AddElement(true);
+        return newValue;
+    }
+    
+    const sweetPy::List& CheckConstRefListType(const sweetPy::List& value)
+    {
+        static std::vector<sweetPy::List> values;
+        values.reserve(100);
+        values.push_back(value);
+        return values.back();
+    }
+    
     sweetPy::AsciiString CheckAsciiStringType(sweetPy::AsciiString value)
     {
         sweetPy::AsciiString newValue("Babylon 5 Rulezzzzz!");
@@ -340,6 +360,17 @@ namespace sweetPyTest {
             return sweetPy::Object<TestSubjectB>::ToPython(value);
         });
         return tuple;
+    }
+    
+    sweetPy::List GenerateNativeElementList()
+    {
+        sweetPy::List list;
+        static TestSubjectB testSubjectB;
+        list.AddElement(testSubjectB, [](void const * const ptr) -> PyObject*{
+            const TestSubjectB& value = *reinterpret_cast<const TestSubjectB*>(ptr);
+            return sweetPy::Object<TestSubjectB>::ToPython(value);
+        });
+        return list;
     }
     
     PyObject* CheckIntegralPyObjectType(PyObject* value){ return value; }

@@ -22,6 +22,7 @@ namespace sweetPy
         template<> struct TypeToTypeId<serialize::Double> : std::integral_constant<serialize::all_types, serialize::all_types::Double>{};
         template<> struct TypeToTypeId<serialize::String> : std::integral_constant<serialize::all_types, serialize::all_types::String>{};
         template<> struct TypeToTypeId<serialize::Tuple> : std::integral_constant<serialize::all_types, serialize::all_types::Tuple>{};
+        template<> struct TypeToTypeId<serialize::List> : std::integral_constant<serialize::all_types, serialize::all_types::List>{};
     }
     
     class SerializeContext
@@ -77,7 +78,7 @@ namespace sweetPy
                     _Buffer(_ptr, shallowCopy ? [](char*){} : &deallocate),
                     _size
             ));
-            return std::move(ret);
+            return ret;
         }
         
     private:
@@ -90,11 +91,23 @@ namespace sweetPy
         class Object
         {
         public:
-            template<typename T> const T& Get() const
+            template<typename T>
+            typename std::enable_if<std::is_same<serialize::Container,
+                typename std::decay<T>::type>::value == false, const T&>::type Get() const
             {
                 if(m_object == nullptr || m_object->object_type() != flat_traits::TypeToTypeId<T>::value)
                     throw core::Exception(__CORE_SOURCE, "Requested type dosen't match");
                 return *reinterpret_cast<T const *>(m_object->object());
+            }
+    
+            template<typename T>
+            typename std::enable_if<std::is_same<serialize::Container,
+                    typename std::decay<T>::type>::value, const T&>::type Get() const
+            {
+                if(m_object == nullptr || (m_object->object_type() != flat_traits::TypeToTypeId<serialize::Tuple>::value
+                 && m_object->object_type() != flat_traits::TypeToTypeId<serialize::List>::value))
+                    throw core::Exception(__CORE_SOURCE, "Requested type dosen't match");
+                return *reinterpret_cast<serialize::Container const *>(m_object->object());
             }
             
             serialize::all_types GetType() const

@@ -15,6 +15,7 @@
 #include "Types/TimeDelta.h"
 #include "Types/DateTime.h"
 #include "Types/Tuple.h"
+#include "Types/List.h"
 #include "Types/AsciiString.h"
 #include "Core/Exception.h"
 #include "Core/Traits.h"
@@ -1868,6 +1869,105 @@ namespace sweetPy{
     };
     
     template<>
+    struct Object<List>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef List Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        
+        static List GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(PyList_Check(object))
+            {
+                new(toBuffer)List(object);
+                return *reinterpret_cast<List*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const List>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<const List>* refObject = reinterpret_cast<CPythonRefObject<const List>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "List can only originates from tuple object and ref List object");
+        }
+        
+        static List FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(PyList_Check(object))
+            {
+                return List(object);
+            }
+            else if(CPythonRef<>::IsReferenceType<const List>(object))
+            {
+                CPythonRefObject<const List>* refObject = reinterpret_cast<CPythonRefObject<const List>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "List can only originates from tuple object and ref List object");
+        }
+        
+        static PyObject* ToPython(const List& data)
+        {
+            return data.ToPython();
+        }
+    };
+    
+    template<>
+    struct Object<const List&>
+    {
+    public:
+        typedef PyObject* FromPythonType;
+        typedef List Type;
+        static constexpr const char *Format = "O";
+        static const bool IsSimpleObjectType = false;
+        
+        static const List& GetTyped(char* fromBuffer, char* toBuffer)
+        {
+            static_assert(sizeof(Type) >= sizeof(std::uint32_t), "Not enough space to initialize magic word");
+            PyObject* object = *(PyObject**)fromBuffer;
+            if(PyList_Check(object))
+            {
+                new(toBuffer)List(object);
+                return *reinterpret_cast<List*>(toBuffer);
+            }
+            else if(CPythonRef<>::IsReferenceType<const List>(object))
+            {
+                new(toBuffer)std::uint32_t(MAGIC_WORD);
+                CPythonRefObject<const List>* refObject = reinterpret_cast<CPythonRefObject<const List>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "List can only originates from ref const List type or tuple object");
+        }
+        
+        static const List& FromPython(PyObject* object)
+        {
+            GilLock lock;
+            if(CPythonRef<>::IsReferenceType<const List>(object))
+            {
+                CPythonRefObject<const List>* refObject = reinterpret_cast<CPythonRefObject<const List>*>(object + 1);
+                return refObject->GetRef();
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "List can only originates from ref const List type");
+        }
+        
+        static PyObject* ToPython(const List& data)
+        {
+            size_t key = CPyModuleContainer::TypeHash<CPythonRefType<const List>>();
+            auto& container = CPyModuleContainer::Instance();
+            PyTypeObject* type = container.Exists(key) ? container.GetType(key) : &CPythonRef<>::GetStaticType();
+            return CPythonRef<>::Alloc(type, data);
+        }
+    };
+    
+    template<>
     struct Object<AsciiString>
     {
     public:
@@ -2500,6 +2600,31 @@ namespace sweetPy{
             static std::string name = "const_tuple_ref";
             if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const Tuple>>()))
                 CPythonRef<const Tuple>(module, name, name);
+            return nullptr;
+        }
+        template<typename... Args>
+        static void MultiInvoker(Args&&...){}
+        static void* Destructor(char* buffer)
+        {
+            if(*reinterpret_cast<std::uint32_t*>(buffer) != MAGIC_WORD)
+            {
+                Type* typedPtr = reinterpret_cast<Type*>(buffer);
+                typedPtr->~Type();
+            }
+            return nullptr;
+        }
+    };
+    
+    template<std::size_t I>
+    struct ObjectWrapper<const List&, I>
+    {
+        typedef typename Object<const List&>::FromPythonType FromPythonType;
+        typedef typename Object<const List&>::Type Type;
+        static void* AllocateType(CPythonModule& module)
+        {
+            static std::string name = "const_list_ref";
+            if(!CPyModuleContainer::Instance().Exists(CPyModuleContainer::TypeHash<CPythonRefType<const List>>()))
+                CPythonRef<const List>(module, name, name);
             return nullptr;
         }
         template<typename... Args>
