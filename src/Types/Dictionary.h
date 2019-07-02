@@ -1,9 +1,11 @@
 #include <Python.h>
 #include <unordered_map>
+#include <type_traits>
 #include <core/Exception.h>
 #include "../Core/Deleter.h"
 #include "../Core/Assert.h"
 #include "../Core/Exception.h"
+#include "../Core/Traits.h"
 
 namespace sweetPy{
     class Dictionary
@@ -36,6 +38,10 @@ namespace sweetPy{
                 throw core::Exception(__CORE_SOURCE, "key was not found");
             return Object<Value>::from_python(object.get());
         }
+        void clear()
+        {
+            PyDict_Clear(m_dict.get());
+        }
         class ElementValue
         {
         public:
@@ -47,12 +53,12 @@ namespace sweetPy{
                 m_value = std::move(value);
                 return *this;
             }
-            template<typename Value>
+            template<typename Value, typename = enable_if_t<std::is_copy_constructible<Value>::value>>
             Value get() const
             {
                 return Object<Value>::from_python(m_value.get());
             }
-            template<typename Value>
+            template<typename Value, typename = enable_if_t<std::is_copy_constructible<Value>::value>>
             operator Value()
             {
                 return Object<Value>::from_python(m_value.get());
@@ -73,7 +79,7 @@ namespace sweetPy{
                 PyDict_Next(const_cast<PyObject *>(m_dict), &m_pos, &key, &value);
                 m_value = ObjectPtr(value, &Deleter::Borrow);
             }
-            iterator& operator++(int)
+            iterator& operator++()
             {
                 PyObject *key, *value;
                 PyDict_Next(const_cast<PyObject *>(m_dict), &m_pos, &key, &value);

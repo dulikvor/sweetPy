@@ -374,7 +374,7 @@ namespace sweetPy {
             }
     
             ObjectPtr capsule(PyTuple_GET_ITEM(self, 0), &Deleter::Borrow);
-            MetaClass& meta = *(MetaClass*)PyCapsule_GetContext(capsule.get());
+            MetaClass& meta = *reinterpret_cast<MetaClass*>(PyCapsule_GetContext(capsule.get()));
             ObjectPtr hash_code(PyTuple_GET_ITEM(self, 1), &Deleter::Borrow);
             unsigned long typed_hash_code = PyLong_AsUnsignedLong(hash_code.get());
             
@@ -410,7 +410,7 @@ namespace sweetPy {
             }
     
             ObjectPtr capsule(PyTuple_GET_ITEM(self, 0), &Deleter::Borrow);
-            MetaClass& meta = *(MetaClass*)PyCapsule_GetContext(capsule.get());
+            MetaClass& meta = *reinterpret_cast<MetaClass*>(PyCapsule_GetContext(capsule.get()));
             ObjectPtr hash_code(PyTuple_GET_ITEM(self, 1), &Deleter::Borrow);
             unsigned long typed_hash_code = PyLong_AsUnsignedLong(hash_code.get());
     
@@ -506,11 +506,11 @@ namespace sweetPy {
                         ObjectWrapper<Args, I>...>::value)...), "Invalid argument was provided");
             }
     
-            ObjectPtr contextPtr(PyTuple_GET_ITEM(self, 0), &Deleter::Borrow);
+            ObjectPtr contextCapsule(PyTuple_GET_ITEM(self, 0), &Deleter::Borrow);
             ObjectPtr hash_code(PyTuple_GET_ITEM(self, 1), &Deleter::Borrow);
             unsigned long typed_hash_code = PyLong_AsUnsignedLong(hash_code.get());
     
-            auto& context = *static_cast<ModuleContext*>(contextPtr.get());
+            auto& context = *reinterpret_cast<ModuleContext*>(PyCapsule_GetPointer(contextCapsule.get(), nullptr));
             context.get_function(typed_hash_code);
     
             Function& function = context.get_function(typed_hash_code);
@@ -543,11 +543,11 @@ namespace sweetPy {
                         ObjectWrapper<Args, I>...>::value)...), "Invalid argument was provided");
             }
     
-            ObjectPtr contextPtr(PyTuple_GET_ITEM(self, 0), &Deleter::Borrow);
+            ObjectPtr contextCapsule(PyTuple_GET_ITEM(self, 0), &Deleter::Borrow);
             ObjectPtr hash_code(PyTuple_GET_ITEM(self, 1), &Deleter::Borrow);
             unsigned long typed_hash_code = PyLong_AsUnsignedLong(hash_code.get());
     
-            auto& context = *static_cast<ModuleContext*>(contextPtr.get());
+            auto& context = *reinterpret_cast<ModuleContext*>(PyCapsule_GetPointer(contextCapsule.get(), nullptr));
             context.get_function(typed_hash_code);
     
             Function& function = context.get_function(typed_hash_code);

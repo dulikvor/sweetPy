@@ -21,14 +21,14 @@ namespace sweetPy {
             : CPythonType(name, doc, 0, &meta_free), m_context(new ClazzContext())
         {
             ht_type.ob_base.ob_base.ob_type = &PyType_Type;
-            ht_type.ob_base.ob_base.ob_refcnt = 1;
+            ht_type.ob_base.ob_base.ob_refcnt = 2;
             ht_type.ob_base.ob_size = 0;
             ht_type.tp_name = m_name.c_str();
             ht_type.tp_basicsize = (Py_ssize_t)(sizeof(PyHeapTypeObject) + extendedSize);
             ht_type.tp_doc = m_doc.c_str();
             ht_type.tp_is_gc = &is_collectable;
             ht_type.tp_base = &PyType_Type;
-            ht_type.tp_free = &free;
+            ht_type.tp_free = &free_type;
         }
         ClazzContext& get_context(){ return *m_context; }
         void finalize()
@@ -85,7 +85,7 @@ namespace sweetPy {
             ob_base.ob_base._ob_prev = NULL;
 #endif
         }
-        static void free(void* ptr)
+        static void free_type(void* ptr)
         {
             auto type = static_cast<CPythonType*>(reinterpret_cast<PyHeapTypeObject*>(ptr));
             type->get_free()(type);

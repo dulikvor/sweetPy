@@ -6,18 +6,12 @@
 #include "Function.h"
 
 namespace sweetPy{
-    class ModuleContext : public PyObject
+    class ModuleContext
     {
     public:
         typedef int HashKey;
         typedef int Offset;
         typedef std::shared_ptr<Function> FunctionPtr;
-        ModuleContext()
-                :PyObject{}
-        {
-            ob_type = &MetaClass::get_common_meta_type().ht_type;
-            ob_refcnt = 1;
-        }
         void add_function(HashKey key, FunctionPtr&& function)
         {
             if(m_functions.find(key) != m_functions.end())

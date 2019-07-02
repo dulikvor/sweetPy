@@ -34,7 +34,7 @@ namespace sweetPy {
     public:
         PlainClazz(Module &module, const std::string &name, const std::string &doc)
                 : m_module(module),
-                  m_type(CPythonType::get_py_object(new PyType(name, doc, &free)), &Deleter::Owner),
+                  m_type(CPythonType::get_py_object(new PyType(name, doc, &free_type)), &Deleter::Owner),
                   m_context(static_cast<PyType*>(CPythonType::get_type(m_type.get()))->get_context())
         {
         }
@@ -65,7 +65,7 @@ namespace sweetPy {
             type->ob_base.ob_base._ob_prev = NULL;
 #endif
         }
-        static void free(void* ptr)
+        static void free_type(void* ptr)
         {
             delete reinterpret_cast<PyType*>(ptr);
         }
@@ -146,7 +146,7 @@ namespace sweetPy {
     public:
         Clazz(Module &module, const std::string &name, const std::string &doc, bool forceInsertion = true)
                 : m_module(module),
-                  m_type(CPythonType::get_py_object(new PyType(name, doc, &free)), &Deleter::Owner),
+                  m_type(CPythonType::get_py_object(new PyType(name, doc, &free_type)), &Deleter::Owner),
                   m_context(static_cast<PyType*>(CPythonType::get_type(m_type.get()))->get_context()),
                   m_forceInsertion(forceInsertion)
         {
@@ -268,7 +268,7 @@ namespace sweetPy {
             type->ob_base.ob_base._ob_prev = NULL;
 #endif
         }
-        static void free(void* ptr)
+        static void free_type(void* ptr)
         {
             delete reinterpret_cast<PyType*>(ptr);
         }

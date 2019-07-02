@@ -28,6 +28,7 @@ namespace sweetPy {
                 :CPythonGCHead{}, PyHeapTypeObject{}, m_name(name), m_doc(doc), m_hash_code(hash_code), m_free(free)
         {
             reset_gc_head();
+            std::cout<<"Constructor "<<m_name<<std::endl;
         }
         ~CPythonType()
         {

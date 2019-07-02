@@ -55,7 +55,7 @@ namespace sweetPy {
     public:
         explicit Module(const std::string &name, const std::string &doc)
             :m_moduleDef(nullptr), m_module(nullptr, &Deleter::Borrow),
-             m_context(new ModuleContext(), &Deleter::Borrow), m_name(name), m_doc(doc)
+             m_context(new ModuleContext()), m_name(name), m_doc(doc)
          {
             auto moduleDef = (PyModuleDef*)malloc(sizeof(PyModuleDef));
             new(moduleDef)PyModuleDef{};
@@ -105,15 +105,18 @@ namespace sweetPy {
                     std::size_t hashCode = functionPair.second->get_hash_code();
     
                     ObjectPtr self(PyTuple_New(2), &Deleter::Owner); //self = name and object, function will release the tuple
-                    Py_XINCREF(m_context.get());
-                    PyTuple_SetItem(self.get(), 0, m_context.get());
+                    
+                    ObjectPtr context(PyCapsule_New(m_context.get(), nullptr, nullptr), &Deleter::Owner);
+                    CPYTHON_VERIFY(context.get() != nullptr, "Encapsulating module context failed");
+                    PyTuple_SetItem(self.get(), 0, context.release());
+                    
                     ObjectPtr hashCodePtr(PyLong_FromUnsignedLong(hashCode), &Deleter::Owner);
                     PyTuple_SetItem(self.get(), 1, hashCodePtr.release());
+                    
                     ObjectPtr cFunction(PyCFunction_NewEx(descriptor.get(), self.get(), NULL), &Deleter::Owner);
                     CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), descriptor->ml_name, cFunction.release()) == 0, "global function registration with module failed");
                     
-                    auto& context = *static_cast<ModuleContext*>(m_context.get());
-                    context.add_function(hashCode, std::move(functionPair.second));
+                    m_context->add_function(hashCode, std::move(functionPair.second));
                 }
             }
         }
@@ -135,7 +138,7 @@ namespace sweetPy {
             m_moduleDef->m_base = PyModuleDef_HEAD_INIT;
             m_moduleDef->m_name = name;
             m_moduleDef->m_doc = doc;
-            m_moduleDef->m_free = &free;
+            m_moduleDef->m_free = &free_module;
             m_module.reset(PyModule_Create(m_moduleDef.get()));
             CPYTHON_VERIFY(m_module.get() != nullptr, "Module registration failed");
             m_moduleDef.release();
@@ -144,9 +147,11 @@ namespace sweetPy {
             init_types();
             init_variables();
             init_enums();
-            
-            Py_XINCREF(m_context.get());
-            //CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), "context", m_context.release()) == 0, "module context registration with module failed");
+    
+            ObjectPtr context(PyCapsule_New(m_context.get(), nullptr, nullptr), &Deleter::Owner);
+            CPYTHON_VERIFY(context.get() != nullptr, "Encapsulating module context failed");
+            CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), "context", context.release()) == 0, "module context registration with module failed");
+            m_context.release();
         }
 
     private:
@@ -156,7 +161,6 @@ namespace sweetPy {
             {
                 for(auto& variable : m_variables) {
                     auto var = variable->to_python();
-                    std::cout<<"Address - "<<std::hex<<var.get()<<std::endl;
                     CPYTHON_VERIFY(PyModule_AddObject((PyObject *) m_module.get(), variable->get_name().c_str(),
                                                       var.release()) == 0,
                                    "Type registration with module failed");
@@ -184,13 +188,11 @@ namespace sweetPy {
                     ObjectPtr name(PyUnicode_FromString(enumPair.first.c_str()), &Deleter::Owner);
                     CPYTHON_VERIFY(name != nullptr, "Was unable to import enum name into python");
                     ObjectPtr enumClass = Python::invoke_function("enum", "Enum", "EnumMeta._create_", name.get(), enumPair.second.get());
-                    std::cout<<"Address enum - "<<std::hex<<enumClass.get()<<std::endl;
-                    Py_XINCREF(enumClass.get());
                     CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), enumPair.first.c_str(), enumClass.release()) == 0, "Type registration with module failed");
                 }
             }
         }
-        static void free(void *ptr)
+        static void free_module(void *ptr)
         {
             auto objectPtr = (PyObject*)ptr;
             Dictionary moduleDict(PyModule_GetDict(objectPtr));
@@ -198,16 +200,31 @@ namespace sweetPy {
             delete [] moduleDef.m_name;
             delete [] moduleDef.m_doc;
             
-            //auto context = moduleDict.get<ObjectPtr, const char*>("context");
-            //std::cout<<"Deleting context"<<std::endl;
-            //delete reinterpret_cast<ModuleContext*>(context.get());
-            //context.release();
+            std::vector<PyTypeObject*> types;
+            for(auto& elem : moduleDict)
+            {
+                auto object = elem.get<PyObject*>();
+                if(object->ob_type == &MetaClass::get_common_meta_type().ht_type)
+                    types.emplace_back(reinterpret_cast<PyTypeObject*>(object));
+            }
+            
+            auto contextCapsule = moduleDict.get<ObjectPtr, const char*>("context");
+            auto context = reinterpret_cast<ModuleContext*>(PyCapsule_GetPointer(contextCapsule.get(), nullptr));
+            delete context;
+            
+            moduleDict.clear();
+            
+            for(auto& type : types)
+            {
+                PyTypeObject* meta = type->ob_base.ob_base.ob_type;
+                meta->tp_dealloc(reinterpret_cast<PyObject*>(type));
+            }
         }
 
     private:
         std::unique_ptr<PyModuleDef> m_moduleDef;
         ObjectPtr m_module;
-        ObjectPtr m_context;
+        std::unique_ptr<ModuleContext> m_context;
         typedef std::unordered_map<TypeKey, ObjectPtr> Types;
         Types m_types;
         std::vector<Variable::VariablePtr> m_variables;

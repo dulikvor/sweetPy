@@ -37,8 +37,8 @@ namespace sweetPyTest {
                                     "a.IncBaseValue()\n"
                                     "result = a.GetBaseValue()";
         
-        //PyRun_SimpleString(testingScript);
-        //ASSERT_EQ(PythonEmbedder::get_attribute<int>("result"), 1);
+        PyRun_SimpleString(testingScript);
+        ASSERT_EQ(PythonEmbedder::get_attribute<int>("result"), 1);
     }
     
     /*

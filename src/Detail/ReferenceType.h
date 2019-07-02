@@ -19,7 +19,7 @@ namespace sweetPy {
     public:
         PlainReferenceType(Module& module, const std::string& name, const std::string& doc)
         : m_module(module),
-          m_type(CPythonType::get_py_object(new ClazzPyType<ObjectType>(name, doc, &free)), &Deleter::Owner)
+          m_type(CPythonType::get_py_object(new ClazzPyType<ObjectType>(name, doc, &free_type)), &Deleter::Owner)
         {
             reinterpret_cast<PyTypeObject*>(m_type.get())->tp_dealloc = PyType_Type.tp_dealloc;
         }
@@ -49,7 +49,7 @@ namespace sweetPy {
             type->ob_base.ob_base._ob_prev = NULL;
 #endif
         }
-        static void free(void* ptr)
+        static void free_type(void* ptr)
         {
             delete reinterpret_cast<PyType*>(ptr);
         }
@@ -67,7 +67,7 @@ namespace sweetPy {
         typedef ClazzPyType<ObjectType> PyType;
         ReferenceType(Module& module, const std::string& name, const std::string& doc, const ClazzContext& context)
         : m_module(module),
-          m_type(CPythonType::get_py_object(new PyType(name, doc, &free)), &Deleter::Owner),
+          m_type(CPythonType::get_py_object(new PyType(name, doc, &free_type)), &Deleter::Owner),
           m_context(static_cast<PyType*>(CPythonType::get_type(m_type.get()))->get_context())
         {
             reinterpret_cast<PyTypeObject*>(m_type.get())->tp_dealloc = PyType_Type.tp_dealloc;
@@ -96,7 +96,7 @@ namespace sweetPy {
             type->ob_base.ob_base._ob_prev = NULL;
 #endif
         }
-        static void free(void* ptr)
+        static void free_type(void* ptr)
         {
             delete reinterpret_cast<PyType*>(ptr);
         }

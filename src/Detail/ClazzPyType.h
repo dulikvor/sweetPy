@@ -70,11 +70,11 @@ namespace sweetPy {
                 : CPythonType(name, doc, typeid(T).hash_code(), free), m_context(new ClazzContext())
         {
             ht_type.ob_base.ob_base.ob_type = &MetaClass::get_common_meta_type().ht_type;
-            ht_type.ob_base.ob_base.ob_refcnt = 1;
+            ht_type.ob_base.ob_base.ob_refcnt = 2;
             ht_type.ob_base.ob_size = 0;
             ht_type.tp_name = m_name.c_str();
             ht_type.tp_basicsize = ClazzObject<T>::get_size();
-            ht_type.tp_dealloc = &dealloc;
+            ht_type.tp_dealloc = &dealloc_object;
             ht_type.tp_flags = Py_TPFLAGS_HAVE_GC & Py_TPFLAGS_HEAPTYPE;
             ht_type.tp_traverse = &traverse;
             ht_type.tp_new = PyBaseObject_Type.tp_new;
@@ -101,7 +101,7 @@ namespace sweetPy {
             //There is no need to traverse the members due to the fact they are not part of python garbage collector and uknown to python.
             return 0;
         }
-        static void dealloc(PyObject *object)
+        static void dealloc_object(PyObject *object)
         {
             reinterpret_cast<T*>(ClazzObject<T>::get_val_offset(object))->~T();
             PyBaseObject_Type.tp_dealloc(object);
