@@ -4,7 +4,8 @@
 #include <utility>
 #include <sstream>
 #include "../Types/Tuple.h"
-#include "../CPythonObject.h"
+#include "../Types/ObjectPtr.h"
+#include "src/Detail/CPythonObject.h"
 #include "Traits.h"
 #include "Deleter.h"
 
@@ -14,16 +15,16 @@ namespace sweetPy
     struct Python
     {
     public:
-        static object_ptr GetAttribute(const char* name, PyObject* startingContext = nullptr)
+        static ObjectPtr get_attribute(const char* name, PyObject* startingContext = nullptr)
         {
-            std::vector<std::string> tokens = Split(name);
+            std::vector<std::string> tokens = split(name);
             std::stringstream ss;
             sweetPy::GilLock lock;
-            object_ptr context(startingContext ? startingContext : PyImport_AddModule("__main__"), &Deleter::Borrow); //verify that borrow is correct
+            ObjectPtr context(startingContext ? startingContext : PyImport_AddModule("__main__"), &Deleter::Borrow); //verify that borrow is correct
             for(const std::string& token : tokens){
-                object_ptr attributeName(PyUnicode_FromString(token.c_str()), &Deleter::Owner);
+                ObjectPtr attributeName(PyUnicode_FromString(token.c_str()), &Deleter::Owner);
                 {
-                    object_ptr tmpContext(PyObject_GetAttr(context.get(), attributeName.get()), &Deleter::Owner);
+                    ObjectPtr tmpContext(PyObject_GetAttr(context.get(), attributeName.get()), &Deleter::Owner);
                     context.swap(tmpContext);
                 }
                 if(context.get() == nullptr)
@@ -36,38 +37,39 @@ namespace sweetPy
         }
 
         template<typename... Args>
-        static object_ptr InvokeFunction(const char* moduleName, const char* objectName, const char* functionName, Args&&... args)
+        static ObjectPtr invoke_function(const char* moduleName, const char* objectName, const char* functionName, Args&&... args)
         {
 
-            object_ptr module(PyImport_ImportModule(moduleName), &Deleter::Owner);
-            object_ptr function = GetAttribute(functionName, module.get());
+            ObjectPtr module(PyImport_ImportModule(moduleName), &Deleter::Owner);
+            ObjectPtr function = get_attribute(functionName, module.get());
 
-            object_ptr object = strcmp(objectName, "") == 0 ? nullptr : GetAttribute(objectName, module.get());
+            ObjectPtr object = strcmp(objectName, "") == 0 ? nullptr : get_attribute(objectName, module.get());
             return invoke_function_impl(function, std::move(object), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
         }
 
         template<typename... Args>
-        static object_ptr InvokeFunction(const object_ptr& function, Args&&... args)
+        static ObjectPtr invoke_function(const ObjectPtr& function, Args&&... args)
         {
-            return invoke_function_impl(function, object_ptr(), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
+            return invoke_function_impl(function, ObjectPtr(), std::make_index_sequence<sizeof...(Args)>{}, std::forward<Args>(args)...);
         }
 
-        static object_ptr FastInvokeFunction(const object_ptr& function, const Tuple& arguments)
+        static ObjectPtr fast_invoke_function(const ObjectPtr& function, const Tuple& arguments)
         {
-            object_ptr _arguments(arguments.ToPython(), &Deleter::Owner);
-            object_ptr returnValue(PyObject_CallObject(function.get(), _arguments.get()), &Deleter::Owner);
+            ObjectPtr _arguments(arguments.to_python(), &Deleter::Owner);
+            ObjectPtr returnValue(PyObject_CallObject(function.get(), _arguments.get()), &Deleter::Owner);
             CPYTHON_VERIFY_EXC(returnValue.get()!=nullptr);
             return returnValue;
         }
 
-        static void RegisterOnExit(PyMethodDef& descriptor)
+        static void register_on_exit(PyMethodDef& descriptor)
         {
-            object_ptr cFunction(PyCFunction_NewEx(&descriptor, nullptr, nullptr), &Deleter::Owner);
-            InvokeFunction("atexit", "", "register", cFunction.get());
+            ObjectPtr cFunction(PyCFunction_NewEx(&descriptor, nullptr, nullptr), &Deleter::Owner);
+            invoke_function("atexit", "", "register", cFunction.get());
         }
 
     private:
-        static std::vector<std::string> Split(const std::string& str){
+        static std::vector<std::string> split(const std::string& str)
+        {
             std::vector<std::string> result;
             std::size_t start = 0, end = 0;
             while((end = str.find('.', start)) != std::string::npos){
@@ -79,23 +81,23 @@ namespace sweetPy
         }
 
         template<std::size_t... I, typename... Args>
-        static object_ptr invoke_function_impl(const object_ptr& function, object_ptr&& object, std::index_sequence<I...> index, Args&&... args)
+        static ObjectPtr invoke_function_impl(const ObjectPtr& function, ObjectPtr&& object, std::index_sequence<I...> index, Args&&... args)
         {
-            object_ptr tuple(nullptr, &Deleter::Owner);
+            ObjectPtr tuple(nullptr, &Deleter::Owner);
             if(object.get() == nullptr)
             {
                 tuple.reset(PyTuple_New(sizeof...(args)));
-                ObjectWrapper<int, 0>::MultiInvoker(PyTuple_SetItem(tuple.get(), I, Object<Args>::ToPython(args))...);
+                invoker(PyTuple_SetItem(tuple.get(), I, Object<Args>::to_python(args))...);
             }
             else
             {
                 tuple.reset(PyTuple_New(sizeof...(args) + 1));
                 PyTuple_SetItem(tuple.get(), 0, object.release());
-                ObjectWrapper<int, 0>::MultiInvoker(PyTuple_SetItem(tuple.get(), I + 1, Object<Args>::ToPython(args))...);
+                invoker(PyTuple_SetItem(tuple.get(), I + 1, Object<Args>::to_python(args))...);
             }
-            object_ptr returnValue(PyObject_CallObject(function.get(), tuple.get()), &Deleter::Owner);
+            ObjectPtr returnValue(PyObject_CallObject(function.get(), tuple.get()), &Deleter::Owner);
             CPYTHON_VERIFY_EXC(returnValue.get() !=nullptr);
-            return returnValue;
+            return std::move(returnValue);
         }
     };
 }

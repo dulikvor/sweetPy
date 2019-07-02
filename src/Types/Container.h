@@ -12,8 +12,10 @@
 #include <cstdint>
 #include <bits/unordered_map.h>
 #include "core/NoExcept.h"
+#include "core/Exception.h"
 #include "core/Param.h"
-#include "../Core/Deleter.h"
+#include "ObjectPtr.h"
+#include "../Core/Traits.h"
 
 namespace sweetPy{
     class Tuple;
@@ -28,77 +30,156 @@ namespace sweetPy{
         class Converter
         {
         public:
-            typedef std::function<PyObject*(void const * const)> ConveterFunc;
-            Converter(void const* value, const ConveterFunc& converter);
-            operator PyObject*() const;
+            typedef std::function<PyObject*(void* const)> ConveterFunc;
+            Converter(const ConveterFunc &converter): m_converter(converter) {}
+            PyObject* operator ()(void* const ptr) const
+            {
+                return m_converter(ptr);
+            }
         private:
-            void const * const m_value;
             ConveterFunc m_converter;
         };
     
         _Container() = default;
         virtual ~_Container() NOEXCEPT(true) = default;
-        _Container(const _Container& obj);
-        _Container& operator=(const _Container& rhs);
-        _Container(_Container&& obj) NOEXCEPT(true);
-        _Container& operator=(_Container&& rhs) NOEXCEPT(true);
-        bool operator==(const _Container& rhs) const;
+        _Container(const _Container &obj)
+                :m_converters(obj.m_converters)
+        {
+            for(auto& element : obj.m_elements)
+            {
+                core::Param::Param_Ptr param;
+                if(element->IsInt())
+                {
+                    core::TypedParam<int>& typedElement =  static_cast<core::TypedParam<int>&>(*element);
+                    param.reset(new core::TypedParam<int>(typedElement));
+                }
+                else if(element->IsBool())
+                {
+                    core::TypedParam<bool>& typedElement =  static_cast<core::TypedParam<bool>&>(*element);
+                    param.reset(new core::TypedParam<bool>(typedElement));
+                }
+                else if(element->IsDouble())
+                {
+                    core::TypedParam<double>& typedElement =  static_cast<core::TypedParam<double>&>(*element);
+                    param.reset(new core::TypedParam<double>(typedElement));
+                }
+                else if(element->IsString())
+                {
+                    core::TypedParam<std::string>& typedElement =  static_cast<core::TypedParam<std::string>&>(*element);
+                    param.reset(new core::TypedParam<std::string>(typedElement));
+                }
+                else if(element->IsPointer())
+                {
+                    core::TypedParam<void *> &typedElement = static_cast<core::TypedParam<void *> &>(*element);
+                    param.reset(new core::TypedParam<void *>(typedElement));
+                }
+                else
+                    param = element->Clone();
+            
+                m_elements.emplace_back(std::move(param));
+            }
+        }
+        _Container& operator=(const _Container& rhs)
+        {
+            for(auto& element : rhs.m_elements)
+            {
+                core::Param::Param_Ptr param;
+                if(element->IsInt())
+                {
+                    core::TypedParam<int>& typedElement =  static_cast<core::TypedParam<int>&>(*element);
+                    param.reset(new core::TypedParam<int>(typedElement));
+                }
+                else if(element->IsBool())
+                {
+                    core::TypedParam<bool>& typedElement =  static_cast<core::TypedParam<bool>&>(*element);
+                    param.reset(new core::TypedParam<bool>(typedElement));
+                }
+                else if(element->IsDouble())
+                {
+                    core::TypedParam<double>& typedElement =  static_cast<core::TypedParam<double>&>(*element);
+                    param.reset(new core::TypedParam<double>(typedElement));
+                }
+                else if(element->IsString())
+                {
+                    core::TypedParam<std::string>& typedElement =  static_cast<core::TypedParam<std::string>&>(*element);
+                    param.reset(new core::TypedParam<std::string>(typedElement));
+                }
+                else if(element->IsPointer())
+                {
+                    core::TypedParam<void *> &typedElement = static_cast<core::TypedParam<void *> &>(*element);
+                    param.reset(new core::TypedParam<void *>(typedElement));
+                }
+                else
+                    param = element->Clone();
+        
+                m_elements.emplace_back(std::move(param));
+            }
+            m_converters = rhs.m_converters;
+    
+            return *this;
+        }
+        _Container(_Container &&obj) NOEXCEPT(true) : m_elements(std::move(obj.m_elements)){}
+        _Container& operator=(_Container &&rhs) NOEXCEPT(true){m_elements = std::move(rhs.m_elements); return *this;}
+        bool operator==(const _Container& rhs) const
+        {
+            return std::equal(begin(), end(), rhs.begin());
+        }
         bool operator!=(const _Container& rhs) const{ return operator==(rhs) == false; }
         
     public:
-        void Clear();
+        void clear()
+        {
+            m_elements.clear();
+        }
         template<typename T, typename X = typename std::remove_cv<typename std::remove_reference<T>::type>::type,
-                typename = typename std::enable_if<!std::is_same<typename std::remove_reference<T>::type, object_ptr>::value &&
+                typename = enable_if_t<!std::is_same<typename std::remove_reference<T>::type, ObjectPtr>::value &&
                                                    !std::is_pointer<typename std::remove_reference<T>::type>::value &&
-                                                   !std::is_same<typename std::remove_reference<T>::type, std::nullptr_t>::value>::type>
-        void AddElement(T&& element, const Converter::ConveterFunc& converterFunc = Converter::ConveterFunc())
+                                                   !std::is_same<typename std::remove_reference<T>::type, std::nullptr_t>::value>>
+        void add_element(T&& element, const Converter::ConveterFunc& converterFunc = Converter::ConveterFunc())
         {
             if(core::IsTypeIdExists<X, ARGUMENTS>::value == false)
             {
-                if(std::is_rvalue_reference<T>::value)
-                    throw core::Exception(__CORE_SOURCE, "rvalue will cause a dangling pointer scenario.");
-                void const * ptr = &element;
-                m_elements.emplace_back(new core::TypedParam<void*>(ptr));
-                m_converters.emplace(std::piecewise_construct, std::make_tuple(m_elements.size() - 1), std::make_tuple(ptr, converterFunc));
+                m_elements.emplace_back(new core::TypedParam<X>(std::forward<T>(element)));
+                m_converters.emplace(std::piecewise_construct, std::make_tuple(m_elements.size() - 1), std::make_tuple(converterFunc));
             }
             else
                 m_elements.emplace_back(new core::TypedParam<X>(std::forward<T>(element)));
         }
         template<int N>
-        void AddElement(const char (&element)[N])
+        void add_element(const char (&element)[N])
         {
             std::string _element = element;
             m_elements.emplace_back(new core::TypedParam<std::string>(std::move(_element)));
         }
-        void AddElement(char* element)
+        void add_element(char* element)
         {
             std::string _element = element;
             m_elements.emplace_back(new core::TypedParam<std::string>(_element));
         }
-        void AddElement(const char* element)
+        void add_element(const char* element)
         {
             std::string _element = element;
             m_elements.emplace_back(new core::TypedParam<std::string>(_element));
         }
-        void AddElement(void* element, const Converter::ConveterFunc& converterFunc = Converter::ConveterFunc())
+        void add_element(void* element, const Converter::ConveterFunc& converterFunc = Converter::ConveterFunc())
         {
             m_elements.emplace_back(new core::TypedParam<void*>(element));
         
             if(element)
-                m_converters.emplace(std::piecewise_construct, std::make_tuple(m_elements.size() - 1), std::make_tuple(element, converterFunc));
+                m_converters.emplace(std::piecewise_construct, std::make_tuple(m_elements.size() - 1), std::make_tuple(converterFunc));
         }
-        void AddElement(const void* element, const Converter::ConveterFunc& converterFunc = Converter::ConveterFunc())
+        void add_element(const void* element, const Converter::ConveterFunc& converterFunc = Converter::ConveterFunc())
         {
             m_elements.emplace_back(new core::TypedParam<void*>(element));
         
             if(element)
-                m_converters.emplace(std::piecewise_construct, std::make_tuple(m_elements.size() - 1), std::make_tuple(element, converterFunc));
+                m_converters.emplace(std::piecewise_construct, std::make_tuple(m_elements.size() - 1), std::make_tuple(converterFunc));
         }
-        void AddElement(const std::nullptr_t& element)
+        void add_element(const std::nullptr_t& element)
         {
             m_elements.emplace_back(new core::TypedParam<void*>((void*)element));
         }
-        void AddElement(const object_ptr& element);
+        void add_element(const ObjectPtr& element);
         template<typename T, typename = typename std::enable_if<!std::is_pointer<T>::value>::type>
         const T& GetElement(size_t index) const
         {
@@ -113,8 +194,7 @@ namespace sweetPy{
                 throw core::Exception(__CORE_SOURCE, "index exceeds number of elements");
             return static_cast<core::TypedParam<T>&>(*m_elements[index]).template Get<T>();
         }
-        PyObject* ToPython() const;
-    
+        
         class iterator : public std::iterator<std::forward_iterator_tag, core::Param* const, std::ptrdiff_t, core::Param* const, core::Param&>
         {
         public:

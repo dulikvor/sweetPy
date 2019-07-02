@@ -3,7 +3,7 @@
 
 namespace sweetPy{
     
-    const SweetPickleFactory& SweetPickleFactory::Instance()
+    const SweetPickleFactory& SweetPickleFactory::instance()
     {
         static SweetPickleFactory instance;
         return instance;
@@ -18,19 +18,19 @@ namespace sweetPy{
                                                                    ConcreteSerializeContext<SerializeType::FlatBuffers>>()));
     }
 
-    std::unique_ptr<SweetPickle> SweetPickleFactory::Create(SerializeType type) const
+    std::unique_ptr<SweetPickle> SweetPickleFactory::create(SerializeType type) const
     {
         auto it = m_serializors.find(type);
         if (it == m_serializors.end())
             throw core::Exception(__CORE_SOURCE, "Requested serialize type - %s is not supported", type.ToString().c_str());
-        return it->second->Create();
+        return it->second->create();
     }
     
-    std::unique_ptr<SerializeContext> SweetPickleFactory::CreateContext(SerializeType type) const
+    std::unique_ptr<SerializeContext> SweetPickleFactory::create_context(SerializeType type) const
     {
         auto it = m_serializors.find(type);
         if (it == m_serializors.end())
             throw core::Exception(__CORE_SOURCE, "Requested serialize type - %s is not supported", type.ToString().c_str());
-        return it->second->CreateContext();
+        return it->second->create_context();
     }
 }

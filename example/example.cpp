@@ -1,9 +1,9 @@
 #include <Python.h>
 #include <string>
 #include <iostream>
+#include <functional>
 #include "core/Logger.h"
-#include "src/InitModule.h"
-#include "src/CPythonClass.h"
+#include "sweetPy.h"
 
 using namespace sweetPy;
 
@@ -26,12 +26,15 @@ public:
 
 INIT_MODULE(example, "Example doc")
 {
-    CPythonClass<A> c(module, "A", "doc");
-    c.AddConstructor<int&&,const char*>();
-    c.AddMethod("foo", "foo-doc", &A::foo);
-    c.AddMember("i", &A::m_i, "i-doc");
-    c.AddMember("str", &A::m_str, "str-doc");
-    c.AddStaticMethod("boo", "boo-doc", &A::boo);
+    //Clazz<std::function<void(int)>> f(module, "F", "doc");
+    //f.add_method<decltype(&std::function<void(int)>::operator())>("foo", "foo-doc", &std::function<void(int)>::operator());
+    
+    Clazz<A> c(module, "A", "doc");
+    c.add_constructor<int&&,const char*>();
+    c.add_method("foo", "foo-doc", &A::foo);
+    c.add_member("i", &A::m_i, "i-doc");
+    c.add_member("str", &A::m_str, "str-doc");
+    c.add_static_method("boo", "boo-doc", &A::boo);
 }
 
 int main( int argc, const char *argv[] )

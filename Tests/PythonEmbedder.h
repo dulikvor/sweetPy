@@ -8,19 +8,19 @@
 #include "Core/Lock.h"
 #include "Core/Deleter.h"
 #include "Core/PythonAssist.h"
-#include "CPythonObject.h"
+#include "src/Detail/CPythonObject.h"
 
 namespace sweetPyTest{
 
     class PythonEmbedder{
     public:
-        static PythonEmbedder& Instance()
+        static PythonEmbedder& instance()
         {
             static PythonEmbedder instance;
             return instance;
         }
 
-        void InitiateInterperter(const char* programName, int argc, char** argv){
+        void initiate_interperter(const char* programName, int argc, char** argv){
             m_name = std::unique_ptr<wchar_t, std::function<void(wchar_t*)>>(
                     Py_DecodeLocale("CPythonClassTest", nullptr), [](wchar_t* name){PyMem_RawFree(name);});
             m_argv = {new wchar_t*[argc], std::vector<wchar_t*>()};
@@ -33,7 +33,7 @@ namespace sweetPyTest{
             Py_Initialize();
             PySys_SetArgv(argc, m_argv.first);
         }
-        void TerminateInterperter(){
+        void terminate_interperter(){
             Py_Finalize();
             for(auto& var : m_argv.second)
                 PyMem_RawFree(var);
@@ -41,9 +41,9 @@ namespace sweetPyTest{
         }
 
         template<typename T>
-        static T GetAttribute(const char* name){
+        static T get_attribute(const char* name){
             {
-                return sweetPy::Object<T>::FromPython(sweetPy::Python::GetAttribute(name).get());
+                return sweetPy::Object<T>::from_python(sweetPy::Python::get_attribute(name).get());
             }
         }
     private:

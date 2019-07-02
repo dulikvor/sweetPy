@@ -7,12 +7,7 @@
 #include <vector>
 #include "core/Assert.h"
 #include "Core/Deleter.h"
-#include "Types/DateTime.h"
-#include "Types/TimeDelta.h"
-#include "Types/Tuple.h"
-#include "Types/List.h"
-#include "Types/AsciiString.h"
-#include "CPythonObject.h"
+#include "sweetPy.h"
 
 namespace sweetPyTest {
 
@@ -28,8 +23,8 @@ namespace sweetPyTest {
     public:
         TestSubjectC(const TestSubjectC&) = delete;
         TestSubjectC& operator=(const TestSubjectC&) = delete;
-        TestSubjectC(const TestSubjectC&&) = delete;
-        TestSubjectC& operator=(const TestSubjectC&&) = delete;
+        TestSubjectC(TestSubjectC&&) = default;
+        TestSubjectC& operator=(TestSubjectC&&) = default;
         static TestSubjectC& Instance(){
             static TestSubjectC c{};
             return c;
@@ -38,10 +33,6 @@ namespace sweetPyTest {
 
     public:
         int i;
-
-    private:
-        TestSubjectC(){}
-
     };
 
     class TestSubjectB{
@@ -52,6 +43,7 @@ namespace sweetPyTest {
         const std::string& GetStr() const { return m_str; }
         int Foo(int i){ return i; }
         int Foo(int i, int y){return i+y;}
+        bool operator==(const TestSubjectB& rhs) const {return m_value == rhs.m_value && m_str == rhs.m_str;}
 
     public:
         int m_value;
@@ -72,7 +64,9 @@ namespace sweetPyTest {
     public:
         TestSubjectA(int valueInt) : m_byValueInt(valueInt), m_enumValue(Python::Good) {}
         ~TestSubjectA(){ m_instanceDestroyed = true; }
-        virtual int GetValue(){ return m_byValueInt;}
+        bool operator==(const TestSubjectA& rhs) const {return m_byValueInt == rhs.m_byValueInt &&
+            m_b == rhs.m_b && m_str == rhs.m_str && m_enumValue == rhs.m_enumValue;}
+        virtual int GetValue() const { return m_byValueInt;}
         const std::string& GetStr() const{return m_str;}
         void SetXpireValue(std::string&& str){m_str = str;}
         std::string SetString(const std::string& str){
@@ -160,8 +154,8 @@ namespace sweetPyTest {
             return m_values.back();
         }
     
-        template<typename X = T, typename  = typename std::enable_if<std::is_same<typename std::remove_const<X>::type, sweetPy::object_ptr>::value>::type>
-        const sweetPy::object_ptr& operator()(sweetPy::object_ptr const& value)
+        template<typename X = T, typename  = typename std::enable_if<std::is_same<typename std::remove_const<X>::type, sweetPy::ObjectPtr>::value>::type>
+        const sweetPy::ObjectPtr& operator()(sweetPy::ObjectPtr const& value)
         {
             Py_XINCREF(value.get());
             m_values.emplace_back(value.get(), &sweetPy::Deleter::Owner);
@@ -282,11 +276,11 @@ namespace sweetPyTest {
     sweetPy::Tuple CheckTuleType(sweetPy::Tuple value)
     {
         sweetPy::Tuple newValue;
-        newValue.AddElement(1);
-        newValue.AddElement(2.5);
-        newValue.AddElement("Goodbye");
-        newValue.AddElement(std::string("World"));
-        newValue.AddElement(true);
+        newValue.add_element(1);
+        newValue.add_element(2.5);
+        newValue.add_element("Goodbye");
+        newValue.add_element(std::string("World"));
+        newValue.add_element(true);
         return newValue;
     }
 
@@ -301,11 +295,11 @@ namespace sweetPyTest {
     sweetPy::List CheckListType(sweetPy::List value)
     {
         sweetPy::List newValue;
-        newValue.AddElement(1);
-        newValue.AddElement(2.5);
-        newValue.AddElement("Goodbye");
-        newValue.AddElement(std::string("World"));
-        newValue.AddElement(true);
+        newValue.add_element(1);
+        newValue.add_element(2.5);
+        newValue.add_element("Goodbye");
+        newValue.add_element(std::string("World"));
+        newValue.add_element(true);
         return newValue;
     }
     
@@ -331,33 +325,33 @@ namespace sweetPyTest {
         return values.back();
     }
     
-    sweetPy::object_ptr CheckObjectPtrType(sweetPy::object_ptr value)
+    sweetPy::ObjectPtr CheckObjectPtrType(sweetPy::ObjectPtr value)
     {
         CPYTHON_VERIFY_EXC(Py_TYPE(value.get()) == &PyLong_Type);
-        int newInteger = sweetPy::Object<int>::FromPython(value.get()) + 1;
-        return sweetPy::object_ptr(sweetPy::Object<int>::ToPython(newInteger), &sweetPy::Deleter::Owner);
+        int newInteger = sweetPy::Object<int>::from_python(value.get()) + 1;
+        return sweetPy::ObjectPtr(sweetPy::Object<int>::to_python(newInteger), &sweetPy::Deleter::Owner);
     }
     
-    const sweetPy::object_ptr& CheckConstRefObjectPtrType(const sweetPy::object_ptr& value)
+    const sweetPy::ObjectPtr& CheckConstRefObjectPtrType(const sweetPy::ObjectPtr& value)
     {
         CPYTHON_VERIFY_EXC(Py_TYPE(value.get()) == &PyLong_Type);
-        int newInteger = sweetPy::Object<int>::FromPython(value.get()) + 1;
+        int newInteger = sweetPy::Object<int>::from_python(value.get()) + 1;
         
-        static std::vector<sweetPy::object_ptr> values;
+        static std::vector<sweetPy::ObjectPtr> values;
         values.reserve(100);
     
-        sweetPy::object_ptr newValue(sweetPy::Object<int>::ToPython(newInteger), &sweetPy::Deleter::Borrow); //Python will not be there when the unique_ptr will try to deallocate the memory.
+        sweetPy::ObjectPtr newValue(sweetPy::Object<int>::to_python(newInteger), &sweetPy::Deleter::Borrow); //Python will not be there when the unique_ptr will try to deallocate the memory.
         values.emplace_back(std::move(newValue));
-        return static_cast<const sweetPy::object_ptr&>(values.back());
+        return static_cast<const sweetPy::ObjectPtr&>(values.back());
     }
     
     sweetPy::Tuple GenerateNativeElementTuple()
     {
         sweetPy::Tuple tuple;
         static TestSubjectB testSubjectB;
-        tuple.AddElement(testSubjectB, [](void const * const ptr) -> PyObject*{
+        tuple.add_element(testSubjectB, [](void const * const ptr) -> PyObject*{
             const TestSubjectB& value = *reinterpret_cast<const TestSubjectB*>(ptr);
-            return sweetPy::Object<TestSubjectB>::ToPython(value);
+            return sweetPy::Object<TestSubjectB>::to_python(value);
         });
         return tuple;
     }
@@ -366,9 +360,9 @@ namespace sweetPyTest {
     {
         sweetPy::List list;
         static TestSubjectB testSubjectB;
-        list.AddElement(testSubjectB, [](void const * const ptr) -> PyObject*{
+        list.add_element(testSubjectB, [](void const * const ptr) -> PyObject*{
             const TestSubjectB& value = *reinterpret_cast<const TestSubjectB*>(ptr);
-            return sweetPy::Object<TestSubjectB>::ToPython(value);
+            return sweetPy::Object<TestSubjectB>::to_python(value);
         });
         return list;
     }

@@ -32,7 +32,7 @@ namespace sweetPy
         typedef std::unique_ptr<char, _Deallocate> _Buffer;
         typedef std::pair<_Buffer, std::size_t> String;
         virtual ~SerializeContext(){}
-        virtual String Finish(bool shallowCopy = true) = 0;
+        virtual String finish(bool shallowCopy = true) = 0;
         
     protected:
         static void deallocate(char* ptr){ delete[] ptr; }
@@ -43,7 +43,7 @@ namespace sweetPy
     {
     public:
         virtual ~ConcreteSerializeContext(){}
-        String Finish(bool shallowCopy = true) override
+        String finish(bool shallowCopy = true) override
         {
             throw core::Exception(__CORE_SOURCE, "Method not supported");
         }
@@ -53,7 +53,7 @@ namespace sweetPy
     class ConcreteSerializeContext<SerializeType::FlatBuffers> : public SerializeContext
     {
     public:
-        String Finish(bool shallowCopy = true) override
+        String finish(bool shallowCopy = true) override
         {
             std::vector<flatbuffers::Offset<serialize::Object>> objects;
             for(auto& offsetPair : m_offsets)
@@ -93,7 +93,7 @@ namespace sweetPy
         public:
             template<typename T>
             typename std::enable_if<std::is_same<serialize::Container,
-                typename std::decay<T>::type>::value == false, const T&>::type Get() const
+                typename std::decay<T>::type>::value == false, const T&>::type get() const
             {
                 if(m_object == nullptr || m_object->object_type() != flat_traits::TypeToTypeId<T>::value)
                     throw core::Exception(__CORE_SOURCE, "Requested type dosen't match");
@@ -102,7 +102,7 @@ namespace sweetPy
     
             template<typename T>
             typename std::enable_if<std::is_same<serialize::Container,
-                    typename std::decay<T>::type>::value, const T&>::type Get() const
+                    typename std::decay<T>::type>::value, const T&>::type get() const
             {
                 if(m_object == nullptr || (m_object->object_type() != flat_traits::TypeToTypeId<serialize::Tuple>::value
                  && m_object->object_type() != flat_traits::TypeToTypeId<serialize::List>::value))
@@ -110,7 +110,7 @@ namespace sweetPy
                 return *reinterpret_cast<serialize::Container const *>(m_object->object());
             }
             
-            serialize::all_types GetType() const
+            serialize::all_types get_type() const
             {
                 return m_object->object_type();
             }
@@ -155,14 +155,14 @@ namespace sweetPy
             Object m_currentObject;
         };
     
-        const_iterator StartRead(const String& buffer)
+        const_iterator start_read(const String& buffer)
         {
             const serialize::Objects& objects = *serialize::GetObjects(reinterpret_cast<const void*>(buffer.first.get()));
             return const_iterator(objects.objects()->begin(), objects.objects()->end());
         }
         
-        flatbuffers::FlatBufferBuilder& GetBuilder() { return m_builder; }
-        void AddOffset(Type type, const UnionOffset& offset){ m_offsets.emplace_back(std::make_pair(type, offset)); }
+        flatbuffers::FlatBufferBuilder& get_builder() { return m_builder; }
+        void add_offset(Type type, const UnionOffset& offset){ m_offsets.emplace_back(std::make_pair(type, offset)); }
         
     private:
         flatbuffers::FlatBufferBuilder m_builder;
