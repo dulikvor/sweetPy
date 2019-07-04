@@ -32,13 +32,20 @@ namespace sweetPyTest {
         }
     };
     
-    TEST(CPythonClassTest, NonOveridedVirtualFunctionCall) {
+    TEST(CPythonClassTest, FunctionInvocation) {
         const char *testingScript = "a = TestClass(7)\n"
+                                    //Member functions - with return value and without.
                                     "a.IncBaseValue()\n"
-                                    "result = a.GetBaseValue()";
+                                    "result = a.GetBaseValue()\n"
+                                    //Static member function invocation, with non specified user type as returned result
+                                    "ptr = TestClass.GetUniqueMe()";
         
+        //Member functions, with return value and without.
         PyRun_SimpleString(testingScript);
         ASSERT_EQ(PythonEmbedder::get_attribute<int>("result"), 1);
+        //Static member function invocation, returned type is non specified user type instance.
+        auto& ptr = PythonEmbedder::get_attribute<std::unique_ptr<TestSubjectA>&>("ptr");
+        ASSERT_EQ(ptr->m_byValueInt, 5);
     }
     
     /*

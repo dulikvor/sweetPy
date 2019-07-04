@@ -374,7 +374,7 @@ namespace sweetPy {
             }
     
             ObjectPtr capsule(PyTuple_GET_ITEM(self, 0), &Deleter::Borrow);
-            MetaClass& meta = *reinterpret_cast<MetaClass*>(PyCapsule_GetContext(capsule.get()));
+            MetaClass& meta = *reinterpret_cast<MetaClass*>(PyCapsule_GetPointer(capsule.get(), nullptr));
             ObjectPtr hash_code(PyTuple_GET_ITEM(self, 1), &Deleter::Borrow);
             unsigned long typed_hash_code = PyLong_AsUnsignedLong(hash_code.get());
             
@@ -410,7 +410,7 @@ namespace sweetPy {
             }
     
             ObjectPtr capsule(PyTuple_GET_ITEM(self, 0), &Deleter::Borrow);
-            MetaClass& meta = *reinterpret_cast<MetaClass*>(PyCapsule_GetContext(capsule.get()));
+            MetaClass& meta = *reinterpret_cast<MetaClass*>(PyCapsule_GetPointer(capsule.get(), nullptr));
             ObjectPtr hash_code(PyTuple_GET_ITEM(self, 1), &Deleter::Borrow);
             unsigned long typed_hash_code = PyLong_AsUnsignedLong(hash_code.get());
     

@@ -204,7 +204,7 @@ namespace sweetPy {
             for(auto& elem : moduleDict)
             {
                 auto object = elem.get<PyObject*>();
-                if(object->ob_type == &MetaClass::get_common_meta_type().ht_type)
+                if(object->ob_type->ob_base.ob_size == MetaClass::get_check_sum())
                     types.emplace_back(reinterpret_cast<PyTypeObject*>(object));
             }
             

@@ -113,6 +113,19 @@ namespace sweetPy {
                 using byReference = typename filter<Predicator<is_reference_predicator<>>, Args...>::type;
                 TypesInitializer<others>::initialize_types(module, namePrefix);
                 ReferenceTypesInitializer<byReference>::initialize_types(module, namePrefix + "Reference");
+                initialize_return(module, namePrefix);
+            }
+            template<typename _Return = Return, enable_if_t<std::is_same<_Return, void>::value, bool> = true>
+            static void initialize_return(Module& module, const std::string& namePrefix)
+            {
+            }
+            template<typename _Return = Return, enable_if_t<!std::is_same<_Return, void>::value, bool> = true>
+            static void initialize_return(Module& module, const std::string& namePrefix)
+            {
+                using others = typename filter<Predicator<is_reference_predicator<>, false>, _Return>::type;
+                using byReference = typename filter<Predicator<is_reference_predicator<>>, _Return>::type;
+                TypesInitializer<others>::initialize_types(module, namePrefix);
+                ReferenceTypesInitializer<byReference>::initialize_types(module, namePrefix + "Reference");
             }
         };
     
@@ -229,7 +242,7 @@ namespace sweetPy {
             if (m_memberStaticFunctions.empty() == false)
             {
                 auto type = ObjectPtr(CPythonType::get_py_object(new MetaClass(
-                        std::string(CPythonType::get_type(m_type.get())->get_name()) + "MetaClass", "", 0)), &Deleter::Owner);
+                        std::string(CPythonType::get_type(m_type.get())->get_name()) + "MetaClass", "")), &Deleter::Owner);
                 CPythonType::get_type(m_type.get())->ht_type.ob_base.ob_base.ob_type = reinterpret_cast<PyTypeObject*>(type.get());
                 auto& metaClass = static_cast<MetaClass&>(*reinterpret_cast<PyHeapTypeObject*>(type.get()));
                 for (auto &staticFunction : m_memberStaticFunctions)

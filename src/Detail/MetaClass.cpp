@@ -2,7 +2,7 @@
 
 namespace sweetPy {
     
-    MetaClass MetaClass::m_commonMetaType("common_meta_type", "", 0);
+    MetaClass MetaClass::m_commonMetaType("common_meta_type", "");
     MetaClass* commonMetaTypePtr = &MetaClass::get_common_meta_type();
 }
 
