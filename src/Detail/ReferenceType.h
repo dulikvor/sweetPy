@@ -9,57 +9,7 @@
 
 namespace sweetPy {
     
-    template<typename T, typename _T = decay_t<T>>
-    class PlainReferenceType
-    {
-    private:
-        typedef ReferenceObject<_T> ObjectType;
-        typedef ClazzPyType<ObjectType> PyType;
-        
-    public:
-        PlainReferenceType(Module& module, const std::string& name, const std::string& doc)
-        : m_module(module),
-          m_type(CPythonType::get_py_object(new ClazzPyType<ObjectType>(name, doc, &free_type)), &Deleter::Owner)
-        {
-            reinterpret_cast<PyTypeObject*>(m_type.get())->tp_dealloc = PyType_Type.tp_dealloc;
-        }
-        ~PlainReferenceType()
-        {
-            auto& type = *CPythonType::get_type(m_type.get());
-            if(!m_module.is_type_exists(type.get_hash_code()))
-            {
-                PyType_Ready(&type.ht_type);
-                clear_trace_ref();
-                TypesContainer::instance().add_type(type.get_hash_code(), type, false);
-                m_module.add_type(type.get_hash_code(), std::move(m_type), false);
-            }
-        }
-        
-    private:
-        void clear_trace_ref()
-        {
-#ifdef Py_TRACE_REFS
-            auto type = (PyTypeObject*)m_type.get();
-            if(type->ob_base.ob_base._ob_prev)
-                type->ob_base.ob_base._ob_prev->_ob_next = type->ob_base.ob_base._ob_next;
-            if(type->ob_base.ob_base._ob_next)
-                type->ob_base.ob_base._ob_next->_ob_prev = type->ob_base.ob_base._ob_prev;
-        
-            type->ob_base.ob_base._ob_next = NULL;
-            type->ob_base.ob_base._ob_prev = NULL;
-#endif
-        }
-        static void free_type(void* ptr)
-        {
-            delete reinterpret_cast<PyType*>(ptr);
-        }
-        
-    private:
-        Module& m_module;
-        ObjectPtr m_type;
-    };
-    
-    template<typename T, typename _T = decay_t<T>>
+    template<typename T, typename _T = remove_reference_t<T>>
     class ReferenceType
     {
     public:
@@ -75,30 +25,17 @@ namespace sweetPy {
         }
         ~ReferenceType()
         {
-            auto& type = *CPythonType::get_type(m_type.get());
+            CPythonType& type = *CPythonType::get_type(m_type.get());
             PyType_Ready(&type.ht_type);
-            clear_trace_ref();
+            type.clear_trace_ref();
             TypesContainer::instance().add_type(type.get_hash_code(), type, true);
             m_module.add_type(type.get_hash_code(), std::move(m_type));
         }
 
     private:
-        void clear_trace_ref()
+        static void free_type(PyObject* ptr)
         {
-#ifdef Py_TRACE_REFS
-            auto type = (PyTypeObject*)m_type.get();
-            if(type->ob_base.ob_base._ob_prev)
-                type->ob_base.ob_base._ob_prev->_ob_next = type->ob_base.ob_base._ob_next;
-            if(type->ob_base.ob_base._ob_next)
-                type->ob_base.ob_base._ob_next->_ob_prev = type->ob_base.ob_base._ob_prev;
-        
-            type->ob_base.ob_base._ob_next = NULL;
-            type->ob_base.ob_base._ob_prev = NULL;
-#endif
-        }
-        static void free_type(void* ptr)
-        {
-            delete reinterpret_cast<PyType*>(ptr);
+            delete static_cast<PyType*>(CPythonType::get_type(ptr));
         }
         
     private:

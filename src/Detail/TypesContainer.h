@@ -3,7 +3,7 @@
 #include <Python.h>
 #include <unordered_map>
 #include "Core/Exception.h"
-#include "src/Detail/ClazzPyType.h"
+#include "CPythonType.h"
 
 namespace sweetPy{
     class TypesContainer

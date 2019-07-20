@@ -2,61 +2,16 @@
 
 #include <Python.h>
 #include <string>
-#include <bitset>
 #include "Core/Exception.h"
 #include "Core/Assert.h"
+#include "Core/Utils.h"
 #include "MetaClass.h"
 #include "CPythonType.h"
-#include "src/Detail/ClazzContext.h"
+#include "Object.h"
+#include "ClazzContext.h"
 #include "MemberAccessor.h"
 
 namespace sweetPy {
-    template<typename T>
-    struct ClazzObject
-    {
-        #define PROPERTIE_SIZE 1
-        enum Propertie
-        {
-            Value = 0,
-            Reference = 1,
-            All = 2
-        };
-        constexpr ClazzObject()
-        {
-            static_assert(sizeof(PyObject) >= sizeof(std::bitset<Propertie::All>), "Symbol set is not packed after PyObject due to aligment");
-        }
-        constexpr static std::size_t get_size()
-        {
-            return sizeof(ClazzObject);
-        }
-        static void set_propertie(void* ptr, Propertie propertie)
-        {
-            auto objectPtr = reinterpret_cast<ClazzObject*>(ptr);
-            objectPtr->m_propertie[propertie] = true;
-        }
-        static bool is_ref(void* ptr)
-        {
-            auto objectPtr = reinterpret_cast<ClazzObject*>(ptr);
-            return objectPtr->m_propertie[Reference] == true;
-        }
-        static T& get_val(void* ptr)
-        {
-            return reinterpret_cast<ClazzObject*>(ptr)->m_val;
-        }
-        static const T& get_const_val(void* ptr)
-        {
-            return reinterpret_cast<ClazzObject*>(ptr)->m_val;
-        }
-        static char* get_val_offset(void* ptr)
-        {
-            return (char*)&reinterpret_cast<ClazzObject*>(ptr)->m_val;
-        }
-        
-    private:
-        PyObject m_object;
-        std::bitset<PROPERTIE_SIZE> m_propertie;
-        T m_val;
-    };
     
     template<typename T>
     class ClazzPyType : public CPythonType
@@ -66,8 +21,8 @@ namespace sweetPy {
         typedef std::unique_ptr<MemberAccessor> MemeberAccessorPtr;
         typedef std::unique_ptr<ClazzContext> ClazzContextPtr;
         
-        ClazzPyType(const std::string &name, const std::string &doc, Free free)
-                : CPythonType(name, doc, typeid(T).hash_code(), free), m_context(new ClazzContext())
+        ClazzPyType(const std::string &name, const std::string &doc, Free freeType)
+                : CPythonType(name, doc, Hash::generate_hash_code<T>(), freeType), m_context(new ClazzContext())
         {
             ht_type.ob_base.ob_base.ob_type = &MetaClass::get_common_meta_type().ht_type;
             ht_type.ob_base.ob_base.ob_refcnt = 2;
@@ -75,9 +30,9 @@ namespace sweetPy {
             ht_type.tp_name = m_name.c_str();
             ht_type.tp_basicsize = ClazzObject<T>::get_size();
             ht_type.tp_dealloc = &dealloc_object;
-            ht_type.tp_flags = Py_TPFLAGS_HAVE_GC & Py_TPFLAGS_HEAPTYPE;
-            ht_type.tp_traverse = &traverse;
+            ht_type.tp_flags = Py_TPFLAGS_HEAPTYPE;
             ht_type.tp_new = PyBaseObject_Type.tp_new;
+            ht_type.tp_alloc = PyBaseObject_Type.tp_alloc;
             ht_type.tp_setattro = &set_attribute;
             ht_type.tp_getattro = &get_attribute;
     
@@ -88,19 +43,9 @@ namespace sweetPy {
         }
         ClazzPyType(const ClazzPyType&)=delete;
         ClazzPyType& operator=(const ClazzPyType&)=delete;
-        //Due to dependency with CPythonObject, the member will be created by CPythonClass
-        void create_member_accessor(int offset, MemeberAccessorPtr&& accessor)
-        {
-        }
         ClazzContext& get_context(){ return *m_context; }
         
     private:
-        static int traverse(PyObject *object, visitproc visit, void *arg)
-        {
-            //Instance members are kept out of the instance dictionary, they are part of the continuous memory of the instance, kept in C POD form.
-            //There is no need to traverse the members due to the fact they are not part of python garbage collector and uknown to python.
-            return 0;
-        }
         static void dealloc_object(PyObject *object)
         {
             reinterpret_cast<T*>(ClazzObject<T>::get_val_offset(object))->~T();

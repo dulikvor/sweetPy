@@ -79,26 +79,14 @@ namespace sweetPy {
             }
         }
         //static void Dealloc(PyObject *object);
-        void clear_trace_ref()
-        {
-#ifdef Py_TRACE_REFS
-            if(ob_base.ob_base._ob_prev)
-                ob_base.ob_base._ob_prev->_ob_next = ob_base.ob_base._ob_next;
-            if(ob_base.ob_base._ob_next)
-                ob_base.ob_base._ob_next->_ob_prev = ob_base.ob_base._ob_prev;
-    
-            ob_base.ob_base._ob_next = NULL;
-            ob_base.ob_base._ob_prev = NULL;
-#endif
-        }
         static void free_type(void* ptr)
         {
             auto type = static_cast<CPythonType*>(reinterpret_cast<PyHeapTypeObject*>(ptr));
-            type->get_free()(type);
+            type->get_free()(CPythonType::get_py_object(type));
         }
-        static void meta_free(void* ptr)
+        static void meta_free(PyObject* ptr)
         {
-            reinterpret_cast<MetaClass*>(ptr)->~MetaClass();
+            delete static_cast<MetaClass*>(CPythonType::get_type(ptr));
         }
         
     private:

@@ -82,20 +82,25 @@ namespace sweetPy {
             ObjectPtr _self(PyTuple_GET_ITEM(self, 0), &Deleter::Borrow);
             ObjectPtr unicodeName(PyTuple_GET_ITEM(self, 1), &Deleter::Borrow);
             std::string name = Object<std::string>::from_python(unicodeName.get());
-
+    
             ClassType* _this;
             using RefObject = ReferenceObject<ClassType>;
+            auto& heapType = *reinterpret_cast<PyHeapTypeObject*>(_self->ob_type);
+            ClazzContext* context;
             if(ClazzObject<RefObject>::is_ref(_self.get()))
             {
                 auto& refObject = ClazzObject<RefObject>::get_val(_self.get());
                 _this = &refObject.get_ref();
+        
+                context = &static_cast<ClazzPyType<RefObject>&>(heapType).get_context();
             }
             else
+            {
                 _this = &ClazzObject<ClassType>::get_val(_self.get());
+                context = &static_cast<ClazzPyType<ClassType>&>(heapType).get_context();
+            }
             
-            ClazzContext& context = static_cast<ClazzPyType<ClassType>&>(
-                    *reinterpret_cast<PyHeapTypeObject*>(_self->ob_type)).get_context();
-            Function& function = context.get_member_function(std::hash<std::string>()(name));
+            Function& function = context->get_member_function(std::hash<std::string>()(name));
             Self& m_pyFunc = static_cast<Self&>(function);
             
             Return result = (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<Args>::get_typed(
@@ -131,17 +136,22 @@ namespace sweetPy {
 
             ClassType* _this;
             using RefObject = ReferenceObject<ClassType>;
+            auto& heapType = *reinterpret_cast<PyHeapTypeObject*>(_self->ob_type);
+            ClazzContext* context;
             if(ClazzObject<RefObject>::is_ref(_self.get()))
             {
                 auto& refObject = ClazzObject<RefObject>::get_val(_self.get());
                 _this = &refObject.get_ref();
+                
+                context = &static_cast<ClazzPyType<RefObject >&>(heapType).get_context();
             }
             else
+            {
                 _this = &ClazzObject<ClassType>::get_val(_self.get());
+                context = &static_cast<ClazzPyType<ClassType>&>(heapType).get_context();
+            }
     
-            ClazzContext& context = static_cast<ClazzPyType<ClassType>&>(
-                    *reinterpret_cast<PyHeapTypeObject*>(_self->ob_type)).get_context();
-            Function& function = context.get_member_function(std::hash<std::string>()(name));
+            Function& function = context->get_member_function(std::hash<std::string>()(name));
             Self& m_pyFunc = static_cast<Self&>(function);
 
             (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<Args>::get_typed(
@@ -229,17 +239,22 @@ namespace sweetPy {
     
             ClassType* _this;
             using RefObject = ReferenceObject<ClassType>;
+            auto& heapType = *reinterpret_cast<PyHeapTypeObject*>(_self->ob_type);
+            ClazzContext* context;
             if(ClazzObject<RefObject>::is_ref(_self.get()))
             {
                 auto& refObject = ClazzObject<RefObject>::get_val(_self.get());
                 _this = &refObject.get_ref();
+        
+                context = &static_cast<ClazzPyType<RefObject >&>(heapType).get_context();
             }
             else
+            {
                 _this = &ClazzObject<ClassType>::get_val(_self.get());
+                context = &static_cast<ClazzPyType<ClassType>&>(heapType).get_context();
+            }
     
-            ClazzContext& context = static_cast<ClazzPyType<ClassType>&>(
-                    *reinterpret_cast<PyHeapTypeObject*>(_self->ob_type)).get_context();
-            Function& function = context.get_member_function(std::hash<std::string>()(name));
+            Function& function = context->get_member_function(std::hash<std::string>()(name));
             Self& m_pyFunc = static_cast<Self&>(function);
             
             Return result = (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<Args>::get_typed(
@@ -274,17 +289,22 @@ namespace sweetPy {
     
             ClassType* _this;
             using RefObject = ReferenceObject<ClassType>;
+            auto& heapType = *reinterpret_cast<PyHeapTypeObject*>(_self->ob_type);
+            ClazzContext* context;
             if(ClazzObject<RefObject>::is_ref(_self.get()))
             {
                 auto& refObject = ClazzObject<RefObject>::get_val(_self.get());
                 _this = &refObject.get_ref();
+        
+                context = &static_cast<ClazzPyType<RefObject >&>(heapType).get_context();
             }
             else
+            {
                 _this = &ClazzObject<ClassType>::get_val(_self.get());
+                context = &static_cast<ClazzPyType<ClassType>&>(heapType).get_context();
+            }
     
-            ClazzContext& context = static_cast<ClazzPyType<ClassType>&>(
-                    *reinterpret_cast<PyHeapTypeObject*>(_self->ob_type)).get_context();
-            Function& function = context.get_member_function(std::hash<std::string>()(name));
+            Function& function = context->get_member_function(std::hash<std::string>()(name));
             Self& m_pyFunc = static_cast<Self&>(function);
             
             (_this->*m_pyFunc.m_memberMethod)(std::forward<Args>(Object<Args>::get_typed(

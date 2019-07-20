@@ -22,6 +22,7 @@ namespace sweetPy{
     {
     public:
         typedef std::unique_ptr<PyMemberDef> MemberDefPtr;
+        virtual ~Member() = default;
         virtual MemberDefPtr to_python() const = 0;
 
     };

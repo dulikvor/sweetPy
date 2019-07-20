@@ -31,7 +31,7 @@ namespace sweetPyTest {
         subject.add_method("GetStr", "Will return a reference to m_str", &TestSubjectA::GetStr);
         subject.add_method("SetXpireValue", "Will set m_str from an xpire value", &TestSubjectA::SetXpireValue);
         subject.add_method("FromStrVectorToIntVector", "Will transform str vector to int vector", &TestSubjectA::FromStrVectorToIntVector);
- 
+
         Clazz<TestSubjectB> subjectB(module, "TestClassB", "TestClassB");
         subjectB.add_method("IncValue", "Will increase b internal ref count", &TestSubjectB::IncValue);
         subjectB.add_member("value", &TestSubjectB::m_value, "value");
@@ -91,6 +91,7 @@ namespace sweetPyTest {
         ctypestrConstRefType.add_method("create", "Will generate c-type str const ref", static_cast<const char*&(GenerateRefTypes<const char*>::*)(const char*&)>(&GenerateRefTypes<const char*>::operator()));
         
         module.add_function("globalFunction", "global function", &globalFunction);
+        
         module.add_function("check_int_conversion", "check integral int type conversions", static_cast<int(*)(int)>(&CheckIntegralIntType));
         module.add_function("check_const_ref_int_conversion", "check integral const ref int type conversions", static_cast<const int&(*)(const int&)>(&CheckIntegralIntType));
         module.add_function("check_ref_int_conversion", "check integral ref int type conversions", static_cast<int&(*)(int&)>(&CheckIntegralIntType));
@@ -124,6 +125,7 @@ namespace sweetPyTest {
         module.add_function("check_const_ref_objectptr_conversion", "check const ObjectPtr& type conversions", static_cast<const sweetPy::ObjectPtr&(*)(const sweetPy::ObjectPtr&)>(&CheckConstRefObjectPtrType));
         
         //Integral types (lvalue, rvalue, const modifier)
+        
         const int var = 6;
         TestSubjectB b;
         module.add_variable("globalVariableLiteral", "Hello World");

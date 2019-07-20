@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Python.h>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <memory>
@@ -21,18 +22,16 @@ namespace sweetPy {
     {
     public:
         typedef std::unique_ptr<PyMethodDef> DescriptorPtr;
-        typedef void(*Free)(void*);
+        typedef std::function<void(PyObject*)> Free;
         template<typename T> struct CPythonTypeHash{};
-        
-        CPythonType(const std::string& name, const std::string& doc, std::size_t hash_code, Free free)
-                :CPythonGCHead{}, PyHeapTypeObject{}, m_name(name), m_doc(doc), m_hash_code(hash_code), m_free(free)
+        template<typename FreeT>
+        CPythonType(const std::string& name, const std::string& doc, std::size_t hash_code, const FreeT& freeType)
+                :CPythonGCHead{}, PyHeapTypeObject{}, m_name(name), m_doc(doc), m_hash_code(hash_code), m_freeType(freeType)
         {
             reset_gc_head();
-            std::cout<<"Constructor "<<m_name<<std::endl;
         }
         ~CPythonType()
         {
-            std::cout<<"Destructor  "<<m_name<<std::endl;
             if(ht_type.tp_members != nullptr)
             {
                 MembersDefs membersDefs(ht_type.tp_members);
@@ -52,7 +51,7 @@ namespace sweetPy {
         const std::string& get_name() const {return m_name;}
         const std::string& get_doc() const {return m_doc;}
         std::size_t get_hash_code() const {return m_hash_code;}
-        Free get_free() const {return m_free;}
+        Free get_free() const {return m_freeType;}
         static PyObject* get_py_object(CPythonType* type)
         {
             return reinterpret_cast<PyObject*>(static_cast<CPythonGCHead*>(type) + 1);
@@ -60,6 +59,18 @@ namespace sweetPy {
         static CPythonType* get_type(PyObject* object)
         {
             return static_cast<CPythonType*>(reinterpret_cast<CPythonGCHead*>(object) - 1);
+        }
+        void clear_trace_ref()
+        {
+#ifdef Py_TRACE_REF
+            if(ht_type.ob_base.ob_base._ob_prev)
+                ht_type.ob_base.ob_base._ob_prev->_ob_next = ht_type.ob_base.ob_base._ob_next;
+            if(ht_type.ob_base.ob_base._ob_next)
+                ht_type.ob_base.ob_base._ob_next->_ob_prev = ht_type.ob_base.ob_base._ob_prev;
+        
+            ht_type.ob_base.ob_base._ob_next = NULL;
+            ht_type.ob_base.ob_base._ob_prev = NULL;
+#endif
         }
 
     protected:
@@ -106,7 +117,6 @@ namespace sweetPy {
         std::size_t m_hash_code;
         typedef std::vector<DescriptorPtr> Descriptors;
         Descriptors m_descriptors; //No ownership of name and doc (functions take ownership on their meta data and not the descriptor). PyCFunctionObject won't take ownership on the descriptor, so the ownership is transfered to sweetPy CPythonType.
-        Free m_free;
+        Free m_freeType;
     };
-
 }

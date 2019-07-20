@@ -5,7 +5,6 @@
 #include <string>
 
 namespace sweetPy {
-    class Module;
     class Function
     {
     public:

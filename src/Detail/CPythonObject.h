@@ -123,7 +123,7 @@ namespace sweetPy{
                 return std::move(ClazzObject<T>::get_val(object));
             }
         }
-        template<typename X = Type, typename = enable_if_t<std::is_move_constructible<X>::value>>
+        template<typename X = T, typename = enable_if_t<std::is_move_constructible<X>::value>>
         static PyObject* to_python(T&& value)
         {
             return ValueObject<T>::alloc(std::move(value));

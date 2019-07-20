@@ -9,13 +9,16 @@
 #include "Core/Traits.h"
 #include "Core/Exception.h"
 #include "Core/PythonAssist.h"
+#include "Core/Utils.h"
 #include "Types/ObjectPtr.h"
 #include "Types/Dictionary.h"
-#include "src/Detail/CPythonType.h"
-#include "src/Detail/CPythonObject.h"
-#include "src/Detail/Function.h"
-#include "src/Detail/ConcreteFunction.h"
-#include "src/Detail/ModuleContext.h"
+#include "Detail/CPythonType.h"
+#include "Detail/CPythonObject.h"
+#include "Detail/Function.h"
+#include "Detail/ConcreteFunction.h"
+#include "Detail/ModuleContext.h"
+#include "Detail/PlainType.h"
+#include "Detail/Object.h"
 
 namespace sweetPy {
     class MetaClass;
@@ -52,6 +55,159 @@ namespace sweetPy {
     private:
         typedef std::unique_ptr<Function> FunctionPtr;
         typedef std::size_t TypeKey;
+    
+        template<typename...>
+        struct TypesInitializer{};
+        template<typename... Args>
+        struct TypesInitializer<std::tuple<Args...>>
+        {
+            static void initialize_types(Module& module, const std::string& namePrefix)
+            {
+                invoker(initialize_type<Args>(module, namePrefix)...);
+            }
+            template<typename T>
+            static void* initialize_type(Module& module, const std::string& namePrefix)
+            {
+                auto objectDestroyer = [](PyObject* object){
+                    T* instance = &ClazzObject<T>::get_val(object);
+                    instance->~T();
+                };
+                std::size_t hashCode = Hash::generate_hash_code<T>();
+                
+                std::unique_ptr<PyObject, std::function<void(PyObject*)>> plainType(
+                        CPythonType::get_py_object(
+                                new PlainType(namePrefix + std::to_string(hashCode), "", ClazzObject<T>::get_size(),
+                                              hashCode, objectDestroyer)
+                        ),
+                        [](PyObject* ptr){
+                            auto plainType = static_cast<PlainType*>(CPythonType::get_type(ptr));
+                            if(plainType->is_finalized() == false)
+                                delete plainType;
+                            else
+                            {
+                                auto type = reinterpret_cast<PyTypeObject*>(ptr);
+                                Dictionary dict(type->tp_dict);
+                                dict.clear();
+                                
+                                Py_XDECREF(type->tp_mro);
+                                type->ob_base.ob_base.ob_refcnt -= 2;
+                                
+                                PyTypeObject* meta = ptr->ob_type;
+                                meta->tp_dealloc(ptr);
+                            }
+                        }
+                );
+    
+                CPythonType& type = *CPythonType::get_type(plainType.get());
+                if(!module.is_type_exists(type.get_hash_code()))
+                {
+                    static_cast<PlainType&>(type).finalize();
+                    TypesContainer::instance().add_type(type.get_hash_code(), type, false);
+                    module.add_type(type.get_hash_code(), std::move(plainType), false);
+                }
+                return nullptr;
+            }
+        };
+    
+        template<typename...>
+        struct ReferenceTypesInitializer{};
+        template<typename... Args>
+        struct ReferenceTypesInitializer<std::tuple<Args...>>
+        {
+            static void initialize_types(Module& module, const std::string& namePrefix)
+            {
+                invoker(initialize_type<Args>(module, namePrefix)...);
+            }
+            template<typename T, typename _T = remove_reference_t<T>>
+            static void* initialize_type(Module& module, const std::string& namePrefix)
+            {
+                std::size_t hashCode = Hash::generate_hash_code<ReferenceObject<_T>>();
+                std::unique_ptr<PyObject, std::function<void(PyObject*)>> plainType(
+                        CPythonType::get_py_object(
+                            new PlainType(namePrefix + std::to_string(hashCode), "", ClazzObject<ReferenceObject<_T>>::get_size(),
+                                hashCode, [](PyObject*){})
+                        ),
+                        [](PyObject* ptr){
+                            auto plainType = static_cast<PlainType*>(CPythonType::get_type(ptr));
+                            if(plainType->is_finalized() == false)
+                                delete plainType;
+                            else
+                            {
+                                auto type = reinterpret_cast<PyTypeObject*>(ptr);
+                                Dictionary dict(type->tp_dict);
+                                dict.clear();
+    
+                                Py_XDECREF(type->tp_mro);
+                                type->ob_base.ob_base.ob_refcnt -= 2;
+                                
+                                PyTypeObject* meta = ptr->ob_type;
+                                meta->tp_dealloc(ptr);
+                            }
+                        }
+                );
+    
+                CPythonType& type = *CPythonType::get_type(plainType.get());
+                if(!module.is_type_exists(type.get_hash_code()))
+                {
+                    static_cast<PlainType&>(type).finalize();
+                    TypesContainer::instance().add_type(type.get_hash_code(), type, false);
+                    module.add_type(type.get_hash_code(), std::move(plainType), false);
+                }
+                return nullptr;
+            }
+        };
+    
+        template<typename Return, typename... Args>
+        struct FunctionTypesInitializerImpl
+        {
+            static void initialize_types(Module& module, const std::string& namePrefix)
+            {
+                using others = typename filter<Predicator<is_reference_predicator<>, false>, Args...>::type;
+                using byReference = typename filter<Predicator<is_reference_predicator<>>, Args...>::type;
+                TypesInitializer<others>::initialize_types(module, namePrefix);
+                ReferenceTypesInitializer<byReference>::initialize_types(module, namePrefix + "Reference");
+                initialize_return(module, namePrefix);
+            }
+            template<typename _Return = Return, enable_if_t<std::is_same<_Return, void>::value, bool> = true>
+            static void initialize_return(Module& module, const std::string& namePrefix)
+            {
+            }
+            template<typename _Return = Return, enable_if_t<!std::is_same<_Return, void>::value, bool> = true>
+            static void initialize_return(Module& module, const std::string& namePrefix)
+            {
+                using others = typename filter<Predicator<is_reference_predicator<>, false>, _Return>::type;
+                using byReference = typename filter<Predicator<is_reference_predicator<>>, _Return>::type;
+                TypesInitializer<others>::initialize_types(module, namePrefix);
+                ReferenceTypesInitializer<byReference>::initialize_types(module, namePrefix + "Reference");
+            }
+        };
+    
+        template<typename... Args>
+        struct FunctionTypesInitializer{};
+        template<typename Type, typename Return, typename... Args>
+        struct FunctionTypesInitializer<Return(Type::*)(Args...)>
+        {
+            static void initialize_types(Module& module, const std::string& namePrefix)
+            {
+                FunctionTypesInitializerImpl<Return, Args...>::initialize_types(module, namePrefix);
+            }
+        };
+        template<typename Type, typename Return, typename... Args>
+        struct FunctionTypesInitializer<Return(Type::*)(Args...) const>
+        {
+            static void initialize_types(Module& module, const std::string& namePrefix)
+            {
+                FunctionTypesInitializerImpl<Return, Args...>::initialize_types(module, namePrefix);
+            }
+        };
+        template<typename Return, typename... Args>
+        struct FunctionTypesInitializer<Return(*)(Args...)>
+        {
+            static void initialize_types(Module& module, const std::string& namePrefix)
+            {
+                FunctionTypesInitializerImpl<Return, Args...>::initialize_types(module, namePrefix);
+            }
+        };
     public:
         explicit Module(const std::string &name, const std::string &doc)
             :m_moduleDef(nullptr), m_module(nullptr, &Deleter::Borrow),
@@ -84,6 +240,7 @@ namespace sweetPy {
             typedef CFunction<X> CPyFuncType;
             FunctionPtr functionPtr(new CPyFuncType(name, doc, function));
             auto pair = m_functions.insert(std::make_pair(functionPtr->get_hash_code(), std::move(functionPtr)));
+            FunctionTypesInitializer<X>::initialize_types(*this, "Clazz");
             if(!pair.second)
                 throw CPythonException(PyExc_KeyError, __CORE_SOURCE, "function key already in use");
         }
@@ -113,8 +270,9 @@ namespace sweetPy {
                     ObjectPtr hashCodePtr(PyLong_FromUnsignedLong(hashCode), &Deleter::Owner);
                     PyTuple_SetItem(self.get(), 1, hashCodePtr.release());
                     
-                    ObjectPtr cFunction(PyCFunction_NewEx(descriptor.get(), self.get(), NULL), &Deleter::Owner);
-                    CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), descriptor->ml_name, cFunction.release()) == 0, "global function registration with module failed");
+                    std::string name = descriptor->ml_name;
+                    ObjectPtr cFunction(PyCFunction_NewEx(descriptor.release(), self.get(), NULL), &Deleter::Owner);
+                    CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), name.c_str(), cFunction.release()) == 0, "global function registration with module failed");
                     
                     m_context->add_function(hashCode, std::move(functionPair.second));
                 }
@@ -150,8 +308,8 @@ namespace sweetPy {
     
             ObjectPtr context(PyCapsule_New(m_context.get(), nullptr, nullptr), &Deleter::Owner);
             CPYTHON_VERIFY(context.get() != nullptr, "Encapsulating module context failed");
-            CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), "context", context.release()) == 0, "module context registration with module failed");
             m_context.release();
+            CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), "context", context.release()) == 0, "module context registration with module failed");
         }
 
     private:
@@ -216,6 +374,11 @@ namespace sweetPy {
             
             for(auto& type : types)
             {
+                Dictionary dict(type->tp_dict);
+                dict.clear();
+    
+                Py_XDECREF(type->tp_mro);
+                type->ob_base.ob_base.ob_refcnt -= 2;
                 PyTypeObject* meta = type->ob_base.ob_base.ob_type;
                 meta->tp_dealloc(reinterpret_cast<PyObject*>(type));
             }

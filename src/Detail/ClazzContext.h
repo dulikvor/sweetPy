@@ -14,6 +14,7 @@ namespace sweetPy{
         typedef int Offset;
         typedef std::shared_ptr<Function> FunctionPtr;
         typedef std::shared_ptr<MemberAccessor> MemberAccessorPtr;
+        
         void add_member(Offset offset, MemberAccessorPtr&& memberAccessor)
         {
             if (m_memberAccessors.find(offset) != m_memberAccessors.end())

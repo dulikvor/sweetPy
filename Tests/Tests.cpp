@@ -22,7 +22,7 @@ namespace sweetPyTest {
         void SetUp() override {
             core::Logger::Instance().Start(core::TraceSeverity::Info);
             PythonEmbedder::instance().initiate_interperter("CPythonClassTest", _argc, _argv);
-            const char *testingScript = "from CPythonClassTestModule import TestClass, Enum_Python, TestClassB, TestClassC, globalFunction\n"
+            const char *testingScript = "from CPythonClassTestModule import TestClass, TestClassB, TestClassC, Enum_Python, globalFunction\n"
                                         "import CPythonClassTestModule as TestModule";
             PyRun_SimpleString(testingScript);
         }
@@ -38,7 +38,9 @@ namespace sweetPyTest {
                                     "a.IncBaseValue()\n"
                                     "result = a.GetBaseValue()\n"
                                     //Static member function invocation, with non specified user type as returned result
-                                    "ptr = TestClass.GetUniqueMe()";
+                                    "ptr = TestClass.GetUniqueMe()\n"
+                                    //Global function invocation, with returned type.
+                                    "num = TestModule.globalFunction(77)";
         
         //Member functions, with return value and without.
         PyRun_SimpleString(testingScript);
@@ -46,6 +48,8 @@ namespace sweetPyTest {
         //Static member function invocation, returned type is non specified user type instance.
         auto& ptr = PythonEmbedder::get_attribute<std::unique_ptr<TestSubjectA>&>("ptr");
         ASSERT_EQ(ptr->m_byValueInt, 5);
+        //Global function invocation with returned type.
+        ASSERT_EQ(PythonEmbedder::get_attribute<int>("num"), 77);
     }
     
     /*
@@ -86,8 +90,8 @@ namespace sweetPyTest {
  
          ASSERT_EQ(502, PythonEmbedder::get_attribute<int&>("intRefObject_3"));
          ASSERT_EQ(502, PythonEmbedder::get_attribute<int&>("intRefObject_4"));
-     }
- 
+     }*/
+ /*
      TEST(CPythonClassTest, CPythonObjectCheckDoubleIntegralType)
      {
          const char *testingScript = "intArgument = 1000\n"
