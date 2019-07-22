@@ -31,6 +31,7 @@ namespace sweetPy {
     class Clazz
     {
     private:
+        typedef Clazz<T> Self;
         typedef ClazzPyType<T> PyType;
         template<typename...>
         struct TypesInitializer{};
@@ -245,7 +246,7 @@ namespace sweetPy {
         {
             m_members.emplace_back(new TypedMember<T, X>(name, member, doc));
             int offset = get_offset(member);
-            ClazzContext::MemberAccessorPtr accessor(new TypedMemberAccessor<X>(offset));
+            ClazzContext::MemberAccessorPtr accessor(new TypedMemberAccessor<Self, X>(offset));
             m_context.add_member(offset, std::move(accessor));
         }
         

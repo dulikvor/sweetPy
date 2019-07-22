@@ -181,14 +181,14 @@ namespace sweetPy{
         }
         void add_element(const ObjectPtr& element);
         template<typename T, typename = typename std::enable_if<!std::is_pointer<T>::value>::type>
-        const T& GetElement(size_t index) const
+        const T& get_element(size_t index) const
         {
             if(m_elements.size() < index)
                 throw core::Exception(__CORE_SOURCE, "index exceeds number of elements");
             return static_cast<core::TypedParam<T>&>(*m_elements[index]).template Get<T>();
         }
         template<typename T, typename = typename std::enable_if<std::is_pointer<T>::value>::type>
-        T GetElement(size_t index) const
+        T get_element(size_t index) const
         {
             if(m_elements.size() < index)
                 throw core::Exception(__CORE_SOURCE, "index exceeds number of elements");

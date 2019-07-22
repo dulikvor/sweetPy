@@ -15,7 +15,7 @@ namespace sweetPy{
 
     template<typename Type, typename MemberType>
     inline int get_offset(MemberType Type::* member){
-        return (char*)&(((Type*)nullptr)->*member) - (char*)((Type*)nullptr) + sizeof(PyObject);
+        return (char*)&(((Type*)nullptr)->*member) - (char*)((Type*)nullptr);
     }
 
     class Member

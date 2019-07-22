@@ -32,10 +32,16 @@ namespace sweetPy {
             auto objectPtr = reinterpret_cast<ClazzObject*>(ptr);
             objectPtr->m_propertie[propertie] = true;
         }
+        static void set_hash(void* ptr)
+        {
+            auto objectPtr = reinterpret_cast<ClazzObject*>(ptr);
+            objectPtr->m_hash = Hash::generate_hash_code<T>();
+        }
         static bool is_ref(void* ptr)
         {
             auto objectPtr = reinterpret_cast<ClazzObject*>(ptr);
-            return objectPtr->m_propertie[Reference] == true;
+            return objectPtr->m_propertie[Reference] == true &&
+                objectPtr->m_hash == Hash::generate_hash_code<T>();
         }
         static T& get_val(void* ptr)
         {
@@ -53,6 +59,7 @@ namespace sweetPy {
     private:
         PyObject m_object;
         std::bitset<PROPERTIE_SIZE> m_propertie;
+        std::size_t m_hash;
         T m_val;
     };
     
@@ -96,6 +103,7 @@ namespace sweetPy {
             PyObject *ptr = type.ht_type.tp_alloc(&type.ht_type, 0);
             new(ClazzObject<Self>::get_val_offset(ptr))Self(object);
             ClazzObject<Self>::set_propertie(ptr, ClazzObject<Self>::Reference);
+            ClazzObject<Self>::set_hash(ptr);
             return ptr;
         }
     

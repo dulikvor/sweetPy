@@ -5,7 +5,7 @@
 #include "src/Detail/CPythonObject.h"
 
 namespace sweetPy{
-    template<typename T>
+    template<typename Type, typename MemberT>
     class TypedMemberAccessor : public MemberAccessor
     {
     public:
@@ -18,23 +18,23 @@ namespace sweetPy{
          */
         void set(PyObject *object, PyObject *rhs) override
         {
-            T &member = *(T*) ((char *) object + m_offset);
-            if (ClazzObject<T>::is_ref(rhs))
+            MemberT &member = *(MemberT*) (reinterpret_cast<char*>(&ClazzObject<Type>::get_val(object)) + m_offset);
+            if (ClazzObject<ReferenceObject<MemberT>>::is_ref(rhs))
             {
-                T& _rhs = Object<T&>::from_python(rhs);
+                MemberT& _rhs = Object<MemberT&>::from_python(rhs);
                 member = _rhs;
             }
             else
             {
-                auto _rhs = Object<T>::from_python(rhs);
+                auto _rhs = Object<MemberT>::from_python(rhs);
                 member = _rhs;
             }
         }
         
         PyObject* get(PyObject *object) override
         {
-            T& member = *(T*) ((char *) object + m_offset);
-            return Object<T>::to_python(member);
+            MemberT& member = *(MemberT*) (reinterpret_cast<char*>(&ClazzObject<Type>::get_val(object)) + m_offset);
+            return Object<MemberT>::to_python(member);
         }
     
     private:
