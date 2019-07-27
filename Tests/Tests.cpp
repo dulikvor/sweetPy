@@ -31,7 +31,6 @@ namespace sweetPyTest {
             PythonEmbedder::instance().terminate_interperter();
         }
     };
-    
     TEST(CPythonClassTest, FunctionInvocation) {
         const char *testingScript = "a = TestClass(7)\n"
                                     //Member functions - with return value and without.
@@ -52,8 +51,8 @@ namespace sweetPyTest {
         ASSERT_EQ(PythonEmbedder::get_attribute<int>("num"), 77);
     }
     
-     TEST(CPythonClassTest, CPythonObjectCheckIntIntegralType)
-     {
+    TEST(CPythonClassTest, CPythonObjectCheckIntIntegralType)
+    {
          const char *testingScript = "intArgument = 1000\n"
                  "intReturn = TestModule.check_int_conversion(intArgument) #PyLong -> int\n"
                  "intRefGenerator = TestModule.GenerateIntRef()\n"
@@ -814,7 +813,6 @@ namespace sweetPyTest {
          ASSERT_EQ(PythonEmbedder::get_attribute<std::string>("s"), std::string("Hello World"));
          ASSERT_EQ(PythonEmbedder::get_attribute<std::string>("newS"), std::string("Hello World Temp"));
      }
-     /*
      //Test is going to verify the capability to return a reference of type T&.
      //The reference object is wrapped when being tranformed from the C++ to Python memory model.
      //in this test a.GetB() will return a reference wrapper object pointed by python's module entry b.
@@ -828,6 +826,7 @@ namespace sweetPyTest {
          const TestSubjectB& b = PythonEmbedder::get_attribute<const TestSubjectB&>("b");
          ASSERT_EQ(b.GetValue(), 1);
      }
+     /*
      //Test is going to address the capability of providing a wrapped reference of type T&, where T
      //is non copyable and non moveable. the returned wrapped will be invoked upon, changing the internal state
      //of the wrapped object. the result of that modification will be inspected.

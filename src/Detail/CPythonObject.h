@@ -33,7 +33,7 @@ namespace sweetPy{
         typedef T Type;
         static constexpr const char* Format = "O";
         static const bool IsSimpleObjectType = true;
-        static T get_typed(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
+        static T get_typed(char* fromBuffer, char* toBuffer)
         {
             PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
             if(ClazzObject<ReferenceObject<T>>::is_ref(object))
@@ -46,11 +46,16 @@ namespace sweetPy{
                 ReferenceObject<const T>& refObject = ClazzObject<ReferenceObject<const T>>::get_val(object);
                 return refObject.get_ref();
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
             {
-                new(toBuffer)T(*(T*)object);
-                return *reinterpret_cast<T*>(toBuffer);
+                return ClazzObject<T>::get_val(object);
             }
+            else if(ClazzObject<const T>::is_val(object))
+            {
+                return ClazzObject<const T>::get_val(object);
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         static T from_python(PyObject* object)
         {
@@ -64,10 +69,16 @@ namespace sweetPy{
                 ReferenceObject<const T>& refObject = ClazzObject<ReferenceObject<const T>>::get_val(object);
                 return refObject.get_ref();
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
             {
                 return ClazzObject<T>::get_val(object);
             }
+            else if(ClazzObject<const T>::is_val(object))
+            {
+                return ClazzObject<const T>::get_val(object);
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         template<typename X = Type, typename = enable_if_t<std::is_copy_constructible<X>::value>>
         static PyObject* to_python(T& value)
@@ -104,12 +115,13 @@ namespace sweetPy{
                 ReferenceObject<T>& refObject = ClazzObject<ReferenceObject<T>>::get_val(object);
                 return std::move(refObject.get_ref());
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
             {
                 auto& value = ClazzObject<T>::get_val(object);
-                new(toBuffer)T(std::move(value));
-                return std::move(*reinterpret_cast<T*>(toBuffer));
+                return std::move(value);
             }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         static T from_python(PyObject* object)
         {
@@ -118,10 +130,13 @@ namespace sweetPy{
                 ReferenceObject<T>& refObject = ClazzObject<ReferenceObject<T>>::get_val(object);
                 return refObject.get_ref();
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
             {
-                return std::move(ClazzObject<T>::get_val(object));
+                auto& value = ClazzObject<T>::get_val(object);
+                return std::move(value);
             }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         template<typename X = T, typename = enable_if_t<std::is_move_constructible<X>::value>>
         static PyObject* to_python(T&& value)
@@ -164,10 +179,12 @@ namespace sweetPy{
                 ReferenceObject<T>& refObject = ClazzObject<ReferenceObject<T>>::get_val(object);
                 return refObject.get_ref();
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
             {
                 return ClazzObject<T>::get_val(object);
             }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         static T& from_python(PyObject* object)
         {
@@ -176,10 +193,12 @@ namespace sweetPy{
                 ReferenceObject<T>& refObject = ClazzObject<ReferenceObject<T>>::get_val(object);
                 return refObject.get_ref();
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
             {
                 return ClazzObject<T>::get_val(object);
             }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         static PyObject* to_python(T& value)
         {
@@ -207,8 +226,16 @@ namespace sweetPy{
                 ReferenceObject<const T>& refObject = ClazzObject<ReferenceObject<const T>>::get_val(object);
                 return refObject.get_ref();
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
+            {
                 return ClazzObject<T>::get_val(object);
+            }
+            else if(ClazzObject<const T>::is_val(object))
+            {
+                return ClazzObject<const T>::get_val(object);
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         static const T& from_python(PyObject* object)
         {
@@ -222,8 +249,16 @@ namespace sweetPy{
                 ReferenceObject<const T>& refObject = ClazzObject<ReferenceObject<const T>>::get_val(object);
                 return refObject.get_ref();
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
+            {
                 return ClazzObject<T>::get_val(object);
+            }
+            else if(ClazzObject<const T>::is_val(object))
+            {
+                return ClazzObject<const T>::get_val(object);
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         static PyObject* to_python(const T& value)
         {
@@ -248,8 +283,12 @@ namespace sweetPy{
                 ReferenceObject<T>& refObject = ClazzObject<ReferenceObject<T>>::get_val(object);
                 return std::move(refObject.get_ref());
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
+            {
                 return std::move(ClazzObject<T>::get_val(object));
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         static T&& from_python(PyObject* object)
         {
@@ -258,8 +297,12 @@ namespace sweetPy{
                 ReferenceObject<T>& refObject = ClazzObject<ReferenceObject<T>>::get_val(object);
                 return std::move(refObject.get_ref());
             }
-            else
+            else if(ClazzObject<T>::is_val(object))
+            {
                 return std::move(ClazzObject<T>::get_val(object));
+            }
+            else
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }
         //No meaning to return rvalue reference to python (only supports lvalue value category), so ToPython is not implemented.
     };

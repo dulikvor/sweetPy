@@ -208,6 +208,7 @@ namespace sweetPy {
             PyType_Ready(&type.ht_type);
             type.clear_trace_ref();
             ReferenceType<T> refType(m_module, std::string(type.get_name()) + "_ref", "", m_context);
+            ReferenceType<T const> refConstType(m_module, std::string(type.get_name()) + "_const_ref", "", m_context);
             
             TypesContainer::instance().add_type(type.get_hash_code(), type, m_forceInsertion);
             m_module.add_type(type.get_hash_code(), std::move(m_type));

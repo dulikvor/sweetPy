@@ -20,7 +20,6 @@ namespace sweetPy {
           m_type(CPythonType::get_py_object(new PyType(name, doc, &free_type)), &Deleter::Owner),
           m_context(static_cast<PyType*>(CPythonType::get_type(m_type.get()))->get_context())
         {
-            reinterpret_cast<PyTypeObject*>(m_type.get())->tp_dealloc = PyType_Type.tp_dealloc;
             m_context = context;
         }
         ~ReferenceType()

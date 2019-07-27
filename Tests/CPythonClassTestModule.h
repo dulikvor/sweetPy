@@ -86,7 +86,8 @@ namespace sweetPyTest {
             m_enumValue = enumValue;
         }
 
-        const TestSubjectB& GetB() const{
+        TestSubjectB& GetB()
+        {
             return m_b;
         }
 

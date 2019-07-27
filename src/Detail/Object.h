@@ -43,6 +43,12 @@ namespace sweetPy {
             return objectPtr->m_propertie[Reference] == true &&
                 objectPtr->m_hash == Hash::generate_hash_code<T>();
         }
+        static bool is_val(void* ptr)
+        {
+            auto objectPtr = reinterpret_cast<ClazzObject*>(ptr);
+            return objectPtr->m_propertie[Value] == true &&
+                   objectPtr->m_hash == Hash::generate_hash_code<T>();
+        }
         static T& get_val(void* ptr)
         {
             return reinterpret_cast<ClazzObject*>(ptr)->m_val;
@@ -73,6 +79,7 @@ namespace sweetPy {
             PyObject *ptr = type.ht_type.tp_alloc(&type.ht_type, 0);
             new(ClazzObject<_T>::get_val_offset(ptr))_T(object);
             ClazzObject<_T>::set_propertie(ptr, ClazzObject<_T>::Propertie::Value);
+            ClazzObject<_T>::set_hash(ptr);
             return ptr;
         }
         template<typename X = _T, typename = enable_if_t<!std::is_copy_constructible<X>::value &&
@@ -84,6 +91,7 @@ namespace sweetPy {
             PyObject *ptr = type.ht_type.tp_alloc(&type.ht_type, 0);
             new(ClazzObject<_T>::get_val_offset(ptr))_T(std::move(object));
             ClazzObject<_T>::set_propertie(ptr, ClazzObject<_T>::Propertie::Value);
+            ClazzObject<_T>::set_hash(ptr);
             return ptr;
         }
     };
