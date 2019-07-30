@@ -197,6 +197,14 @@ namespace sweetPy{
             {
                 return ClazzObject<T>::get_val(object);
             }
+            else if(ClazzObject<ReferenceObject<T const>>::is_ref(object))
+            {
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Piercing const modifier,");
+            }
+            else if(ClazzObject<T const>::is_val(object))
+            {
+                throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Piercing const modifier,");
+            }
             else
                 throw CPythonException(PyExc_TypeError, __CORE_SOURCE, "Non supported type");
         }

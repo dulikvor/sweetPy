@@ -35,6 +35,9 @@ namespace sweetPy {
             new(ClazzObject<ClassType>::get_val_offset(self))ClassType(std::forward<Args>(Object<Args>::get_typed(
                     pythonArgsBuffer + ObjectOffset<FromPython, ObjectWrapper<Args, I>,ObjectWrapper<Args, I>...>::value,
                     nativeArgsBuffer + ObjectOffset<ToNative, ObjectWrapper<Args, I>,ObjectWrapper<Args, I>...>::value))...);
+    
+            ClazzObject<ClassType>::set_propertie(self, ClazzObject<ClassType>::Propertie::Value);
+            ClazzObject<ClassType>::set_hash(self);
             
             invoker(ObjectWrapper<Args, I>::destructor(nativeArgsBuffer +
                 ObjectOffset<ToNative, ObjectWrapper<Args, I>,
