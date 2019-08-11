@@ -1,5 +1,5 @@
-find_path(GOOGLE_TEST_INCLUDE_DIR NAMES gtest/gtest.h PATHS ${sweetPy_3RD_PARTY_DIR}/include NO_DEFAULT_PATH)
-find_library(GOOGLE_TEST_LIBRARY_DIR NAMES libgtest.a PATHS ${sweetPy_3RD_PARTY_DIR}/lib NO_DEFAULT_PATH)
+find_path(GOOGLE_TEST_INCLUDE_DIR NAMES gtest/gtest.h PATHS ${sweetPy_3RD_PARTY_DIR}/include)
+find_library(GOOGLE_TEST_LIBRARY_DIR NAMES libgtest.so libgtest_main.so PATHS ${sweetPy_3RD_PARTY_DIR}/lib)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(GOOGLE_TEST REQUIRED_VARS GOOGLE_TEST_INCLUDE_DIR GOOGLE_TEST_LIBRARY_DIR)
 

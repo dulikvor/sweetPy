@@ -6,21 +6,18 @@
 #include <memory>
 #include <vector>
 #include "Core/Traits.h"
-#include "CPyModuleContainer.h"
-#include "CPythonMetaClass.h"
-#include "CPythonRef.h"
-#include "CPythonModule.h"
+#include "src/Detail/TypesContainer.h"
+#include "src/Detail/MetaClass.h"
+#include "src/Detail/ReferenceType.h"
+#include "Module.h"
 
 #define INIT_MODULE(name, doc) \
-void InitializeModule(sweetPy::CPythonModule& module); \
+void initialize_module(sweetPy::Module& module); \
 PyMODINIT_FUNC PyInit_##name() { \
-    sweetPy::CPyModuleContainer::Instance().RegisterContainer(); \
-    auto module = std::make_shared<sweetPy::CPythonModule>(#name, doc); \
-    sweetPy::CPyModuleContainer::Instance().AddModule(#name, module); \
-    sweetPy::CPythonMetaClass::InitStaticType(); \
-    sweetPy::CPythonRef<>::InitStaticType(); \
-    InitializeModule(*module); \
-    module->Finalize();\
-    return module->GetModule(); \
+    Module module(#name, doc); \
+    sweetPy::MetaClass::get_common_meta_type().finalize(); \
+    initialize_module(module); \
+    module.finalize();\
+    return module.get_module(); \
 } \
-void InitializeModule(sweetPy::CPythonModule& module)
+void initialize_module(sweetPy::Module& module)

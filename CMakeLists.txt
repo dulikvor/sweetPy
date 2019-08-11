@@ -31,43 +31,41 @@ endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_PREFIX_PATH ${sweetPy_3RD_PARTY_DIR})
 
+option(WITH_TESTS "Test support" OFF)
+option(WITH_EXAMPLES "Examples support" OFF)
+option(sweetPy_3RD_PARTY_INSTALL_STEP "3rd parties installation step" OFF)
+option(sweetPy_COMPILATION_STEP "Compilation step" OFF)
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 find_package(Python REQUIRED)
 find_package(Core)
 find_package(FlatBuffers)
 
-option(sweetPy_WITH_TESTS "Test support" OFF)
-option(sweetPy_WITH_EXAMPLES "Examples support" OFF)
-option(sweetPy_3RD_PARTY_INSTALL_STEP "3rd parties installation step" OFF)
-option(sweetPy_COMPILATION_STEP "Compilation step" OFF)
-if(sweetPy_WITH_TESTS)
+SET(TEST_DEPENDECIES "")
+if(WITH_TESTS)
     find_package(GoogleTest)
 endif()
 
-if(sweetPy_3RD_PARTY_INSTALL_STEP)
-    include(installThirdParty)
+include(installThirdParty)
+
+include_directories( ${PROJECT_DIR} ${PROJECT_DIR}/src ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
+
+set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC -DSPDLOG_FOUND=${SPDLOG_FOUND} -DTHRIFT_FOUND=${THRIFT_FOUND} -Wall -Werror -pedantic -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
+set(CMAKE_BINARY_DIR ${PROJECT_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
+#Pre build step
+
+add_library(sweetPy SHARED src/Detail/CPythonType.cpp src/Detail/MetaClass.cpp src/Core/Lock.cpp src/Types/Container.cpp src/Utility/Serialize.cpp src/Utility/SerializeTypes.cpp)
+target_link_libraries(sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CMAKE_DEBUG_POSTFIX}.so)
+
+if(WITH_EXAMPLES)
+    add_subdirectory(${PROJECT_DIR}/example)
 endif()
-
-if(sweetPy_COMPILE_STEP)
-    include_directories( ${PROJECT_DIR} ${PROJECT_DIR}/src ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
-
-    set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC -DSPDLOG_FOUND=${SPDLOG_FOUND} -DTHRIFT_FOUND=${THRIFT_FOUND} -Wall -Werror -pedantic -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable")
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-    set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_DIR}/bin)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
-    set(CMAKE_BINARY_DIR ${PROJECT_DIR}/bin)
-    set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
-    #Pre build step
-
-    if(sweetPy_WITH_EXAMPLES)
-        add_subdirectory(${PROJECT_DIR}/example)
-    endif()
-    if(sweetPy_WITH_TESTS)
-        add_subdirectory(${PROJECT_DIR}/Tests)
-    endif()
-
-    add_library(sweetPy SHARED src/CPythonModule.h src/CPythonModule.cpp src/CPythonModule.h src/Core/Traits.h src/Core/Exception.cpp src/Core/Exception.h src/CPythonClass.h src/Core/Lock.h src/Core/Deleter.h src/CPythonConcreteFunction.h src/CPythonMember.h src/CPyModuleContainer.cpp src/CPyModuleContainer.h src/CPythonMetaClass.cpp src/CPythonMetaClass.h src/CPythonConstructor.h src/CPythonObject.h Tests/PythonEmbedder.h src/CPythonEnum.h src/CPythonEnumValue.h src/CPythonEnum.cpp src/CPythonType.h src/CPythonFunction.h src/InitModule.h src/CPythonRef.cpp src/CPythonType.cpp src/CPythonClassType.h src/MemberAccessor.h src/IMemberAccessor.h src/CPythonGlobalFunction.h src/CPythonGlobalVariable.h src/CPythonVariable.h src/Core/PythonAssist.h src/Core/Assert.h src/Core/Dictionary.h src/Core/Dictionary.cpp src/CPythonFunction.cpp src/Core/Stack.cpp src/Core/Stack.h src/Types/DateTime.h src/Types/DateTime.cpp src/Types/TimeDelta.cpp src/Types/TimeDelta.h src/Core/Lock.cpp src/Types/Tuple.cpp src/Types/Tuple.h src/Types/AsciiString.cpp src/Types/AsciiString.h src/Utility/Serialize.cpp src/Utility/Serialize.h src/Utility/SerializeTypes.h src/Utility/SerializeTypes.cpp src/Utility/Types_generated.h src/sweetPy.h src/Types/List.h src/Types/Container.h src/Types/Container.cpp src/Types/List.cpp)
-    target_link_libraries(sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CMAKE_DEBUG_POSTFIX}.so)
+if(WITH_TESTS)
+    add_subdirectory(${PROJECT_DIR}/Tests)
 endif()
