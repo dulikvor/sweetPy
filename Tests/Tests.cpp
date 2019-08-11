@@ -946,7 +946,7 @@ namespace sweetPyTest {
          ASSERT_EQ(b_lvalue.m_str, "Hello World");
          ASSERT_EQ(b_lvalue.m_value, 0);
      }
-     /*
+     
      TEST(CPythonClassTest, Serialize)
      {
          const char *testingScript = "int_val = 6\n"
@@ -1058,7 +1058,6 @@ namespace sweetPyTest {
          sweetPickleReceive->read(valPyList);
          ASSERT_EQ(valPyList, PythonEmbedder::get_attribute<sweetPy::List>("list_val"));
      }
-      */
 }
 
 int main(int argc, char **argv) {
