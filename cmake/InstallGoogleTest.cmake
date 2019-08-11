@@ -1,5 +1,5 @@
-if (NOT GOOGLE_TEST_FOUND)
-
+if (NOT ${GOOGLE_TEST_FOUND})
+    message(STATUS "Hello")
     ExternalProject_Add(GOOGLE_TEST
             DOWNLOAD_NAME       googletest-release-1.8.1.tar.gz
             URL                 https://github.com/google/googletest/archive/release-1.8.0.tar.gz
@@ -9,8 +9,9 @@ if (NOT GOOGLE_TEST_FOUND)
             TEST_COMMAND        ""
             )
 
-    ExternalProject_Get_Property(GOOGLE_TEST INSTALL_DIR)
+    SET(TEST_DEPENDECIES ${TEST_DEPENDECIES} GOOGLE_TEST)
 
+    ExternalProject_Get_Property(GOOGLE_TEST INSTALL_DIR)
     set (GOOGLE_TEST_ROOT_DIR          ${INSTALL_DIR})
     set (GOOGLE_TEST_INCLUDE_DIR       ${GOOGLE_TEST_ROOT_DIR}/include)
     set (GOOGLE_TEST_LIBRARY_DIR       ${GOOGLE_TEST_ROOT_DIR}/lib)

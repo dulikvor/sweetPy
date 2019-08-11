@@ -14,6 +14,6 @@ if (NOT FLAT_BUFFERS_FOUND)
     set (FLAT_BUFFERS_ROOT_DIR          ${INSTALL_DIR})
     set (FLAT_BUFFERS_INCLUDE_DIR       ${FLAT_BUFFERS_ROOT_DIR}/include)
     set (FLAT_BUFFERS_LIBRARY_DIR       ${FLAT_BUFFERS_ROOT_DIR}/lib)
-    set (GOOGLE_TEST_FOUND             YES)
+    set (FLAT_BUFFERS_FOUND             YES)
 
 endif ()
