@@ -109,6 +109,7 @@ namespace sweetPy{
         static const bool IsSimpleObjectType = true;
         static T get_typed(char* fromBuffer, char* toBuffer) //Non python types representation - PyPbject Header + Native data
         {
+            new(toBuffer)std::uint32_t(MAGIC_WORD);
             PyObject* object = *reinterpret_cast<PyObject**>(fromBuffer);
             if(ClazzObject<ReferenceObject<T>>::is_ref(object))
             {

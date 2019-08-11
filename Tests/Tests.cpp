@@ -31,6 +31,14 @@ namespace sweetPyTest {
             PythonEmbedder::instance().terminate_interperter();
         }
     };
+    
+    TEST(CPythonClassTest, FunctionInvocationViaRefType) {
+        const char *testingScript = "a = TestClassC.instance()\n"
+                                    "a.inc()";
+        PyRun_SimpleString(testingScript);
+        TestSubjectC& a = PythonEmbedder::get_attribute<TestSubjectC&>("a");
+        ASSERT_EQ(a.i, 1);
+    }
     TEST(CPythonClassTest, FunctionInvocation) {
         const char *testingScript = "a = TestClass(7)\n"
                                     //Member functions - with return value and without.
@@ -50,7 +58,6 @@ namespace sweetPyTest {
         //Global function invocation with returned type.
         ASSERT_EQ(PythonEmbedder::get_attribute<int>("num"), 77);
     }
-    
     TEST(CPythonClassTest, CPythonObjectCheckIntIntegralType)
     {
          const char *testingScript = "intArgument = 1000\n"
@@ -826,7 +833,6 @@ namespace sweetPyTest {
          const TestSubjectB& b = PythonEmbedder::get_attribute<const TestSubjectB&>("b");
          ASSERT_EQ(b.GetValue(), 1);
      }
-     /*
      //Test is going to address the capability of providing a wrapped reference of type T&, where T
      //is non copyable and non moveable. the returned wrapped will be invoked upon, changing the internal state
      //of the wrapped object. the result of that modification will be inspected.
@@ -835,9 +841,8 @@ namespace sweetPyTest {
                                      "a.inc()";
          PyRun_SimpleString(testingScript);
          TestSubjectC& a = PythonEmbedder::get_attribute<TestSubjectC&>("a");
-         ASSERT_EQ(a.i, 1);
+         ASSERT_EQ(a.i, 2);
      }
- 
      TEST(CPythonClassTest, NativeReturn) {
          const char *testingScript = "a = TestClass(7)\n"
                                      "b = a.GetBByNoCopyConstructible()\n"
@@ -927,21 +932,21 @@ namespace sweetPyTest {
          ASSERT_EQ(intVector[0], 5);
          ASSERT_EQ(intVector[1], 6);
      }
- 
+     
      TEST(CPythonClassTest, AccessingGlobalVariable)
      {
-         ASSERT_EQ(PythonEmbedder::get_attribute<std::string>("globalVariableLiteral"), "Hello World");
-         ASSERT_EQ(PythonEmbedder::get_attribute<int>("globalVariableInt_rvalue"), 5);
-         ASSERT_EQ(PythonEmbedder::get_attribute<int>("globalVariableInt_lvalue_const"), 6);
-         ASSERT_EQ(PythonEmbedder::get_attribute<std::string>("globalVariableStr_rvalue"), "Hello World");
-         TestSubjectB& b_rvalue = PythonEmbedder::get_attribute<TestSubjectB&>("globalVariableUserType_rvalue");
+         ASSERT_EQ(PythonEmbedder::get_attribute<std::string>("TestModule.globalVariableLiteral"), "Hello World");
+         ASSERT_EQ(PythonEmbedder::get_attribute<int>("TestModule.globalVariableInt_rvalue"), 5);
+         ASSERT_EQ(PythonEmbedder::get_attribute<int>("TestModule.globalVariableInt_lvalue_const"), 6);
+         ASSERT_EQ(PythonEmbedder::get_attribute<std::string>("TestModule.globalVariableStr_rvalue"), "Hello World");
+         TestSubjectB& b_rvalue = PythonEmbedder::get_attribute<TestSubjectB&>("TestModule.globalVariableUserType_rvalue");
          ASSERT_EQ(b_rvalue.m_str, "Hello World");
          ASSERT_EQ(b_rvalue.m_value, 0);
-         TestSubjectB& b_lvalue = PythonEmbedder::get_attribute<TestSubjectB&>("globalVariableUserType_lvalue");
+         TestSubjectB& b_lvalue = PythonEmbedder::get_attribute<TestSubjectB&>("TestModule.globalVariableUserType_lvalue");
          ASSERT_EQ(b_lvalue.m_str, "Hello World");
          ASSERT_EQ(b_lvalue.m_value, 0);
      }
-     
+     /*
      TEST(CPythonClassTest, Serialize)
      {
          const char *testingScript = "int_val = 6\n"
