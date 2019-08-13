@@ -1,5 +1,4 @@
 if (NOT ${GOOGLE_TEST_FOUND})
-    message(STATUS "Hello")
     ExternalProject_Add(GOOGLE_TEST
             DOWNLOAD_NAME       googletest-release-1.8.1.tar.gz
             URL                 https://github.com/google/googletest/archive/release-1.8.0.tar.gz

@@ -41,6 +41,7 @@ find_package(Python REQUIRED)
 find_package(Core)
 find_package(FlatBuffers)
 
+SET(DEPENDECIES "")
 SET(TEST_DEPENDECIES "")
 if(WITH_TESTS)
     find_package(GoogleTest)
@@ -62,6 +63,9 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
 
 add_library(sweetPy SHARED src/Detail/CPythonType.cpp src/Detail/MetaClass.cpp src/Core/Lock.cpp src/Types/Container.cpp src/Utility/Serialize.cpp src/Utility/SerializeTypes.cpp)
 target_link_libraries(sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CMAKE_DEBUG_POSTFIX}.so)
+if(DEPENDECIES)
+    add_dependencies(sweetPy ${DEPENDECIES})
+endif()
 
 if(WITH_EXAMPLES)
     add_subdirectory(${PROJECT_DIR}/example)
