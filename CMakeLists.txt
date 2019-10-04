@@ -82,4 +82,4 @@ endif()
 install(TARGETS sweetPy
         LIBRARY DESTINATION ${OUTPUT_DIR}/lib
         )
-install(DIRECTORY ${PROJECT_DIR}/include/ DESTINATION ${OUTPUT_DIR}/include)
+install(DIRECTORY ${PROJECT_DIR}/include/ DESTINATION ${OUTPUT_DIR}/include/sweetPy/)
