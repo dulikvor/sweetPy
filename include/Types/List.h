@@ -3,7 +3,7 @@
 #include <Python.h>
 #include "core/NoExcept.h"
 #include "../Core/Deleter.h"
-#include "src/Detail/CPythonObject.h"
+#include "../Detail/CPythonObject.h"
 #include "Container.h"
 #include "ObjectPtr.h"
 

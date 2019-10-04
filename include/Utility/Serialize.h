@@ -7,7 +7,7 @@
 #include <utility>
 #include <functional>
 #include "../Core/Deleter.h"
-#include "src/Detail/CPythonObject.h"
+#include "../Detail/CPythonObject.h"
 #include "../Types/Container.h"
 #include "../Types/Tuple.h"
 #include "../Types/List.h"

@@ -67,6 +67,9 @@ namespace sweetPy {
                                 dict.clear();
     
                                 Py_XDECREF(type->tp_mro);
+                                type->tp_mro = nullptr;
+                                free((void*)type->tp_doc);
+                                type->tp_doc = nullptr;
                                 type->ob_base.ob_base.ob_refcnt -= 2;
     
                                 PyTypeObject* meta = ptr->ob_type;
@@ -115,6 +118,9 @@ namespace sweetPy {
                                 dict.clear();
     
                                 Py_XDECREF(type->tp_mro);
+                                type->tp_mro = nullptr;
+                                free((void*)type->tp_doc);
+                                type->tp_doc = nullptr;
                                 type->ob_base.ob_base.ob_refcnt -= 2;
     
                                 PyTypeObject* meta = ptr->ob_type;

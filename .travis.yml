@@ -22,14 +22,13 @@ before_install:
 - g++ --version  
 install:
 - sudo apt-get install -y gdb  # install gdb
-- cmake -DsweetPy_3RD_PARTY_INSTALL_STEP=ON -DsweetPy_WITH_TESTS=ON -DCMAKE_BUILD_TYPE=Release . && make
 before_script:
 - ulimit -c unlimited -S       # enable core dumps
 script:
 - cmake -DWITH_TESTS=ON -DCMAKE_BUILD_TYPE=Release . && make
-- ./Tests/bin/sweetPyTests
+- ./bin/sweetPyTests
 after_failure:
 - COREFILE=$(find . -maxdepth 1 -name "core*" | head -n 1) # find core file
-- if [[ -f "$COREFILE" ]]; then gdb -c "$COREFILE" ./Tests/bin/sweetPyTests -ex "thread apply all bt" -ex "set pagination 0" -batch; fi
+- if [[ -f "$COREFILE" ]]; then gdb -c "$COREFILE" ./bin/sweetPyTests -ex "thread apply all bt" -ex "set pagination 0" -batch; fi
 notifications:
   email: false

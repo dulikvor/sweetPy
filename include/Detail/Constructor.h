@@ -5,8 +5,8 @@
 #include <initializer_list>
 #include <utility>
 #include <string>
-#include "Core/Traits.h"
-#include "src/Detail/ClazzPyType.h"
+#include "../Core/Traits.h"
+#include "ClazzPyType.h"
 #include "CPythonObject.h"
 
 namespace sweetPy {

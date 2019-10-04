@@ -25,8 +25,13 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 endif()
 
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(PROJECT_BUILD_DIR ${CMAKE_BINARY_DIR})
+if(NOT OUTPUT_DIR)
+    set(OUTPUT_DIR ${PROJECT_BUILD_DIR}/out)
+endif()
+
 if(NOT sweetPy_3RD_PARTY_DIR)
-    set(sweetPy_3RD_PARTY_DIR ${PROJECT_DIR}/Third_Party/)
+    set(sweetPy_3RD_PARTY_DIR ${PROJECT_BUILD_DIR}/Third_Party/)
 endif()
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 list(APPEND CMAKE_PREFIX_PATH ${sweetPy_3RD_PARTY_DIR})
@@ -49,20 +54,20 @@ endif()
 
 include(installThirdParty)
 
-include_directories( ${PROJECT_DIR} ${PROJECT_DIR}/src ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
-
 set(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-fPIC -DSPDLOG_FOUND=${SPDLOG_FOUND} -DTHRIFT_FOUND=${THRIFT_FOUND} -Wall -Werror -pedantic -Wno-sign-compare -Wno-unused-variable -Wno-unused-but-set-variable")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
-set(CMAKE_BINARY_DIR ${PROJECT_DIR}/bin)
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BUILD_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${PROJECT_BUILD_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_BUILD_DIR}/bin)
+set(CMAKE_BINARY_DIR ${PROJECT_BUILD_DIR}/bin)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BUILD_DIR}/bin)
 #Pre build step
 
+include_directories(${PROJECT_DIR}/include ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 add_library(sweetPy SHARED src/Detail/CPythonType.cpp src/Detail/MetaClass.cpp src/Core/Lock.cpp src/Types/Container.cpp src/Utility/Serialize.cpp src/Utility/SerializeTypes.cpp)
 target_link_libraries(sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CMAKE_DEBUG_POSTFIX}.so)
+#add_definitions(-DPy_TRACE_REF)
 if(DEPENDECIES)
     add_dependencies(sweetPy ${DEPENDECIES})
 endif()
@@ -73,3 +78,8 @@ endif()
 if(WITH_TESTS)
     add_subdirectory(${PROJECT_DIR}/Tests)
 endif()
+
+install(TARGETS sweetPy
+        LIBRARY DESTINATION ${OUTPUT_DIR}/lib
+        )
+install(DIRECTORY ${PROJECT_DIR}/include/ DESTINATION ${OUTPUT_DIR}/include)

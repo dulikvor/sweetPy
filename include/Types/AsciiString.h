@@ -4,7 +4,7 @@
 #include <string>
 #include "../Core/Assert.h"
 #include "../Core/Exception.h"
-#include "src/Detail/CPythonObject.h"
+#include "../Detail/CPythonObject.h"
 #include "ObjectPtr.h"
 
 namespace sweetPy {

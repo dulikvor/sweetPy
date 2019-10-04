@@ -3,7 +3,7 @@
 #include <chrono>
 #include <Python.h>
 #include <datetime.h>
-#include "src/Detail/CPythonObject.h"
+#include "../Detail/CPythonObject.h"
 #include "../Core/Assert.h"
 #include "ObjectPtr.h"
 

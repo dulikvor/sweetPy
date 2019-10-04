@@ -1,6 +1,6 @@
-#include "Container.h"
-#include "Tuple.h"
-#include "List.h"
+#include "Types/Container.h"
+#include "Types/Tuple.h"
+#include "Types/List.h"
 
 namespace sweetPy{
     

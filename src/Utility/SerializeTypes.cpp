@@ -1,4 +1,4 @@
-#include "SerializeTypes.h"
+#include "Utility/SerializeTypes.h"
 
 namespace sweetPy {
     ENUMERATION_NAMING_BEGIN(SerializeType)

@@ -1,5 +1,5 @@
-#include "Function.h"
-#include "src/Detail/CPythonObject.h"
+#include "Types/Function.h"
+#include "Detail/CPythonObject.h"
 
 namespace sweetPy{
     std::string CodeObject::Code() const

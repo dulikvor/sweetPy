@@ -1,8 +1,8 @@
 #pragma once
 
-#include "src/Detail/MemberAccessor.h"
-#include "src/Detail/ClazzPyType.h"
-#include "src/Detail/CPythonObject.h"
+#include "MemberAccessor.h"
+#include "ClazzPyType.h"
+#include "CPythonObject.h"
 
 namespace sweetPy{
     template<typename Type, typename MemberT>

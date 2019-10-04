@@ -6,7 +6,7 @@
 #include <algorithm>
 #include <Python.h>
 #include <structmember.h>
-#include "Core/Traits.h"
+#include "../Core/Traits.h"
 
 namespace sweetPy{
 

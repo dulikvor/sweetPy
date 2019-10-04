@@ -4,11 +4,11 @@
 #include <memory>
 #include <utility>
 #include <Python.h>
-#include "Core/Lock.h"
-#include "Core/Traits.h"
-#include "Core/Exception.h"
-#include "Core/Stack.h"
-#include "Core/Assert.h"
+#include "../Core/Lock.h"
+#include "../Core/Traits.h"
+#include "../Core/Exception.h"
+#include "../Core/Stack.h"
+#include "../Core/Assert.h"
 #include "Function.h"
 #include "MetaClass.h"
 #include "TypesContainer.h"
