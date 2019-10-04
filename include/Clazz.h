@@ -66,9 +66,13 @@ namespace sweetPy {
                                 Dictionary dict(type->tp_dict);
                                 dict.clear();
     
+                                //mro is pre released in order to prevent the invocation of - python PyObject release routine,
+                                // which will inspect the type ref list under debug variation (our types are not part of the ref list).
                                 Py_XDECREF(type->tp_mro);
                                 type->tp_mro = nullptr;
                                 free((void*)type->tp_doc);
+                                //documents are extended beyond the original data in debug mode which our document lacks, due to that
+                                //free will be initiated explicitly prior for deallocating the type.
                                 type->tp_doc = nullptr;
                                 type->ob_base.ob_base.ob_refcnt -= 2;
     
@@ -116,9 +120,12 @@ namespace sweetPy {
                                 auto type = reinterpret_cast<PyTypeObject*>(ptr);
                                 Dictionary dict(type->tp_dict);
                                 dict.clear();
-    
+                                //mro is pre released in order to prevent the invocation of - python PyObject release routine,
+                                // which will inspect the type ref list under debug variation (our types are not part of the ref list).
                                 Py_XDECREF(type->tp_mro);
                                 type->tp_mro = nullptr;
+                                //documents are extended beyond the original data in debug mode which our document lacks, due to that
+                                //free will be initiated explicitly prior for deallocating the type.
                                 free((void*)type->tp_doc);
                                 type->tp_doc = nullptr;
                                 type->ob_base.ob_base.ob_refcnt -= 2;
