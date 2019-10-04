@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Python.h>
-#include "src/Detail/CPythonObject.h"
+#include "../Detail/CPythonObject.h"
 #include "Container.h"
 #include "ObjectPtr.h"
 

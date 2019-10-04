@@ -7,15 +7,15 @@
 #include <vector>
 #include <type_traits>
 #include "core/Source.h"
-#include "Core/Exception.h"
-#include "Core/Traits.h"
-#include "Core/Lock.h"
-#include "Core/Assert.h"
-#include "Core/Deleter.h"
+#include "../Core/Exception.h"
+#include "../Core/Traits.h"
+#include "../Core/Lock.h"
+#include "../Core/Assert.h"
+#include "../Core/Deleter.h"
 #include "TypesContainer.h"
-#include "src/Detail/CPythonEnumValue.h"
+#include "CPythonEnumValue.h"
 #include "CPythonType.h"
-#include "src/Detail/ClazzPyType.h"
+#include "ClazzPyType.h"
 #include "Object.h"
 
 namespace sweetPy{

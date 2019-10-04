@@ -4,11 +4,11 @@
 #include <vector>
 #include <memory>
 #include <structmember.h>
-#include "Types/ObjectPtr.h"
-#include "Core/Deleter.h"
-#include "src/Detail/ClazzContext.h"
-#include "src/Detail/CPythonType.h"
-#include "src/Detail/Function.h"
+#include "../Types/ObjectPtr.h"
+#include "../Core/Deleter.h"
+#include "ClazzContext.h"
+#include "CPythonType.h"
+#include "Function.h"
 #include <iostream>
 
 namespace sweetPy {

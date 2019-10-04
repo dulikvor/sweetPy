@@ -8,7 +8,7 @@
 #include "Core/Lock.h"
 #include "Core/Deleter.h"
 #include "Core/PythonAssist.h"
-#include "src/Detail/CPythonObject.h"
+#include "Detail/CPythonObject.h"
 
 namespace sweetPyTest{
 

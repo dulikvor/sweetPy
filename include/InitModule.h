@@ -6,9 +6,9 @@
 #include <memory>
 #include <vector>
 #include "Core/Traits.h"
-#include "src/Detail/TypesContainer.h"
-#include "src/Detail/MetaClass.h"
-#include "src/Detail/ReferenceType.h"
+#include "Detail/TypesContainer.h"
+#include "Detail/MetaClass.h"
+#include "Detail/ReferenceType.h"
 #include "Module.h"
 
 #define INIT_MODULE(name, doc) \

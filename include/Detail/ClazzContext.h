@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include <memory>
-#include "Core/Exception.h"
+#include "../Core/Exception.h"
 #include "MemberAccessor.h"
 #include "Function.h"
 

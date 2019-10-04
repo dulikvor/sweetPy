@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Python.h>
-#include "Core/Traits.h"
+#include "../Core/Traits.h"
 #include "TypesContainer.h"
-#include "src/Detail/ClazzPyType.h"
-#include "src/Detail/Object.h"
+#include "ClazzPyType.h"
+#include "Object.h"
 #include "Module.h"
 
 namespace sweetPy {

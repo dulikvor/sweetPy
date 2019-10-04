@@ -1,4 +1,4 @@
-#include "MetaClass.h"
+#include "Detail/MetaClass.h"
 
 namespace sweetPy {
     

@@ -1,4 +1,4 @@
-#include "src/Detail/CPythonType.h"
+#include "Detail/CPythonType.h"
 
 namespace sweetPy {
 
