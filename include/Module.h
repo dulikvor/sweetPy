@@ -303,6 +303,7 @@ namespace sweetPy {
             m_moduleDef->m_name = name;
             m_moduleDef->m_doc = doc;
             m_moduleDef->m_free = &free_module;
+            m_moduleDef->m_clear = &clear_module;
             m_module.reset(PyModule_Create(m_moduleDef.get()));
             CPYTHON_VERIFY(m_module.get() != nullptr, "Module registration failed");
             m_moduleDef.release();
@@ -356,14 +357,9 @@ namespace sweetPy {
                 }
             }
         }
-        static void free_module(void *ptr)
+        static int clear_module(PyObject* object)
         {
-            auto objectPtr = (PyObject*)ptr;
-            Dictionary moduleDict(PyModule_GetDict(objectPtr));
-            PyModuleDef& moduleDef = *PyModule_GetDef(objectPtr);
-            delete [] moduleDef.m_name;
-            delete [] moduleDef.m_doc;
-            
+            Dictionary moduleDict(PyModule_GetDict(object));
             std::vector<PyTypeObject*> types;
             for(auto& elem : moduleDict)
             {
@@ -371,27 +367,38 @@ namespace sweetPy {
                 if(object->ob_type->ob_base.ob_size == MetaClass::get_check_sum())
                     types.emplace_back(reinterpret_cast<PyTypeObject*>(object));
             }
-            
+    
             auto contextCapsule = moduleDict.get<ObjectPtr, const char*>("context");
             auto context = reinterpret_cast<ModuleContext*>(PyCapsule_GetPointer(contextCapsule.get(), nullptr));
             delete context;
-            
+    
             moduleDict.clear();
-            
+    
             for(auto& type : types)
             {
                 Dictionary dict(type->tp_dict);
                 dict.clear();
-    
+        
                 Py_XDECREF(type->tp_mro);
                 type->tp_mro = nullptr;
                 free((void*)type->tp_doc);
                 type->tp_doc = nullptr;
-    
+        
                 type->ob_base.ob_base.ob_refcnt -= 2;
                 PyTypeObject* meta = type->ob_base.ob_base.ob_type;
                 meta->tp_dealloc(reinterpret_cast<PyObject*>(type));
             }
+            
+            return 0;
+        }
+        static void free_module(void *ptr)
+        {
+            auto objectPtr = (PyObject*)ptr;
+            PyModuleDef& moduleDef = *PyModule_GetDef(objectPtr);
+            delete [] moduleDef.m_name;
+            delete [] moduleDef.m_doc;
+            
+            clear_module(objectPtr);
         }
 
     private:
