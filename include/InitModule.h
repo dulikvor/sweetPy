@@ -14,7 +14,7 @@
 #define INIT_MODULE(name, doc) \
 void initialize_module(sweetPy::Module& module); \
 PyMODINIT_FUNC PyInit_##name() { \
-    Module module(#name, doc); \
+    sweetPy::Module module(#name, doc); \
     sweetPy::MetaClass::get_common_meta_type().finalize(); \
     initialize_module(module); \
     module.finalize();\
