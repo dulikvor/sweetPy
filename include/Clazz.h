@@ -215,8 +215,14 @@ namespace sweetPy {
             init_static_methods();
     
             CPythonType& type = *CPythonType::get_type(m_type.get());
-            if(type.ht_type.tp_init == nullptr)
-                add_constructor<>();
+            try
+            {
+                if(type.ht_type.tp_init == nullptr)
+                    add_constructor<>();
+            }
+            catch(const CPythonException&)
+            {
+            }
             
             PyType_Ready(&type.ht_type);
             type.clear_trace_ref();
