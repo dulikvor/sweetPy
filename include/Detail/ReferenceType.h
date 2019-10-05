@@ -1,11 +1,11 @@
 #pragma once
 
 #include <Python.h>
+#include "../Module.h"
 #include "../Core/Traits.h"
 #include "TypesContainer.h"
 #include "ClazzPyType.h"
 #include "Object.h"
-#include "Module.h"
 
 namespace sweetPy {
     
