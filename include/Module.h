@@ -340,6 +340,7 @@ namespace sweetPy {
                 {
                     ObjectPtr& type = typePair.second;
                     CPythonType& clazzType = *CPythonType::get_type(type.get());
+                    Py_INCREF(type.get());
                     CPYTHON_VERIFY(PyModule_AddObject((PyObject*)m_module.get(), clazzType.get_name().c_str(), type.release()) == 0, "Type registration with module failed"); //Module added ref count ownership was taken by the module python's version
                 }
             }
@@ -359,7 +360,10 @@ namespace sweetPy {
         }
         static int clear_module(PyObject* object)
         {
-            Dictionary moduleDict(PyModule_GetDict(object));
+            PyObject* moduleDictPtr = get_module_instance_dict(object);
+            if(moduleDictPtr == nullptr)
+                return 0;
+            Dictionary moduleDict(moduleDictPtr);
             std::vector<PyTypeObject*> types;
             for(auto& elem : moduleDict)
             {
@@ -385,8 +389,11 @@ namespace sweetPy {
                 type->tp_doc = nullptr;
         
                 type->ob_base.ob_base.ob_refcnt -= 2;
-                PyTypeObject* meta = type->ob_base.ob_base.ob_type;
-                meta->tp_dealloc(reinterpret_cast<PyObject*>(type));
+                if(type->ob_base.ob_base.ob_refcnt == 0) //we can deallocate the type
+                {
+                    PyTypeObject* meta = type->ob_base.ob_base.ob_type;
+                    meta->tp_dealloc(reinterpret_cast<PyObject*>(type));
+                }
             }
             
             return 0;
@@ -399,6 +406,16 @@ namespace sweetPy {
             delete [] moduleDef.m_doc;
             
             clear_module(objectPtr);
+        }
+        static PyObject* get_module_instance_dict(PyObject* object)
+        {
+            Py_ssize_t dictOffset = object->ob_type->tp_dictoffset;
+            if(dictOffset > 0)
+            {
+                return *reinterpret_cast<PyObject**>(reinterpret_cast<char*>(object) + dictOffset);
+            }
+            else
+                return nullptr;
         }
 
     private:
