@@ -388,9 +388,11 @@ namespace sweetPy {
                 free((void*)type->tp_doc);
                 type->tp_doc = nullptr;
         
-                type->ob_base.ob_base.ob_refcnt -= 2;
-                if(type->ob_base.ob_base.ob_refcnt == 0) //we can deallocate the type
+                if(type->ob_base.ob_base.ob_refcnt == 2) //we can deallocate the type, otherwise, the type is leaking.
                 {
+                    //we only want to dec the ref in case we are sure we are the last ones referencing the type
+                    // or its ref list will be inspected in py debug build (segmentation fault)
+                    type->ob_base.ob_base.ob_refcnt -= 2;
                     PyTypeObject* meta = type->ob_base.ob_base.ob_type;
                     meta->tp_dealloc(reinterpret_cast<PyObject*>(type));
                 }
