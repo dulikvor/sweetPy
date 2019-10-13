@@ -1,7 +1,7 @@
 namespace sweetPy.serialize;
 
 union integral_types { String, Int, Short, Double, Bool }
-union all_types { String, Int, Short, Double, Bool, Container, Tuple, List }
+union all_types { String, Int, Short, Double, Bool, Container, Tuple, List, Dict }
 
 table String
 {
@@ -30,7 +30,7 @@ table Bool
 
 table ContainerParam
 {
-    param:integral_types;
+    param:all_types;
 }
 
 table Container
@@ -46,6 +46,17 @@ table Tuple
 table List
 {
     value:Container;
+}
+
+table DictParam
+{
+    key:integral_types;
+    value:all_types;
+}
+
+table Dict
+{
+    params:[DictParam];
 }
 
 table Object

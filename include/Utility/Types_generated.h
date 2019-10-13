@@ -27,29 +27,33 @@ struct Tuple;
 
 struct List;
 
+struct DictParam;
+
+struct Dict;
+
 struct Object;
 
 struct Objects;
 
-enum class integral_types : uint8_t {
-  NONE = 0,
-  String = 1,
-  Int = 2,
-  Short = 3,
-  Double = 4,
-  Bool = 5,
-  MIN = NONE,
-  MAX = Bool
+enum integral_types {
+  integral_types_NONE = 0,
+  integral_types_String = 1,
+  integral_types_Int = 2,
+  integral_types_Short = 3,
+  integral_types_Double = 4,
+  integral_types_Bool = 5,
+  integral_types_MIN = integral_types_NONE,
+  integral_types_MAX = integral_types_Bool
 };
 
 inline const integral_types (&EnumValuesintegral_types())[6] {
   static const integral_types values[] = {
-    integral_types::NONE,
-    integral_types::String,
-    integral_types::Int,
-    integral_types::Short,
-    integral_types::Double,
-    integral_types::Bool
+    integral_types_NONE,
+    integral_types_String,
+    integral_types_Int,
+    integral_types_Short,
+    integral_types_Double,
+    integral_types_Bool
   };
   return values;
 }
@@ -73,57 +77,59 @@ inline const char *EnumNameintegral_types(integral_types e) {
 }
 
 template<typename T> struct integral_typesTraits {
-  static const integral_types enum_value = integral_types::NONE;
+  static const integral_types enum_value = integral_types_NONE;
 };
 
 template<> struct integral_typesTraits<String> {
-  static const integral_types enum_value = integral_types::String;
+  static const integral_types enum_value = integral_types_String;
 };
 
 template<> struct integral_typesTraits<Int> {
-  static const integral_types enum_value = integral_types::Int;
+  static const integral_types enum_value = integral_types_Int;
 };
 
 template<> struct integral_typesTraits<Short> {
-  static const integral_types enum_value = integral_types::Short;
+  static const integral_types enum_value = integral_types_Short;
 };
 
 template<> struct integral_typesTraits<Double> {
-  static const integral_types enum_value = integral_types::Double;
+  static const integral_types enum_value = integral_types_Double;
 };
 
 template<> struct integral_typesTraits<Bool> {
-  static const integral_types enum_value = integral_types::Bool;
+  static const integral_types enum_value = integral_types_Bool;
 };
 
 bool Verifyintegral_types(flatbuffers::Verifier &verifier, const void *obj, integral_types type);
 bool Verifyintegral_typesVector(flatbuffers::Verifier &verifier, const flatbuffers::Vector<flatbuffers::Offset<void>> *values, const flatbuffers::Vector<uint8_t> *types);
 
-enum class all_types : uint8_t {
-  NONE = 0,
-  String = 1,
-  Int = 2,
-  Short = 3,
-  Double = 4,
-  Bool = 5,
-  Container = 6,
-  Tuple = 7,
-  List = 8,
-  MIN = NONE,
-  MAX = List
+enum all_types {
+  all_types_NONE = 0,
+  all_types_String = 1,
+  all_types_Int = 2,
+  all_types_Short = 3,
+  all_types_Double = 4,
+  all_types_Bool = 5,
+  all_types_Container = 6,
+  all_types_Tuple = 7,
+  all_types_List = 8,
+  all_types_Dict = 9,
+  all_types_MIN = all_types_NONE,
+  all_types_MAX = all_types_Dict
 };
 
-inline const all_types (&EnumValuesall_types())[9] {
+inline const all_types (&EnumValuesall_types())[10] {
   static const all_types values[] = {
-    all_types::NONE,
-    all_types::String,
-    all_types::Int,
-    all_types::Short,
-    all_types::Double,
-    all_types::Bool,
-    all_types::Container,
-    all_types::Tuple,
-    all_types::List
+    all_types_NONE,
+    all_types_String,
+    all_types_Int,
+    all_types_Short,
+    all_types_Double,
+    all_types_Bool,
+    all_types_Container,
+    all_types_Tuple,
+    all_types_List,
+    all_types_Dict
   };
   return values;
 }
@@ -139,6 +145,7 @@ inline const char * const *EnumNamesall_types() {
     "Container",
     "Tuple",
     "List",
+    "Dict",
     nullptr
   };
   return names;
@@ -150,39 +157,43 @@ inline const char *EnumNameall_types(all_types e) {
 }
 
 template<typename T> struct all_typesTraits {
-  static const all_types enum_value = all_types::NONE;
+  static const all_types enum_value = all_types_NONE;
 };
 
 template<> struct all_typesTraits<String> {
-  static const all_types enum_value = all_types::String;
+  static const all_types enum_value = all_types_String;
 };
 
 template<> struct all_typesTraits<Int> {
-  static const all_types enum_value = all_types::Int;
+  static const all_types enum_value = all_types_Int;
 };
 
 template<> struct all_typesTraits<Short> {
-  static const all_types enum_value = all_types::Short;
+  static const all_types enum_value = all_types_Short;
 };
 
 template<> struct all_typesTraits<Double> {
-  static const all_types enum_value = all_types::Double;
+  static const all_types enum_value = all_types_Double;
 };
 
 template<> struct all_typesTraits<Bool> {
-  static const all_types enum_value = all_types::Bool;
+  static const all_types enum_value = all_types_Bool;
 };
 
 template<> struct all_typesTraits<Container> {
-  static const all_types enum_value = all_types::Container;
+  static const all_types enum_value = all_types_Container;
 };
 
 template<> struct all_typesTraits<Tuple> {
-  static const all_types enum_value = all_types::Tuple;
+  static const all_types enum_value = all_types_Tuple;
 };
 
 template<> struct all_typesTraits<List> {
-  static const all_types enum_value = all_types::List;
+  static const all_types enum_value = all_types_List;
+};
+
+template<> struct all_typesTraits<Dict> {
+  static const all_types enum_value = all_types_Dict;
 };
 
 bool Verifyall_types(flatbuffers::Verifier &verifier, const void *obj, all_types type);
@@ -402,33 +413,45 @@ struct ContainerParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
     VT_PARAM_TYPE = 4,
     VT_PARAM = 6
   };
-  integral_types param_type() const {
-    return static_cast<integral_types>(GetField<uint8_t>(VT_PARAM_TYPE, 0));
+  all_types param_type() const {
+    return static_cast<all_types>(GetField<uint8_t>(VT_PARAM_TYPE, 0));
   }
   const void *param() const {
     return GetPointer<const void *>(VT_PARAM);
   }
   template<typename T> const T *param_as() const;
   const String *param_as_String() const {
-    return param_type() == integral_types::String ? static_cast<const String *>(param()) : nullptr;
+    return param_type() == all_types_String ? static_cast<const String *>(param()) : nullptr;
   }
   const Int *param_as_Int() const {
-    return param_type() == integral_types::Int ? static_cast<const Int *>(param()) : nullptr;
+    return param_type() == all_types_Int ? static_cast<const Int *>(param()) : nullptr;
   }
   const Short *param_as_Short() const {
-    return param_type() == integral_types::Short ? static_cast<const Short *>(param()) : nullptr;
+    return param_type() == all_types_Short ? static_cast<const Short *>(param()) : nullptr;
   }
   const Double *param_as_Double() const {
-    return param_type() == integral_types::Double ? static_cast<const Double *>(param()) : nullptr;
+    return param_type() == all_types_Double ? static_cast<const Double *>(param()) : nullptr;
   }
   const Bool *param_as_Bool() const {
-    return param_type() == integral_types::Bool ? static_cast<const Bool *>(param()) : nullptr;
+    return param_type() == all_types_Bool ? static_cast<const Bool *>(param()) : nullptr;
+  }
+  const Container *param_as_Container() const {
+    return param_type() == all_types_Container ? static_cast<const Container *>(param()) : nullptr;
+  }
+  const Tuple *param_as_Tuple() const {
+    return param_type() == all_types_Tuple ? static_cast<const Tuple *>(param()) : nullptr;
+  }
+  const List *param_as_List() const {
+    return param_type() == all_types_List ? static_cast<const List *>(param()) : nullptr;
+  }
+  const Dict *param_as_Dict() const {
+    return param_type() == all_types_Dict ? static_cast<const Dict *>(param()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_PARAM_TYPE) &&
            VerifyOffset(verifier, VT_PARAM) &&
-           Verifyintegral_types(verifier, param(), param_type()) &&
+           Verifyall_types(verifier, param(), param_type()) &&
            verifier.EndTable();
   }
 };
@@ -453,10 +476,26 @@ template<> inline const Bool *ContainerParam::param_as<Bool>() const {
   return param_as_Bool();
 }
 
+template<> inline const Container *ContainerParam::param_as<Container>() const {
+  return param_as_Container();
+}
+
+template<> inline const Tuple *ContainerParam::param_as<Tuple>() const {
+  return param_as_Tuple();
+}
+
+template<> inline const List *ContainerParam::param_as<List>() const {
+  return param_as_List();
+}
+
+template<> inline const Dict *ContainerParam::param_as<Dict>() const {
+  return param_as_Dict();
+}
+
 struct ContainerParamBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_param_type(integral_types param_type) {
+  void add_param_type(all_types param_type) {
     fbb_.AddElement<uint8_t>(ContainerParam::VT_PARAM_TYPE, static_cast<uint8_t>(param_type), 0);
   }
   void add_param(flatbuffers::Offset<void> param) {
@@ -476,7 +515,7 @@ struct ContainerParamBuilder {
 
 inline flatbuffers::Offset<ContainerParam> CreateContainerParam(
     flatbuffers::FlatBufferBuilder &_fbb,
-    integral_types param_type = integral_types::NONE,
+    all_types param_type = all_types_NONE,
     flatbuffers::Offset<void> param = 0) {
   ContainerParamBuilder builder_(_fbb);
   builder_.add_param(param);
@@ -616,6 +655,228 @@ inline flatbuffers::Offset<List> CreateList(
   return builder_.Finish();
 }
 
+struct DictParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_KEY_TYPE = 4,
+    VT_KEY = 6,
+    VT_VALUE_TYPE = 8,
+    VT_VALUE = 10
+  };
+  integral_types key_type() const {
+    return static_cast<integral_types>(GetField<uint8_t>(VT_KEY_TYPE, 0));
+  }
+  const void *key() const {
+    return GetPointer<const void *>(VT_KEY);
+  }
+  template<typename T> const T *key_as() const;
+  const String *key_as_String() const {
+    return key_type() == integral_types_String ? static_cast<const String *>(key()) : nullptr;
+  }
+  const Int *key_as_Int() const {
+    return key_type() == integral_types_Int ? static_cast<const Int *>(key()) : nullptr;
+  }
+  const Short *key_as_Short() const {
+    return key_type() == integral_types_Short ? static_cast<const Short *>(key()) : nullptr;
+  }
+  const Double *key_as_Double() const {
+    return key_type() == integral_types_Double ? static_cast<const Double *>(key()) : nullptr;
+  }
+  const Bool *key_as_Bool() const {
+    return key_type() == integral_types_Bool ? static_cast<const Bool *>(key()) : nullptr;
+  }
+  all_types value_type() const {
+    return static_cast<all_types>(GetField<uint8_t>(VT_VALUE_TYPE, 0));
+  }
+  const void *value() const {
+    return GetPointer<const void *>(VT_VALUE);
+  }
+  template<typename T> const T *value_as() const;
+  const String *value_as_String() const {
+    return value_type() == all_types_String ? static_cast<const String *>(value()) : nullptr;
+  }
+  const Int *value_as_Int() const {
+    return value_type() == all_types_Int ? static_cast<const Int *>(value()) : nullptr;
+  }
+  const Short *value_as_Short() const {
+    return value_type() == all_types_Short ? static_cast<const Short *>(value()) : nullptr;
+  }
+  const Double *value_as_Double() const {
+    return value_type() == all_types_Double ? static_cast<const Double *>(value()) : nullptr;
+  }
+  const Bool *value_as_Bool() const {
+    return value_type() == all_types_Bool ? static_cast<const Bool *>(value()) : nullptr;
+  }
+  const Container *value_as_Container() const {
+    return value_type() == all_types_Container ? static_cast<const Container *>(value()) : nullptr;
+  }
+  const Tuple *value_as_Tuple() const {
+    return value_type() == all_types_Tuple ? static_cast<const Tuple *>(value()) : nullptr;
+  }
+  const List *value_as_List() const {
+    return value_type() == all_types_List ? static_cast<const List *>(value()) : nullptr;
+  }
+  const Dict *value_as_Dict() const {
+    return value_type() == all_types_Dict ? static_cast<const Dict *>(value()) : nullptr;
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<uint8_t>(verifier, VT_KEY_TYPE) &&
+           VerifyOffset(verifier, VT_KEY) &&
+           Verifyintegral_types(verifier, key(), key_type()) &&
+           VerifyField<uint8_t>(verifier, VT_VALUE_TYPE) &&
+           VerifyOffset(verifier, VT_VALUE) &&
+           Verifyall_types(verifier, value(), value_type()) &&
+           verifier.EndTable();
+  }
+};
+
+template<> inline const String *DictParam::key_as<String>() const {
+  return key_as_String();
+}
+
+template<> inline const Int *DictParam::key_as<Int>() const {
+  return key_as_Int();
+}
+
+template<> inline const Short *DictParam::key_as<Short>() const {
+  return key_as_Short();
+}
+
+template<> inline const Double *DictParam::key_as<Double>() const {
+  return key_as_Double();
+}
+
+template<> inline const Bool *DictParam::key_as<Bool>() const {
+  return key_as_Bool();
+}
+
+template<> inline const String *DictParam::value_as<String>() const {
+  return value_as_String();
+}
+
+template<> inline const Int *DictParam::value_as<Int>() const {
+  return value_as_Int();
+}
+
+template<> inline const Short *DictParam::value_as<Short>() const {
+  return value_as_Short();
+}
+
+template<> inline const Double *DictParam::value_as<Double>() const {
+  return value_as_Double();
+}
+
+template<> inline const Bool *DictParam::value_as<Bool>() const {
+  return value_as_Bool();
+}
+
+template<> inline const Container *DictParam::value_as<Container>() const {
+  return value_as_Container();
+}
+
+template<> inline const Tuple *DictParam::value_as<Tuple>() const {
+  return value_as_Tuple();
+}
+
+template<> inline const List *DictParam::value_as<List>() const {
+  return value_as_List();
+}
+
+template<> inline const Dict *DictParam::value_as<Dict>() const {
+  return value_as_Dict();
+}
+
+struct DictParamBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_key_type(integral_types key_type) {
+    fbb_.AddElement<uint8_t>(DictParam::VT_KEY_TYPE, static_cast<uint8_t>(key_type), 0);
+  }
+  void add_key(flatbuffers::Offset<void> key) {
+    fbb_.AddOffset(DictParam::VT_KEY, key);
+  }
+  void add_value_type(all_types value_type) {
+    fbb_.AddElement<uint8_t>(DictParam::VT_VALUE_TYPE, static_cast<uint8_t>(value_type), 0);
+  }
+  void add_value(flatbuffers::Offset<void> value) {
+    fbb_.AddOffset(DictParam::VT_VALUE, value);
+  }
+  explicit DictParamBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  DictParamBuilder &operator=(const DictParamBuilder &);
+  flatbuffers::Offset<DictParam> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<DictParam>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<DictParam> CreateDictParam(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    integral_types key_type = integral_types_NONE,
+    flatbuffers::Offset<void> key = 0,
+    all_types value_type = all_types_NONE,
+    flatbuffers::Offset<void> value = 0) {
+  DictParamBuilder builder_(_fbb);
+  builder_.add_value(value);
+  builder_.add_key(key);
+  builder_.add_value_type(value_type);
+  builder_.add_key_type(key_type);
+  return builder_.Finish();
+}
+
+struct Dict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_PARAMS = 4
+  };
+  const flatbuffers::Vector<flatbuffers::Offset<DictParam>> *params() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DictParam>> *>(VT_PARAMS);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_PARAMS) &&
+           verifier.VerifyVector(params()) &&
+           verifier.VerifyVectorOfTables(params()) &&
+           verifier.EndTable();
+  }
+};
+
+struct DictBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_params(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DictParam>>> params) {
+    fbb_.AddOffset(Dict::VT_PARAMS, params);
+  }
+  explicit DictBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  DictBuilder &operator=(const DictBuilder &);
+  flatbuffers::Offset<Dict> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Dict>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Dict> CreateDict(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DictParam>>> params = 0) {
+  DictBuilder builder_(_fbb);
+  builder_.add_params(params);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Dict> CreateDictDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const std::vector<flatbuffers::Offset<DictParam>> *params = nullptr) {
+  return sweetPy::serialize::CreateDict(
+      _fbb,
+      params ? _fbb.CreateVector<flatbuffers::Offset<DictParam>>(*params) : 0);
+}
+
 struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_OBJECT_TYPE = 4,
@@ -629,28 +890,31 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
   template<typename T> const T *object_as() const;
   const String *object_as_String() const {
-    return object_type() == all_types::String ? static_cast<const String *>(object()) : nullptr;
+    return object_type() == all_types_String ? static_cast<const String *>(object()) : nullptr;
   }
   const Int *object_as_Int() const {
-    return object_type() == all_types::Int ? static_cast<const Int *>(object()) : nullptr;
+    return object_type() == all_types_Int ? static_cast<const Int *>(object()) : nullptr;
   }
   const Short *object_as_Short() const {
-    return object_type() == all_types::Short ? static_cast<const Short *>(object()) : nullptr;
+    return object_type() == all_types_Short ? static_cast<const Short *>(object()) : nullptr;
   }
   const Double *object_as_Double() const {
-    return object_type() == all_types::Double ? static_cast<const Double *>(object()) : nullptr;
+    return object_type() == all_types_Double ? static_cast<const Double *>(object()) : nullptr;
   }
   const Bool *object_as_Bool() const {
-    return object_type() == all_types::Bool ? static_cast<const Bool *>(object()) : nullptr;
+    return object_type() == all_types_Bool ? static_cast<const Bool *>(object()) : nullptr;
   }
   const Container *object_as_Container() const {
-    return object_type() == all_types::Container ? static_cast<const Container *>(object()) : nullptr;
+    return object_type() == all_types_Container ? static_cast<const Container *>(object()) : nullptr;
   }
   const Tuple *object_as_Tuple() const {
-    return object_type() == all_types::Tuple ? static_cast<const Tuple *>(object()) : nullptr;
+    return object_type() == all_types_Tuple ? static_cast<const Tuple *>(object()) : nullptr;
   }
   const List *object_as_List() const {
-    return object_type() == all_types::List ? static_cast<const List *>(object()) : nullptr;
+    return object_type() == all_types_List ? static_cast<const List *>(object()) : nullptr;
+  }
+  const Dict *object_as_Dict() const {
+    return object_type() == all_types_Dict ? static_cast<const Dict *>(object()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -693,6 +957,10 @@ template<> inline const List *Object::object_as<List>() const {
   return object_as_List();
 }
 
+template<> inline const Dict *Object::object_as<Dict>() const {
+  return object_as_Dict();
+}
+
 struct ObjectBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
@@ -716,7 +984,7 @@ struct ObjectBuilder {
 
 inline flatbuffers::Offset<Object> CreateObject(
     flatbuffers::FlatBufferBuilder &_fbb,
-    all_types object_type = all_types::NONE,
+    all_types object_type = all_types_NONE,
     flatbuffers::Offset<void> object = 0) {
   ObjectBuilder builder_(_fbb);
   builder_.add_object(object);
@@ -776,26 +1044,26 @@ inline flatbuffers::Offset<Objects> CreateObjectsDirect(
 
 inline bool Verifyintegral_types(flatbuffers::Verifier &verifier, const void *obj, integral_types type) {
   switch (type) {
-    case integral_types::NONE: {
+    case integral_types_NONE: {
       return true;
     }
-    case integral_types::String: {
+    case integral_types_String: {
       auto ptr = reinterpret_cast<const String *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case integral_types::Int: {
+    case integral_types_Int: {
       auto ptr = reinterpret_cast<const Int *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case integral_types::Short: {
+    case integral_types_Short: {
       auto ptr = reinterpret_cast<const Short *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case integral_types::Double: {
+    case integral_types_Double: {
       auto ptr = reinterpret_cast<const Double *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case integral_types::Bool: {
+    case integral_types_Bool: {
       auto ptr = reinterpret_cast<const Bool *>(obj);
       return verifier.VerifyTable(ptr);
     }
@@ -817,39 +1085,43 @@ inline bool Verifyintegral_typesVector(flatbuffers::Verifier &verifier, const fl
 
 inline bool Verifyall_types(flatbuffers::Verifier &verifier, const void *obj, all_types type) {
   switch (type) {
-    case all_types::NONE: {
+    case all_types_NONE: {
       return true;
     }
-    case all_types::String: {
+    case all_types_String: {
       auto ptr = reinterpret_cast<const String *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case all_types::Int: {
+    case all_types_Int: {
       auto ptr = reinterpret_cast<const Int *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case all_types::Short: {
+    case all_types_Short: {
       auto ptr = reinterpret_cast<const Short *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case all_types::Double: {
+    case all_types_Double: {
       auto ptr = reinterpret_cast<const Double *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case all_types::Bool: {
+    case all_types_Bool: {
       auto ptr = reinterpret_cast<const Bool *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case all_types::Container: {
+    case all_types_Container: {
       auto ptr = reinterpret_cast<const Container *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case all_types::Tuple: {
+    case all_types_Tuple: {
       auto ptr = reinterpret_cast<const Tuple *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case all_types::List: {
+    case all_types_List: {
       auto ptr = reinterpret_cast<const List *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
+    case all_types_Dict: {
+      auto ptr = reinterpret_cast<const Dict *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return false;

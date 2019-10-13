@@ -165,7 +165,7 @@ namespace sweetPy
         auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
         flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
         auto offset = serialize::CreateInt(builder, value);
-        flatContext.add_offset(serialize::all_types::Int, offset.Union());
+        flatContext.add_offset(serialize::all_types::all_types_Int, offset.Union());
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, double value) const
@@ -173,7 +173,7 @@ namespace sweetPy
         auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
         flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
         auto offset = serialize::CreateDouble(builder, value);
-        flatContext.add_offset(serialize::all_types::Double, offset.Union());
+        flatContext.add_offset(serialize::all_types::all_types_Double, offset.Union());
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, const char* value) const
@@ -182,7 +182,7 @@ namespace sweetPy
         flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
         auto strOffset = builder.CreateString(value);
         auto offset = serialize::CreateString(builder, strOffset);
-        flatContext.add_offset(serialize::all_types::String, offset.Union());
+        flatContext.add_offset(serialize::all_types::all_types_String, offset.Union());
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, const std::string& value) const
@@ -191,7 +191,7 @@ namespace sweetPy
         flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
         auto strOffset = builder.CreateString(value);
         auto offset = serialize::CreateString(builder, strOffset);
-        flatContext.add_offset(serialize::all_types::String, offset.Union());
+        flatContext.add_offset(serialize::all_types::all_types_String, offset.Union());
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, bool value) const
@@ -199,7 +199,7 @@ namespace sweetPy
         auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
         flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
         auto offset = serialize::CreateBool(builder, value);
-        flatContext.add_offset(serialize::all_types::Bool, offset.Union());
+        flatContext.add_offset(serialize::all_types::all_types_Bool, offset.Union());
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, const Tuple& value) const
@@ -209,7 +209,7 @@ namespace sweetPy
         auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
         flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
         auto offset = serialize::CreateTuple(builder, containerOffset);
-        flatContext.add_offset(serialize::all_types::Tuple, offset.Union());
+        flatContext.add_offset(serialize::all_types::all_types_Tuple, offset.Union());
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, const List& value) const
@@ -219,7 +219,7 @@ namespace sweetPy
         auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
         flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
         auto offset = serialize::CreateList(builder, containerOffset);
-        flatContext.add_offset(serialize::all_types::List, offset.Union());
+        flatContext.add_offset(serialize::all_types::all_types_List, offset.Union());
     }
     
     flatbuffers::Offset<serialize::Container> SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, const _Container& value) const
@@ -232,33 +232,33 @@ namespace sweetPy
             {
                 const auto& typedParam = static_cast<const core::TypedParam<int>&>(param);
                 auto offset = serialize::CreateInt(builder, typedParam.Get<int>());
-                params.emplace_back(serialize::CreateContainerParam(builder, serialize::integral_types::Int, offset.Union()));
+                params.emplace_back(serialize::CreateContainerParam(builder, serialize::all_types::all_types_Int, offset.Union()));
             }
             else if(param.IsCtypeS())
             {
                 const auto& typedParam = static_cast<const core::TypedParam<char*>&>(param);
                 auto strOffset = builder.CreateString(typedParam.Get<char*>());
                 auto offset = serialize::CreateString(builder, strOffset);
-                params.emplace_back(serialize::CreateContainerParam(builder, serialize::integral_types::String, offset.Union()));
+                params.emplace_back(serialize::CreateContainerParam(builder, serialize::all_types::all_types_String, offset.Union()));
             }
             else if(param.IsString())
             {
                 const auto& typedParam = static_cast<const core::TypedParam<std::string>&>(param);
                 auto strOffset = builder.CreateString(typedParam.Get<std::string>());
                 auto offset = serialize::CreateString(builder, strOffset);
-                params.emplace_back(serialize::CreateContainerParam(builder, serialize::integral_types::String, offset.Union()));
+                params.emplace_back(serialize::CreateContainerParam(builder, serialize::all_types::all_types_String, offset.Union()));
             }
             else if(param.IsBool())
             {
                 const auto& typedParam = static_cast<const core::TypedParam<bool>&>(param);
                 auto offset = serialize::CreateBool(builder, typedParam.Get<bool>());
-                params.emplace_back(serialize::CreateContainerParam(builder, serialize::integral_types::Bool, offset.Union()));
+                params.emplace_back(serialize::CreateContainerParam(builder, serialize::all_types::all_types_Bool, offset.Union()));
             }
             else if(param.IsDouble())
             {
                 const auto& typedParam = static_cast<const core::TypedParam<double>&>(param);
                 auto offset = serialize::CreateDouble(builder, typedParam.Get<double>());
-                params.emplace_back(serialize::CreateContainerParam(builder, serialize::integral_types::Double, offset.Union()));
+                params.emplace_back(serialize::CreateContainerParam(builder, serialize::all_types::all_types_Double, offset.Union()));
             }
             else
                 throw core::Exception(__CORE_SOURCE, "Non supported types");
@@ -266,7 +266,6 @@ namespace sweetPy
         std::for_each(value.rbegin(), value.rend(), storeElement);
         auto vecOffset = builder.CreateVector(params);
         return serialize::CreateContainer(builder, vecOffset);
-        //flatContext.add_offset(serialize::all_types::Container, offset.Union());
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, const ObjectPtr& object) const
@@ -361,15 +360,15 @@ namespace sweetPy
         for(int idx = offsets.size() - 1; idx >= 0; idx--)
         {
            auto offset = offsets[idx];
-            if(offset->param_type() == serialize::integral_types::Bool)
+            if(offset->param_type() == serialize::all_types::all_types_Bool)
                 value.add_element(offset->param_as_Bool()->value());
-            else if(offset->param_type() == serialize::integral_types::Double)
+            else if(offset->param_type() == serialize::all_types::all_types_Double)
                 value.add_element(offset->param_as_Double()->value());
-            else if(offset->param_type() == serialize::integral_types::Short)
+            else if(offset->param_type() == serialize::all_types::all_types_Short)
                 value.add_element(offset->param_as_Short()->value());
-            else if(offset->param_type() == serialize::integral_types::Int)
+            else if(offset->param_type() == serialize::all_types::all_types_Int)
                 value.add_element(offset->param_as_Int()->value());
-            else if(offset->param_type() == serialize::integral_types::String)
+            else if(offset->param_type() == serialize::all_types::all_types_String)
                 value.add_element(offset->param_as_String()->value()->str());
         }
     }

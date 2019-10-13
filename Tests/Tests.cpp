@@ -284,6 +284,32 @@ namespace sweetPyTest {
          ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::get_attribute<const sweetPy::TimeDelta&>("timedeltaConstRefObject_2"));
          ASSERT_EQ(sweetPy::TimeDelta(7, 0, 6), PythonEmbedder::get_attribute<const sweetPy::TimeDelta&>("timedeltaReturn_4"));
      }
+    
+    TEST(CPythonClassTest, CPythonObjectCheckDictType)
+    {
+        
+        const char *testingScript = "from datetime import timedelta\n"
+                                    //Dictionary
+                                    "dictArgument = {1: 1.2, "
+                                    "                'hello': True, "
+                                    "                ('world', False): [2, 1.3]}\n"
+                                    "dictReturn = TestModule.check_dict_conversion(dictArgument) #dict -> Dictionary\n";
+        
+        PyRun_SimpleString(testingScript);
+        //Tuple
+        sweetPy::Dictionary dictReturn = PythonEmbedder::get_attribute<sweetPy::Dictionary>("dictReturn");
+        ASSERT_EQ(2.5, dictReturn.get<double>(1));
+        ASSERT_EQ("GoodBye", dictReturn.get<std::string>(2.5));
+        ASSERT_EQ(true, dictReturn.get<bool>(std::string("World")));
+        
+        /*sweetPy::Tuple tuple_key_1;
+        tuple_key_1.add_element("world");
+        tuple_key_1.add_element(false);
+        sweetPy::List list_candidate_1;
+        list_candidate_1.add_element(2);
+        list_candidate_1.add_element(1.3);
+        ASSERT_EQ(list_candidate_1, dictReturn.get<sweetPy::List>(tuple_key_1));*/
+    }
  
      TEST(CPythonClassTest, CPythonObjectCheckTupleType)
      {
@@ -993,67 +1019,67 @@ namespace sweetPyTest {
          auto contextReceive = sweetPy::SweetPickleFactory::instance().create_context(sweetPy::SerializeType::FlatBuffers);
          auto sweetPickleReceive = sweetPy::SweetPickleFactory::instance().create(sweetPy::SerializeType::FlatBuffers);
          sweetPickleReceive->start_read(*contextReceive, buffer);
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::Int);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Int);
          int valInt = 0;
          sweetPickleReceive->read(valInt);
          ASSERT_EQ(valInt, 5);
          
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::Double);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Double);
          double valDouble = 0;
          sweetPickleReceive->read(valDouble);
          ASSERT_EQ(valDouble, 7.5313123);
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::Bool);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Bool);
          bool valBool = false;
          sweetPickleReceive->read(valBool);
          ASSERT_EQ(valBool, true);
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::String);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_String);
          std::string valStr;
          sweetPickleReceive->read(valStr);
          ASSERT_EQ(valStr, "its working");
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::String);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_String);
          std::string valStr_2;
          sweetPickleReceive->read(valStr_2);
          ASSERT_EQ(valStr_2, "yes it really works");
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::Tuple);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Tuple);
          sweetPy::Tuple valTuple;
          sweetPickleReceive->read(valTuple);
          ASSERT_EQ(valTuple, tuple);
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::List);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_List);
          sweetPy::List valList;
          sweetPickleReceive->read(valList);
          ASSERT_EQ(valList, list);
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::Int);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Int);
          int valPyInt = 0;
          sweetPickleReceive->read(valPyInt);
          ASSERT_EQ(valPyInt, 6);
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::Double);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Double);
          double valPyDouble = 0;
          sweetPickleReceive->read(valPyDouble);
          ASSERT_EQ(valPyDouble, 5.4324213123);
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::Bool);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Bool);
          bool valPyBool = false;
          sweetPickleReceive->read(valPyBool);
          ASSERT_EQ(valPyBool, true);
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::String);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_String);
          std::string valPyStr;
          sweetPickleReceive->read(valPyStr);
          ASSERT_EQ(valPyStr, "literal string seems to work");
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::Tuple);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Tuple);
          sweetPy::Tuple valPyTuple;
          sweetPickleReceive->read(valPyTuple);
          ASSERT_EQ(valPyTuple, PythonEmbedder::get_attribute<sweetPy::Tuple>("tuple_val"));
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::List);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_List);
          sweetPy::List valPyList;
          sweetPickleReceive->read(valPyList);
          ASSERT_EQ(valPyList, PythonEmbedder::get_attribute<sweetPy::List>("list_val"));

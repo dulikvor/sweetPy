@@ -16,13 +16,13 @@ namespace sweetPy
     namespace flat_traits
     {
         template<typename T> struct TypeToTypeId{};
-        template<> struct TypeToTypeId<serialize::Short> : std::integral_constant<serialize::all_types, serialize::all_types::Short>{};
-        template<> struct TypeToTypeId<serialize::Int> : std::integral_constant<serialize::all_types, serialize::all_types::Int>{};
-        template<> struct TypeToTypeId<serialize::Bool> : std::integral_constant<serialize::all_types, serialize::all_types::Bool>{};
-        template<> struct TypeToTypeId<serialize::Double> : std::integral_constant<serialize::all_types, serialize::all_types::Double>{};
-        template<> struct TypeToTypeId<serialize::String> : std::integral_constant<serialize::all_types, serialize::all_types::String>{};
-        template<> struct TypeToTypeId<serialize::Tuple> : std::integral_constant<serialize::all_types, serialize::all_types::Tuple>{};
-        template<> struct TypeToTypeId<serialize::List> : std::integral_constant<serialize::all_types, serialize::all_types::List>{};
+        template<> struct TypeToTypeId<serialize::Short> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_Short>{};
+        template<> struct TypeToTypeId<serialize::Int> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_Int>{};
+        template<> struct TypeToTypeId<serialize::Bool> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_Bool>{};
+        template<> struct TypeToTypeId<serialize::Double> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_Double>{};
+        template<> struct TypeToTypeId<serialize::String> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_String>{};
+        template<> struct TypeToTypeId<serialize::Tuple> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_Tuple>{};
+        template<> struct TypeToTypeId<serialize::List> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_List>{};
     }
     
     class SerializeContext

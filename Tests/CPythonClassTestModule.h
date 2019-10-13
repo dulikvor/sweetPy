@@ -273,6 +273,15 @@ namespace sweetPyTest {
         values.push_back(value);
         return values.back();
     }
+    
+    sweetPy::Dictionary CheckDictionaryType(sweetPy::Dictionary value)
+    {
+        sweetPy::Dictionary newValue;
+        newValue.add(1, 2.5);
+        newValue.add(2.5, "GoodBye");
+        newValue.add(std::string("World"), true);
+        return newValue;
+    }
 
     sweetPy::Tuple CheckTuleType(sweetPy::Tuple value)
     {
