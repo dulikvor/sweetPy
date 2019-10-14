@@ -11,6 +11,8 @@ namespace sweetPy{
     class Dictionary
     {
     public:
+        struct by_ref_t{};
+        
         Dictionary()
             :m_dict(PyDict_New(), &Deleter::Owner)
         {
@@ -70,8 +72,18 @@ namespace sweetPy{
             CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
         }
         
-        template<typename Value, typename Key>
+        template<typename Value, typename Key, typename KeyNoRef = typename std::remove_reference<Key>::type>
         Value get(Key&& key) const
+        {
+            ObjectPtr pyKey = ObjectPtr(Object<KeyNoRef>::to_python(std::forward<Key>(key)), &Deleter::Owner);
+            auto object = ObjectPtr(PyDict_GetItem(m_dict.get(), pyKey.get()), &Deleter::Borrow);
+            if(object.get() == nullptr)
+                throw core::Exception(__CORE_SOURCE, "key was not found");
+            return Object<Value>::from_python(object.get());
+        }
+    
+        template<typename Value, typename Key>
+        Value get(Key&& key, by_ref_t) const
         {
             ObjectPtr pyKey = ObjectPtr(Object<Key>::to_python(std::forward<Key>(key)), &Deleter::Owner);
             auto object = ObjectPtr(PyDict_GetItem(m_dict.get(), pyKey.get()), &Deleter::Borrow);

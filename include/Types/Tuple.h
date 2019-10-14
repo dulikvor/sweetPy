@@ -44,6 +44,8 @@ namespace sweetPy{
                     object = Object<int>::to_python(static_cast<core::TypedParam<int>&>(*m_elements[idx]).Get<int>());
                 else if(m_elements[idx]->IsString())
                     object = Object<std::string>::to_python(static_cast<core::TypedParam<std::string>&>(*m_elements[idx]).Get<std::string>());
+                else if(m_elements[idx]->IsCtypeS())
+                    object = Object<const char*>::to_python(static_cast<core::TypedParam<char*>&>(*m_elements[idx]).Get<char*>());
                 else if(m_elements[idx]->IsDouble())
                     object = Object<double>::to_python(static_cast<core::TypedParam<double>&>(*m_elements[idx]).Get<double>());
                 else if(m_elements[idx]->IsBool())

@@ -74,6 +74,9 @@ namespace sweetPyTest {
 
         Clazz<GenerateRefTypes<const sweetPy::TimeDelta>> timeDeltaConstRefType(module, "GenerateTimeDeltaConstRef", "Will generate instance of timedelta const ref type");
         timeDeltaConstRefType.add_method("create", "Will generate timedelta const ref", static_cast<const sweetPy::TimeDelta&(GenerateRefTypes<const sweetPy::TimeDelta>::*)(const sweetPy::TimeDelta&)>(&GenerateRefTypes<const sweetPy::TimeDelta>::operator()));
+        
+        Clazz<GenerateRefTypes<const sweetPy::Dictionary>> dictConstRefType(module, "GenerateDictConstRef", "Will generate instance of dict const ref type");
+        dictConstRefType.add_method("create", "Will generate dict const ref", static_cast<const sweetPy::Dictionary&(GenerateRefTypes<const sweetPy::Dictionary>::*)(const sweetPy::Dictionary&)>(&GenerateRefTypes<const sweetPy::Dictionary>::operator()));
 
         Clazz<GenerateRefTypes<const sweetPy::Tuple>> tupleConstRefType(module, "GenerateTupleConstRef", "Will generate instance of tuple const ref type");
         tupleConstRefType.add_method("create", "Will generate tuple const ref", static_cast<const sweetPy::Tuple&(GenerateRefTypes<const sweetPy::Tuple>::*)(const sweetPy::Tuple&)>(&GenerateRefTypes<const sweetPy::Tuple>::operator()));
