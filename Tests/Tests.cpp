@@ -293,22 +293,29 @@ namespace sweetPyTest {
                                     "dictArgument = {1: 1.2, "
                                     "                'hello': True, "
                                     "                ('world', False): [2, 1.3]}\n"
-                                    "dictReturn = TestModule.check_dict_conversion(dictArgument) #dict -> Dictionary\n";
+                                    "dictReturn = TestModule.check_dict_conversion(dictArgument) #dict -> Dictionary\n"
+                                    "dictConstRefGenerator = TestModule.GenerateDictConstRef()\n"
+                                    "dictArgument_2 = {5: 7.2}\n"
+                                    "dictConstRefObject = dictConstRefGenerator.create(dictArgument_2)\n"
+                                    "dictReturn_2 = TestModule.check_dict_conversion(dictConstRefObject) #const Dictionary& -> Dictionary\n";
         
         PyRun_SimpleString(testingScript);
-        //Tuple
+        //Dictionary
         sweetPy::Dictionary dictReturn = PythonEmbedder::get_attribute<sweetPy::Dictionary>("dictReturn");
         ASSERT_EQ(2.5, dictReturn.get<double>(1));
         ASSERT_EQ("GoodBye", dictReturn.get<std::string>(2.5));
         ASSERT_EQ(true, dictReturn.get<bool>(std::string("World")));
-        
-        /*sweetPy::Tuple tuple_key_1;
+    
+        sweetPy::Dictionary dictArgument = PythonEmbedder::get_attribute<sweetPy::Dictionary>("dictArgument");
+        ASSERT_EQ(1.2, dictArgument.get<double>(1));
+        ASSERT_EQ(true, dictArgument.get<bool>("hello"));
+        sweetPy::Tuple tuple_key_1;
         tuple_key_1.add_element("world");
         tuple_key_1.add_element(false);
         sweetPy::List list_candidate_1;
         list_candidate_1.add_element(2);
         list_candidate_1.add_element(1.3);
-        ASSERT_EQ(list_candidate_1, dictReturn.get<sweetPy::List>(tuple_key_1));*/
+        ASSERT_EQ(list_candidate_1, dictArgument.get<sweetPy::List>(tuple_key_1));
     }
  
      TEST(CPythonClassTest, CPythonObjectCheckTupleType)
@@ -337,7 +344,7 @@ namespace sweetPyTest {
          sweetPy::Tuple tupleReturn = PythonEmbedder::get_attribute<sweetPy::Tuple>("tupleReturn");
          ASSERT_EQ(1, tupleReturn.get_element<int>(0));
          ASSERT_EQ(2.5, tupleReturn.get_element<double>(1));
-         ASSERT_EQ(std::string("Goodbye"), tupleReturn.get_element<std::string>(2));
+         ASSERT_EQ(std::string("Goodbye"), tupleReturn.get_element<char*>(2));
          ASSERT_EQ(std::string("World"), tupleReturn.get_element<std::string>(3));
          ASSERT_EQ(true, tupleReturn.get_element<bool>(4));
          sweetPy::List list_candidate_1;
@@ -357,17 +364,17 @@ namespace sweetPyTest {
          sweetPy::Tuple tupleReturn_2 = PythonEmbedder::get_attribute<sweetPy::Tuple>("tupleReturn_2");
          ASSERT_EQ(1, tupleReturn_2.get_element<int>(0));
          ASSERT_EQ(2.5, tupleReturn_2.get_element<double>(1));
-         ASSERT_EQ(std::string("Goodbye"), tupleReturn_2.get_element<std::string>(2));
+         ASSERT_EQ(std::string("Goodbye"), tupleReturn_2.get_element<char*>(2));
          ASSERT_EQ(std::string("World"), tupleReturn_2.get_element<std::string>(3));
          ASSERT_EQ(true, tupleReturn_2.get_element<bool>(4));
          //const Tuple&
          sweetPy::Tuple tupleArgument_3 = PythonEmbedder::get_attribute<sweetPy::Tuple>("tupleArgument_3");
          ASSERT_EQ(0, tupleArgument_3.get_element<bool>(0));
-         ASSERT_EQ(std::string("to all"), tupleArgument_3.get_element<std::string>(1));
+         ASSERT_EQ(std::string("to all"), tupleArgument_3.get_element<char*>(1));
  
          const sweetPy::Tuple& tupleReturn_3 = PythonEmbedder::get_attribute<const sweetPy::Tuple&>("tupleReturn_3");
          ASSERT_EQ(0, tupleReturn_3.get_element<bool>(0));
-         ASSERT_EQ(std::string("to all"), tupleReturn_3.get_element<std::string>(1));
+         ASSERT_EQ(std::string("to all"), tupleReturn_3.get_element<char*>(1));
  
          sweetPy::Tuple tupleArgument_4 = PythonEmbedder::get_attribute<sweetPy::Tuple>("tupleArgument_4");
          ASSERT_EQ(nullptr, tupleArgument_4.get_element<void*>(0));
@@ -416,13 +423,13 @@ namespace sweetPyTest {
          tuple.clear();
          //Ctype string
          tuple.add_element("A");
-         ASSERT_EQ("A", tuple.get_element<std::string>(0));
+         ASSERT_EQ(std::string("A"), tuple.get_element<char*>(0));
          const char* cstr_val = "B";
          tuple.add_element(const_cast<char*>(cstr_val));
-         ASSERT_EQ("B", tuple.get_element<std::string>(1));
+         ASSERT_EQ(std::string("B"), tuple.get_element<char*>(1));
          const char* const_cstr_val = "C";
          tuple.add_element(const_cstr_val);
-         ASSERT_EQ("C", tuple.get_element<std::string>(2));
+         ASSERT_EQ(std::string("C"), tuple.get_element<char*>(2));
          tuple.clear();
          //String
          tuple.add_element(std::string("A"));
@@ -465,7 +472,7 @@ namespace sweetPyTest {
          ASSERT_EQ(cpy_tuple.get_element<int>(0), tuple.get_element<int>(0));
          ASSERT_EQ(cpy_tuple.get_element<double>(1), tuple.get_element<double>(1));
          ASSERT_EQ(cpy_tuple.get_element<bool>(2), tuple.get_element<bool>(2));
-         ASSERT_EQ(cpy_tuple.get_element<std::string>(3), tuple.get_element<std::string>(3));
+         ASSERT_EQ(std::string(cpy_tuple.get_element<char*>(3)), tuple.get_element<char*>(3));
          ASSERT_EQ(cpy_tuple.get_element<std::string>(4), tuple.get_element<std::string>(4));
          ASSERT_EQ(cpy_tuple.get_element<void*>(5), tuple.get_element<void*>(5));
          tuple.clear();
@@ -481,7 +488,7 @@ namespace sweetPyTest {
          ASSERT_EQ(cpy_assign_tuple.get_element<int>(0), tuple.get_element<int>(0));
          ASSERT_EQ(cpy_assign_tuple.get_element<double>(1), tuple.get_element<double>(1));
          ASSERT_EQ(cpy_assign_tuple.get_element<bool>(2), tuple.get_element<bool>(2));
-         ASSERT_EQ(cpy_assign_tuple.get_element<std::string>(3), tuple.get_element<std::string>(3));
+         ASSERT_EQ(std::string(cpy_assign_tuple.get_element<char*>(3)), tuple.get_element<char*>(3));
          ASSERT_EQ(cpy_assign_tuple.get_element<std::string>(4), tuple.get_element<std::string>(4));
          ASSERT_EQ(cpy_assign_tuple.get_element<void*>(5), tuple.get_element<void*>(5));
          tuple.clear();
@@ -496,7 +503,7 @@ namespace sweetPyTest {
          ASSERT_EQ(mv_tuple.get_element<int>(0), 5);
          ASSERT_EQ(mv_tuple.get_element<double>(1), 5.5);
          ASSERT_EQ(mv_tuple.get_element<bool>(2), true);
-         ASSERT_EQ(mv_tuple.get_element<std::string>(3), std::string("A"));
+         ASSERT_EQ(mv_tuple.get_element<char*>(3), std::string("A"));
          ASSERT_EQ(mv_tuple.get_element<std::string>(4), std::string("B"));
          ASSERT_EQ(mv_tuple.get_element<void*>(5), nullptr);
          tuple.clear();
@@ -512,7 +519,7 @@ namespace sweetPyTest {
          ASSERT_EQ(mv_assign_tuple.get_element<int>(0), 5);
          ASSERT_EQ(mv_assign_tuple.get_element<double>(1), 5.5);
          ASSERT_EQ(mv_assign_tuple.get_element<bool>(2), true);
-         ASSERT_EQ(mv_assign_tuple.get_element<std::string>(3), std::string("A"));
+         ASSERT_EQ(mv_assign_tuple.get_element<char*>(3), std::string("A"));
          ASSERT_EQ(mv_assign_tuple.get_element<std::string>(4), std::string("B"));
          ASSERT_EQ(mv_assign_tuple.get_element<void*>(5), nullptr);
          tuple.clear();
@@ -544,7 +551,7 @@ namespace sweetPyTest {
          sweetPy::List listArgument = PythonEmbedder::get_attribute<sweetPy::List>("listReturn");
          ASSERT_EQ(1, listArgument.get_element<int>(0));
          ASSERT_EQ(2.5, listArgument.get_element<double>(1));
-         ASSERT_EQ(std::string("Goodbye"), listArgument.get_element<std::string>(2));
+         ASSERT_EQ(std::string("Goodbye"), listArgument.get_element<char*>(2));
          ASSERT_EQ(std::string("World"), listArgument.get_element<std::string>(3));
          ASSERT_EQ(true, listArgument.get_element<bool>(4));
          
@@ -555,17 +562,17 @@ namespace sweetPyTest {
          sweetPy::List listReturn_2 = PythonEmbedder::get_attribute<sweetPy::List>("listReturn_2");
          ASSERT_EQ(1, listReturn_2.get_element<int>(0));
          ASSERT_EQ(2.5, listReturn_2.get_element<double>(1));
-         ASSERT_EQ(std::string("Goodbye"), listReturn_2.get_element<std::string>(2));
+         ASSERT_EQ(std::string("Goodbye"), listReturn_2.get_element<char*>(2));
          ASSERT_EQ(std::string("World"), listReturn_2.get_element<std::string>(3));
          ASSERT_EQ(true, listReturn_2.get_element<bool>(4));
          //const List&
          sweetPy::List listArgument_3 = PythonEmbedder::get_attribute<sweetPy::List>("listArgument_3");
          ASSERT_EQ(0, listArgument_3.get_element<bool>(0));
-         ASSERT_EQ(std::string("to all"), listArgument_3.get_element<std::string>(1));
+         ASSERT_EQ(std::string("to all"), listArgument_3.get_element<char*>(1));
          
          const sweetPy::List& listReturn_3 = PythonEmbedder::get_attribute<const sweetPy::List&>("listReturn_3");
          ASSERT_EQ(0, listReturn_3.get_element<bool>(0));
-         ASSERT_EQ(std::string("to all"), listReturn_3.get_element<std::string>(1));
+         ASSERT_EQ(std::string("to all"), listReturn_3.get_element<char*>(1));
          
          sweetPy::List listArgument_4 = PythonEmbedder::get_attribute<sweetPy::List>("listArgument_4");
          ASSERT_EQ(nullptr, listArgument_4.get_element<void*>(0));
@@ -614,13 +621,13 @@ namespace sweetPyTest {
          list.clear();
          //Ctype string
          list.add_element("A");
-         ASSERT_EQ("A", list.get_element<std::string>(0));
+         ASSERT_EQ(std::string("A"), list.get_element<char*>(0));
          const char* cstr_val = "B";
          list.add_element(const_cast<char*>(cstr_val));
-         ASSERT_EQ("B", list.get_element<std::string>(1));
+         ASSERT_EQ(std::string("B"), list.get_element<char*>(1));
          const char* const_cstr_val = "C";
          list.add_element(const_cstr_val);
-         ASSERT_EQ("C", list.get_element<std::string>(2));
+         ASSERT_EQ(std::string("C"), list.get_element<char*>(2));
          list.clear();
          //String
          list.add_element(std::string("A"));
@@ -653,7 +660,7 @@ namespace sweetPyTest {
          ASSERT_EQ(cpy_list.get_element<int>(0), list.get_element<int>(0));
          ASSERT_EQ(cpy_list.get_element<double>(1), list.get_element<double>(1));
          ASSERT_EQ(cpy_list.get_element<bool>(2), list.get_element<bool>(2));
-         ASSERT_EQ(cpy_list.get_element<std::string>(3), list.get_element<std::string>(3));
+         ASSERT_EQ(std::string(cpy_list.get_element<char*>(3)), list.get_element<char*>(3));
          ASSERT_EQ(cpy_list.get_element<std::string>(4), list.get_element<std::string>(4));
          ASSERT_EQ(cpy_list.get_element<void*>(5), list.get_element<void*>(5));
          list.clear();
@@ -669,7 +676,7 @@ namespace sweetPyTest {
          ASSERT_EQ(cpy_assign_list.get_element<int>(0), list.get_element<int>(0));
          ASSERT_EQ(cpy_assign_list.get_element<double>(1), list.get_element<double>(1));
          ASSERT_EQ(cpy_assign_list.get_element<bool>(2), list.get_element<bool>(2));
-         ASSERT_EQ(cpy_assign_list.get_element<std::string>(3), list.get_element<std::string>(3));
+         ASSERT_EQ(std::string(cpy_assign_list.get_element<char*>(3)), list.get_element<char*>(3));
          ASSERT_EQ(cpy_assign_list.get_element<std::string>(4), list.get_element<std::string>(4));
          ASSERT_EQ(cpy_assign_list.get_element<void*>(5), list.get_element<void*>(5));
          list.clear();
@@ -684,7 +691,7 @@ namespace sweetPyTest {
          ASSERT_EQ(mv_list.get_element<int>(0), 5);
          ASSERT_EQ(mv_list.get_element<double>(1), 5.5);
          ASSERT_EQ(mv_list.get_element<bool>(2), true);
-         ASSERT_EQ(mv_list.get_element<std::string>(3), std::string("A"));
+         ASSERT_EQ(mv_list.get_element<char*>(3), std::string("A"));
          ASSERT_EQ(mv_list.get_element<std::string>(4), std::string("B"));
          ASSERT_EQ(mv_list.get_element<void*>(5), nullptr);
          list.clear();
@@ -700,7 +707,7 @@ namespace sweetPyTest {
          ASSERT_EQ(mv_assign_list.get_element<int>(0), 5);
          ASSERT_EQ(mv_assign_list.get_element<double>(1), 5.5);
          ASSERT_EQ(mv_assign_list.get_element<bool>(2), true);
-         ASSERT_EQ(mv_assign_list.get_element<std::string>(3), std::string("A"));
+         ASSERT_EQ(mv_assign_list.get_element<char*>(3), std::string("A"));
          ASSERT_EQ(mv_assign_list.get_element<std::string>(4), std::string("B"));
          ASSERT_EQ(mv_assign_list.get_element<void*>(5), nullptr);
          list.clear();

@@ -25,6 +25,7 @@ public:
     AsciiString(sweetPy::AsciiString &&obj):m_str(std::move(obj.m_str)){}
     AsciiString& operator=(sweetPy::AsciiString &&rhs) {m_str = std::move(rhs.m_str); return *this;}
     
+    const std::string& get_str() const { return m_str; }
     operator const std::string&() const {return m_str;}
     operator std::string() const {return m_str;}
     PyObject* to_python() const

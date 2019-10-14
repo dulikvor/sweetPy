@@ -63,6 +63,11 @@ namespace sweetPy{
                     core::TypedParam<double>& typedElement =  static_cast<core::TypedParam<double>&>(*element);
                     param.reset(new core::TypedParam<double>(typedElement));
                 }
+                else if(element->IsCtypeS())
+                {
+                    core::TypedParam<char*>& typedElement =  static_cast<core::TypedParam<char*>&>(*element);
+                    param.reset(new core::TypedParam<char*>(typedElement));
+                }
                 else if(element->IsString())
                 {
                     core::TypedParam<std::string>& typedElement =  static_cast<core::TypedParam<std::string>&>(*element);
@@ -98,6 +103,11 @@ namespace sweetPy{
                 {
                     core::TypedParam<double>& typedElement =  static_cast<core::TypedParam<double>&>(*element);
                     param.reset(new core::TypedParam<double>(typedElement));
+                }
+                else if(element->IsCtypeS())
+                {
+                    core::TypedParam<char*>& typedElement =  static_cast<core::TypedParam<char*>&>(*element);
+                    param.reset(new core::TypedParam<char*>(typedElement));
                 }
                 else if(element->IsString())
                 {
@@ -148,18 +158,15 @@ namespace sweetPy{
         template<int N>
         void add_element(const char (&element)[N])
         {
-            std::string _element = element;
-            m_elements.emplace_back(new core::TypedParam<std::string>(std::move(_element)));
+            m_elements.emplace_back(new core::TypedParam<char*>(element));
         }
         void add_element(char* element)
         {
-            std::string _element = element;
-            m_elements.emplace_back(new core::TypedParam<std::string>(_element));
+            m_elements.emplace_back(new core::TypedParam<char*>(element));
         }
         void add_element(const char* element)
         {
-            std::string _element = element;
-            m_elements.emplace_back(new core::TypedParam<std::string>(_element));
+            m_elements.emplace_back(new core::TypedParam<char*>(element));
         }
         void add_element(void* element, const Converter::ConveterFunc& converterFunc = Converter::ConveterFunc())
         {
