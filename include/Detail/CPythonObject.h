@@ -1542,7 +1542,7 @@ namespace sweetPy{
         {
             return object;
         }
-        static PyObject* to_python(PyObject*& value)
+        static PyObject* to_python(PyObject* value)
         {
             Py_XINCREF(value);
             return value;

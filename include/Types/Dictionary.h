@@ -11,7 +11,9 @@ namespace sweetPy{
     class Dictionary
     {
     public:
-        struct by_ref_t{};
+        struct key_by_ref_t{};
+        struct value_by_ref_t{};
+        struct key_value_by_ref_t{};
         
         Dictionary()
             :m_dict(PyDict_New(), &Deleter::Owner)
@@ -41,27 +43,67 @@ namespace sweetPy{
             return *this;
         }
         
-        template<typename Key, typename Value>
+        template<typename Key, typename Value, typename KeyNoRef = remove_reference_t<Key>, typename ValueNoRef = remove_reference_t<Value>>
         void add(Key&& key, Value&& value)
+        {
+            ObjectPtr pyKey = ObjectPtr(Object<KeyNoRef>::to_python(std::forward<Key>(key)), &Deleter::Owner);
+            ObjectPtr pyValue = ObjectPtr(Object<ValueNoRef>::to_python(std::forward<Value>(value)), &Deleter::Owner);
+            CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
+        }
+    
+        template<typename Key, typename Value, typename ValueNoRef = remove_reference_t<Value>>
+        void add(Key&& key, Value&& value, key_by_ref_t)
+        {
+            ObjectPtr pyKey = ObjectPtr(Object<Key>::to_python(std::forward<Key>(key)), &Deleter::Owner);
+            ObjectPtr pyValue = ObjectPtr(Object<ValueNoRef>::to_python(std::forward<Value>(value)), &Deleter::Owner);
+            CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
+        }
+    
+        template<typename Key, typename Value, typename KeyNoRef = remove_reference_t<Key>>
+        void add(Key&& key, Value&& value, value_by_ref_t)
+        {
+            ObjectPtr pyKey = ObjectPtr(Object<KeyNoRef>::to_python(std::forward<Key>(key)), &Deleter::Owner);
+            ObjectPtr pyValue = ObjectPtr(Object<Value>::to_python(std::forward<Value>(value)), &Deleter::Owner);
+            CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
+        }
+    
+        template<typename Key, typename Value>
+        void add(Key&& key, Value&& value, key_value_by_ref_t)
         {
             ObjectPtr pyKey = ObjectPtr(Object<Key>::to_python(std::forward<Key>(key)), &Deleter::Owner);
             ObjectPtr pyValue = ObjectPtr(Object<Value>::to_python(std::forward<Value>(value)), &Deleter::Owner);
             CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
         }
     
-        template<typename Value>
+        template<typename Value, typename ValueNoRef = remove_reference_t<Value>>
         void add(const char* key, Value&& value)
         {
             ObjectPtr pyKey = ObjectPtr(Object<const char*>::to_python(key), &Deleter::Owner);
-            ObjectPtr pyValue = ObjectPtr(Object<Value>::to_python(std::forward<Value>(value)), &Deleter::Owner);
+            ObjectPtr pyValue = ObjectPtr(Object<ValueNoRef>::to_python(std::forward<Value>(value)), &Deleter::Owner);
+            CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
+        }
+    
+        template<typename Key, typename KeyNoRef = remove_reference_t<Key>>
+        void add(Key&& key, const char* value)
+        {
+            ObjectPtr pyKey = ObjectPtr(Object<KeyNoRef>::to_python(std::forward<Key>(key)), &Deleter::Owner);
+            ObjectPtr pyValue = ObjectPtr(Object<const char*>::to_python(value), &Deleter::Owner);
             CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
         }
     
         template<typename Key>
-        void add(Key&& key, const char* value)
+        void add(Key&& key, const char* value, key_by_ref_t)
         {
             ObjectPtr pyKey = ObjectPtr(Object<Key>::to_python(std::forward<Key>(key)), &Deleter::Owner);
             ObjectPtr pyValue = ObjectPtr(Object<const char*>::to_python(value), &Deleter::Owner);
+            CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
+        }
+    
+        template<typename Value>
+        void add(const char* key, Value&& value, value_by_ref_t)
+        {
+            ObjectPtr pyKey = ObjectPtr(Object<const char*>::to_python(key), &Deleter::Owner);
+            ObjectPtr pyValue = ObjectPtr(Object<Value>::to_python(std::forward<Value>(value)), &Deleter::Owner);
             CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
         }
     
@@ -71,8 +113,8 @@ namespace sweetPy{
             ObjectPtr pyValue = ObjectPtr(Object<const char*>::to_python(value), &Deleter::Owner);
             CPYTHON_VERIFY_EXC(-1 != PyDict_SetItem(m_dict.get(), pyKey.release(), pyValue.release()));
         }
-        
-        template<typename Value, typename Key, typename KeyNoRef = typename std::remove_reference<Key>::type>
+    
+        template<typename Value, typename Key, typename KeyNoRef = remove_reference_t<Key>>
         Value get(Key&& key) const
         {
             ObjectPtr pyKey = ObjectPtr(Object<KeyNoRef>::to_python(std::forward<Key>(key)), &Deleter::Owner);
@@ -83,7 +125,7 @@ namespace sweetPy{
         }
     
         template<typename Value, typename Key>
-        Value get(Key&& key, by_ref_t) const
+        Value get(Key&& key, key_by_ref_t) const
         {
             ObjectPtr pyKey = ObjectPtr(Object<Key>::to_python(std::forward<Key>(key)), &Deleter::Owner);
             auto object = ObjectPtr(PyDict_GetItem(m_dict.get(), pyKey.get()), &Deleter::Borrow);

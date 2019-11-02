@@ -117,6 +117,7 @@ namespace sweetPyTest {
         module.add_function("check_timedelta_conversion", "check TimeDelta type conversions", static_cast<sweetPy::TimeDelta(*)(sweetPy::TimeDelta)>(&CheckTimeDeltaType));
         module.add_function("check_const_ref_timedelta_conversion", "check const TimeDelta& type conversions", static_cast<const sweetPy::TimeDelta&(*)(const sweetPy::TimeDelta&)>(&CheckConstRefTimeDeltaType));
         module.add_function("check_dict_conversion", "check Dictionary type conversions", static_cast<sweetPy::Dictionary(*)(sweetPy::Dictionary)>(&CheckDictionaryType));
+        module.add_function("check_const_ref_dict_conversion", "check const Dictionary& type conversions", static_cast<const sweetPy::Dictionary&(*)(const sweetPy::Dictionary&)>(&CheckConstRefDictionaryType));
         module.add_function("check_tuple_conversion", "check Tuple type conversions", static_cast<sweetPy::Tuple(*)(sweetPy::Tuple)>(&CheckTuleType));
         module.add_function("check_const_ref_tuple_conversion", "check const Tuple& type conversions", static_cast<const sweetPy::Tuple&(*)(const sweetPy::Tuple&)>(&CheckConstRefTupleType));
         module.add_function("generate_native_element_tuple", "Will generate a native tuple which will hold non supported element type", static_cast<sweetPy::Tuple(*)()>(&GenerateNativeElementTuple));
