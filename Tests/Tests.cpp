@@ -297,7 +297,13 @@ namespace sweetPyTest {
                                     "dictConstRefGenerator = TestModule.GenerateDictConstRef()\n"
                                     "dictArgument_2 = {5: 7.2}\n"
                                     "dictConstRefObject = dictConstRefGenerator.create(dictArgument_2)\n"
-                                    "dictReturn_2 = TestModule.check_dict_conversion(dictConstRefObject) #const Dictionary& -> Dictionary\n";
+                                    "dictReturn_2 = TestModule.check_dict_conversion(dictConstRefObject) #const Dictionary& -> Dictionary\n"
+                                    //const Dictionary&
+                                    "dictArgument_3 = {False: 'to all'}\n"
+                                    "dictReturn_3 = TestModule.check_const_ref_dict_conversion(dictArgument_3) #dict -> const Dictionary&\n"
+                                    "dictArgument_4 = {None: 5.5}\n"
+                                    "dictConstRefObject_2 = dictConstRefGenerator.create(dictArgument_4)\n"
+                                    "dictReturn_4 = TestModule.check_const_ref_dict_conversion(dictConstRefObject_2) #const Dictionary& -> const Dictionary&\n";
         
         PyRun_SimpleString(testingScript);
         //Dictionary
@@ -316,6 +322,62 @@ namespace sweetPyTest {
         list_candidate_1.add_element(2);
         list_candidate_1.add_element(1.3);
         ASSERT_EQ(list_candidate_1, dictArgument.get<sweetPy::List>(tuple_key_1));
+    
+        //const Dictionary&
+        const sweetPy::Dictionary& dictReturn_3 = PythonEmbedder::get_attribute<const sweetPy::Dictionary&>("dictReturn_3");
+        ASSERT_EQ("to all", dictReturn_3.get<std::string>(false));
+    
+        sweetPy::Dictionary dictArgument_4 = PythonEmbedder::get_attribute<sweetPy::Dictionary>("dictArgument_4");
+        ASSERT_EQ(5.5, dictArgument_4.get<double>(Py_None));
+    
+        const sweetPy::Dictionary& dictConstRefObject_2 = PythonEmbedder::get_attribute<const sweetPy::Dictionary&>("dictConstRefObject_2");
+        ASSERT_EQ(5.5, dictConstRefObject_2.get<double>(Py_None));
+    
+        const sweetPy::Dictionary& dictReturn_4 = PythonEmbedder::get_attribute<const sweetPy::Dictionary&>("dictReturn_4");
+        ASSERT_EQ(5.5, dictReturn_4.get<double>(Py_None));
+    
+        //Check native type
+        sweetPy::Dictionary dict;
+        //int
+        dict.add(6, 5);
+        ASSERT_EQ(5, dict.get<int>(6));
+        int int_val = 6;
+        dict.add(int_val, int_val);
+        ASSERT_EQ(int_val, dict.get<int>(int_val));
+        //double
+        dict.add(6.5, 5.5);
+        ASSERT_EQ(5.5, dict.get<double>(6.5));
+        double double_val = 6.5;
+        dict.add(double_val, double_val);
+        ASSERT_EQ(double_val, dict.get<double>(double_val));
+        //bool
+        dict.add(false, true);
+        ASSERT_EQ(true, dict.get<bool>(false));
+        bool bool_val = false;
+        dict.add(bool_val, bool_val);
+        ASSERT_EQ(0, dict.get<bool>(false));
+        //Ctype string
+        dict.add("A", "B");
+        ASSERT_EQ(std::string("B"), dict.get<std::string>("A"));
+        const char* cstr_val = "B";
+        dict.add(cstr_val, cstr_val);
+        ASSERT_EQ(std::string("B"), dict.get<std::string>(cstr_val));
+        //String
+        dict.add(std::string("A"), std::string("B"));
+        ASSERT_EQ(std::string("B"), dict.get<std::string>("A"));
+        std::string str_val = "B";
+        dict.add(str_val, str_val);
+        ASSERT_EQ(std::string("B"), dict.get<std::string>(str_val));
+        //User types
+        dict.add(1000, TestSubjectA(6));
+        ASSERT_EQ(TestSubjectA(6), dict.get<TestSubjectA>(1000));
+        sweetPy::Tuple tuple_as_key;
+        tuple_as_key.add_element(3);
+        tuple_as_key.add_element("hello");
+        TestSubjectA user_type_val(7);
+        dict.add(tuple_as_key, user_type_val);
+        ASSERT_EQ(user_type_val, dict.get<TestSubjectA>(tuple_as_key));
+        dict.clear();
     }
  
      TEST(CPythonClassTest, CPythonObjectCheckTupleType)

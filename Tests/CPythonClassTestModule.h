@@ -282,6 +282,15 @@ namespace sweetPyTest {
         newValue.add(std::string("World"), true);
         return newValue;
     }
+    
+    const sweetPy::Dictionary& CheckConstRefDictionaryType(const sweetPy::Dictionary& value)
+    {
+        //Leakage out of choice, since Dictionary destructor is bound to python's interperter state and liveness.
+        static std::vector<sweetPy::Dictionary*> values;
+        values.reserve(100);
+        values.push_back(new sweetPy::Dictionary(value));
+        return *values.back();
+    }
 
     sweetPy::Tuple CheckTuleType(sweetPy::Tuple value)
     {
