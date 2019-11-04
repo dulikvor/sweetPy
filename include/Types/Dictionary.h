@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <core/Exception.h>
+#include "../Detail/DictionaryElement.h"
 #include "../Core/Deleter.h"
 #include "../Core/Assert.h"
 #include "../Core/Exception.h"
@@ -10,10 +11,16 @@
 namespace sweetPy{
     class Dictionary
     {
+    private:
+        struct end_pos{};
+        
     public:
         struct key_by_ref_t{};
         struct value_by_ref_t{};
         struct key_value_by_ref_t{};
+        typedef Detail::ElementValue Key;
+        typedef Detail::ElementValue Value;
+        typedef std::pair<Key, Value> KeyValuePair;
         
         Dictionary()
             :m_dict(PyDict_New(), &Deleter::Owner)
@@ -155,66 +162,47 @@ namespace sweetPy{
             return m_dict.get();
         }
         
-        class ElementValue
+        class iterator : public std::iterator<std::forward_iterator_tag, KeyValuePair, ptrdiff_t, KeyValuePair*, KeyValuePair&>
         {
         public:
-            ElementValue() = default;
-            explicit ElementValue(ObjectPtr&& value)
-                :m_value(std::move(value)){}
-            ElementValue& operator=(ObjectPtr&& value)
+            iterator(PyObject* const dict, end_pos): m_dict(dict), m_pos(0)
             {
-                m_value = std::move(value);
-                return *this;
+                CPYTHON_VERIFY(dict != nullptr, "Provided dictionary == null");
+                m_count = PyDict_Size(dict);
+                CPYTHON_VERIFY_EXC(m_count > -1);
             }
-            template<typename Value, typename = enable_if_t<std::is_copy_constructible<Value>::value>>
-            Value get() const
+    
+            iterator(PyObject* const dict): m_dict(dict), m_pos(0), m_count(0)
             {
-                return Object<Value>::from_python(m_value.get());
-            }
-            template<typename Value, typename = enable_if_t<std::is_copy_constructible<Value>::value>>
-            operator Value()
-            {
-                return Object<Value>::from_python(m_value.get());
-            }
-        private:
-            ObjectPtr m_value;
-        };
-        class iterator : public std::iterator<std::forward_iterator_tag, ElementValue, ptrdiff_t, ElementValue*, ElementValue&>
-        {
-        public:
-            explicit iterator(PyObject* const dict): m_dict(dict)
-            {
-                m_pos = PyDict_Size(const_cast<PyObject*>(dict));
-            }
-            
-            iterator(PyObject* const dict, Py_ssize_t pos): m_dict(dict), m_pos(pos)
-            {
+                CPYTHON_VERIFY(dict != nullptr, "Provided dictionary == null");
                 PyObject *key, *value;
                 PyDict_Next(const_cast<PyObject *>(m_dict), &m_pos, &key, &value);
-                m_value = ObjectPtr(value, &Deleter::Borrow);
+                m_value = std::make_pair(ObjectPtr(key, &Deleter::Borrow), ObjectPtr(value, &Deleter::Borrow));
             }
             
             iterator& operator++()
             {
                 PyObject *key, *value;
                 PyDict_Next(const_cast<PyObject *>(m_dict), &m_pos, &key, &value);
-                m_value = ObjectPtr(value, &Deleter::Borrow);
+                m_count++;
+                m_value = std::make_pair(ObjectPtr(key, &Deleter::Borrow), ObjectPtr(value, &Deleter::Borrow));
                 return *this;
             }
             
-            bool operator==(const iterator& other) const{return m_pos == other.m_pos;}
-            bool operator!=(const iterator& other) const{return m_pos != other.m_pos;}
+            bool operator==(const iterator& other) const{return m_count == other.m_count;}
+            bool operator!=(const iterator& other) const{return m_count != other.m_count;}
             reference operator*() {return m_value;}
             pointer operator->() {return &m_value;}
     
         private:
             PyObject* const m_dict;
             Py_ssize_t m_pos;
-            ElementValue m_value;
+            Py_ssize_t m_count;
+            KeyValuePair m_value;
         };
     
-        iterator begin(){return iterator(m_dict.get(), 0);}
-        iterator end(){return iterator(m_dict.get());}
+        iterator begin(){return iterator(m_dict.get());}
+        iterator end(){return iterator(m_dict.get(), end_pos{});}
     
     private:
         ObjectPtr m_dict;

@@ -378,6 +378,28 @@ namespace sweetPyTest {
         dict.add(tuple_as_key, user_type_val);
         ASSERT_EQ(user_type_val, dict.get<TestSubjectA>(tuple_as_key));
         dict.clear();
+    
+        dict.add(1000, TestSubjectA(6));
+        dict.add("A", "B");
+        int idx = 0;
+        for(sweetPy::Dictionary::KeyValuePair& kvp : dict)
+        {
+            if(idx == 0)
+            {
+                ASSERT_EQ(1000, kvp.first.get<int>());
+                ASSERT_EQ(TestSubjectA(6), kvp.second.get<const TestSubjectA&>());
+                idx++;
+            }
+            else if(idx == 1)
+            {
+                //we want to force the usage of user type conversion operator
+                // so we cannot use direct initialization, so we force implicit.
+                std::string key = kvp.first;
+                std::string value = kvp.second;
+                ASSERT_EQ("A", key);
+                ASSERT_EQ("B", value);
+            }
+        }
     }
  
      TEST(CPythonClassTest, CPythonObjectCheckTupleType)
