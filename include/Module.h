@@ -367,9 +367,9 @@ namespace sweetPy {
             std::vector<PyTypeObject*> types;
             for(auto& elem : moduleDict)
             {
-                auto object = elem.get<PyObject*>();
-                if(object->ob_type->ob_base.ob_size == MetaClass::get_check_sum())
-                    types.emplace_back(reinterpret_cast<PyTypeObject*>(object));
+                auto value = elem.second.get<PyObject*>();
+                if(value->ob_type->ob_base.ob_size == MetaClass::get_check_sum())
+                    types.emplace_back(reinterpret_cast<PyTypeObject*>(value));
             }
     
             auto contextCapsule = moduleDict.get<ObjectPtr, const char*>("context");
