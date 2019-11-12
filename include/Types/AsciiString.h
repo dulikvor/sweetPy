@@ -24,6 +24,8 @@ public:
     AsciiString& operator=(const sweetPy::AsciiString &rhs) {m_str = rhs.m_str; return *this;}
     AsciiString(sweetPy::AsciiString &&obj):m_str(std::move(obj.m_str)){}
     AsciiString& operator=(sweetPy::AsciiString &&rhs) {m_str = std::move(rhs.m_str); return *this;}
+    bool operator==(const AsciiString& rhs){ return m_str == rhs.m_str; }
+    bool operator!=(const AsciiString& rhs){ return m_str != rhs.m_str; }
     
     const std::string& get_str() const { return m_str; }
     operator const std::string&() const {return m_str;}

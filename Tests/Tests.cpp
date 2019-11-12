@@ -1071,7 +1071,8 @@ namespace sweetPyTest {
                                      "bool_val = True\n"
                                      "str_val = 'literal string seems to work'\n"
                                      "tuple_val = (7, 3.213123, True, 'also tuple works')\n"
-                                     "list_val = [7, 3.213123, True, 'also tuple works']\n";
+                                     "list_val = [7, 3.213123, True, 'also list works']\n"
+                                     "dict_val = {7: 3.213123, True: 'also dictionary works', 'to_tuple': tuple_val, 'to_list': list_val}\n";
          PyRun_SimpleString(testingScript);
          auto contextSend = sweetPy::SweetPickleFactory::instance().create_context(sweetPy::SerializeType::FlatBuffers);
          auto sweetPickleSend = sweetPy::SweetPickleFactory::instance().create(sweetPy::SerializeType::FlatBuffers);
@@ -1092,6 +1093,12 @@ namespace sweetPyTest {
          list.add_element(true);
          list.add_element("A");
          sweetPickleSend->write(*contextSend, list);
+         sweetPy::Dictionary dictionary;
+         dictionary.add(5, 5.5);
+         dictionary.add(true, "A");
+         dictionary.add("B", tuple);
+         dictionary.add("C", list);
+         sweetPickleSend->write(*contextSend, dictionary);
          sweetPickleSend->write(*contextSend, sweetPy::ObjectPtr(PythonEmbedder::get_attribute<PyObject*>("int_val"),
                                                                      &sweetPy::Deleter::Borrow));
          sweetPickleSend->write(*contextSend, sweetPy::ObjectPtr(PythonEmbedder::get_attribute<PyObject*>("double_val"),
@@ -1104,7 +1111,9 @@ namespace sweetPyTest {
                                                                   &sweetPy::Deleter::Borrow));
          sweetPickleSend->write(*contextSend, sweetPy::ObjectPtr(PythonEmbedder::get_attribute<PyObject*>("list_val"),
                                                                   &sweetPy::Deleter::Borrow));
-     
+         sweetPickleSend->write(*contextSend, sweetPy::ObjectPtr(PythonEmbedder::get_attribute<PyObject*>("dict_val"),
+                                                                 &sweetPy::Deleter::Borrow));
+    
          sweetPy::SerializeContext::String buffer = contextSend->finish(false);
      
          auto contextReceive = sweetPy::SweetPickleFactory::instance().create_context(sweetPy::SerializeType::FlatBuffers);
@@ -1125,7 +1134,7 @@ namespace sweetPyTest {
          sweetPickleReceive->read(valBool);
          ASSERT_EQ(valBool, true);
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_String);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_CTypeString);
          std::string valStr;
          sweetPickleReceive->read(valStr);
          ASSERT_EQ(valStr, "its working");
@@ -1144,7 +1153,12 @@ namespace sweetPyTest {
          sweetPy::List valList;
          sweetPickleReceive->read(valList);
          ASSERT_EQ(valList, list);
-     
+    
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Dictionary);
+         sweetPy::Dictionary valDictionary;
+         sweetPickleReceive->read(valDictionary);
+         ASSERT_EQ(valDictionary, dictionary);
+         
          ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Int);
          int valPyInt = 0;
          sweetPickleReceive->read(valPyInt);
@@ -1160,7 +1174,7 @@ namespace sweetPyTest {
          sweetPickleReceive->read(valPyBool);
          ASSERT_EQ(valPyBool, true);
      
-         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_String);
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_CTypeString);
          std::string valPyStr;
          sweetPickleReceive->read(valPyStr);
          ASSERT_EQ(valPyStr, "literal string seems to work");
@@ -1174,6 +1188,11 @@ namespace sweetPyTest {
          sweetPy::List valPyList;
          sweetPickleReceive->read(valPyList);
          ASSERT_EQ(valPyList, PythonEmbedder::get_attribute<sweetPy::List>("list_val"));
+    
+         ASSERT_EQ(sweetPickleReceive->get_type(), sweetPy::serialize::all_types::all_types_Dictionary);
+         sweetPy::Dictionary valPyDictionary;
+         sweetPickleReceive->read(valPyDictionary);
+         ASSERT_EQ(valPyDictionary, PythonEmbedder::get_attribute<sweetPy::Dictionary>("dict_val"));
      }
 }
 

@@ -8,9 +8,12 @@
 #include <functional>
 #include "../Core/Deleter.h"
 #include "../Detail/CPythonObject.h"
+#include "../Types/ObjectPtr.h"
 #include "../Types/Container.h"
 #include "../Types/Tuple.h"
 #include "../Types/List.h"
+#include "../Types/Dictionary.h"
+#include "../Types/AsciiString.h"
 #include "flatbuffers/flatbuffers.h"
 #include "Types_generated.h"
 #include "SerializeTypes.h"
@@ -30,6 +33,7 @@ namespace sweetPy
         virtual void write(SerializeContext& context, bool value) const = 0;
         virtual void write(SerializeContext& context, const Tuple& value) const = 0;
         virtual void write(SerializeContext& context, const List& value) const = 0;
+        virtual void write(SerializeContext& context, const Dictionary& value) const = 0;
         virtual void start_read(SerializeContext& context, const SerializeContext::String& buffer) = 0;
         virtual void start_read(SerializeContext& context, char* buffer, std::size_t size) = 0;
         virtual void read(int& value) = 0;
@@ -38,6 +42,7 @@ namespace sweetPy
         virtual void read(std::string& value) = 0;
         virtual void read(Tuple& value) = 0;
         virtual void read(List& value) = 0;
+        virtual void read(Dictionary& value) = 0;
         virtual serialize::all_types get_type() const = 0;
     };
     
@@ -122,7 +127,12 @@ namespace sweetPy
             throw core::Exception(__CORE_SOURCE, "Unsupported method");
         }
     
-        serialize::all_types get_type() override
+        void read(Dictionary& value) override
+        {
+            throw core::Exception(__CORE_SOURCE, "Unsupported method");
+        }
+    
+        serialize::all_types get_type() const override
         {
             throw core::Exception(__CORE_SOURCE, "Unsupported method");
         }
@@ -141,6 +151,7 @@ namespace sweetPy
         void write(SerializeContext& context, bool value) const override;
         void write(SerializeContext& context, const Tuple& value) const override;
         void write(SerializeContext& context, const List& value) const override;
+        void write(SerializeContext& context, const Dictionary& value) const override;
         void start_read(SerializeContext& context, const SerializeContext::String& buffer) override;
         void start_read(SerializeContext& context, char* buffer, std::size_t size) override;
         void read(int& value) override;
@@ -149,11 +160,18 @@ namespace sweetPy
         void read(std::string& value) override;
         void read(Tuple& value) override;
         void read(List& value) override;
+        void read(Dictionary& value) override;
         serialize::all_types get_type() const override;
         
     private:
         flatbuffers::Offset<serialize::Container> write(SerializeContext& context, const _Container& value) const;
-        void read(_Container& value);
+        typedef std::pair<flatbuffers::Offset<void>, serialize::all_types> DictionaryElementOffset;
+        DictionaryElementOffset write(SerializeContext& context, const Detail::ElementValue& value) const;
+        typedef flatbuffers::Vector<flatbuffers::Offset<serialize::ContainerParam>> ContainerParams;
+        void read(const ContainerParams& params, _Container& value);
+        ObjectPtr read_dictionary_key(const serialize::DictionaryPair& pair);
+        ObjectPtr read_dictionary_value(const serialize::DictionaryPair& pair);
+        static serialize::integral_types all_to_integral(const serialize::all_types allTypes);
         
     private:
         typedef ConcreteSerializeContext<SerializeType::FlatBuffers> _Context;
@@ -180,9 +198,8 @@ namespace sweetPy
     {
         auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
         flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
-        auto strOffset = builder.CreateString(value);
-        auto offset = serialize::CreateString(builder, strOffset);
-        flatContext.add_offset(serialize::all_types::all_types_String, offset.Union());
+        auto offset = serialize::CreateCTypeStringDirect(builder, value);
+        flatContext.add_offset(serialize::all_types::all_types_CTypeString, offset.Union());
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, const std::string& value) const
@@ -222,6 +239,96 @@ namespace sweetPy
         flatContext.add_offset(serialize::all_types::all_types_List, offset.Union());
     }
     
+    
+    SweetPickleImpl<SerializeType::FlatBuffers>::DictionaryElementOffset
+        SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context,
+                const Detail::ElementValue& value) const
+    {
+        typedef SweetPickleImpl<SerializeType::FlatBuffers>::DictionaryElementOffset ElementOffset;
+        auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
+        flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
+        PyObject* object = value.get<PyObject*>();
+        
+        if(PyLong_CheckExact(object) ||
+                ClazzObject<ReferenceObject<int>>::is_ref(object) ||
+                ClazzObject<ReferenceObject<const int>>::is_ref(object))
+        {
+            auto offset = serialize::CreateInt(builder, value.get<int>());
+            return ElementOffset(offset.Union(), serialize::all_types::all_types_Int);
+        }
+        else if(PyFloat_CheckExact(object) ||
+            ClazzObject<ReferenceObject<double>>::is_ref(object) ||
+            ClazzObject<ReferenceObject<const double>>::is_ref(object))
+        {
+            auto offset = serialize::CreateDouble(builder, value.get<double>());
+            return ElementOffset(offset.Union(), serialize::all_types::all_types_Double);
+        }
+        else if(PyBool_Check(object))
+        {
+            auto offset = serialize::CreateBool(builder, value.get<bool>());
+            return ElementOffset(offset.Union(), serialize::all_types::all_types_Bool);
+        }
+        else if(PyBytes_CheckExact(object) ||
+                ClazzObject<ReferenceObject<std::string>>::is_ref(object) ||
+                ClazzObject<ReferenceObject<const std::string>>::is_ref(object))
+        {
+            auto offset = serialize::CreateStringDirect(builder, value.get<std::string>().c_str());
+            return ElementOffset(offset.Union(), serialize::all_types::all_types_String);
+        }
+        else if(PyUnicode_CheckExact(object))
+        {
+            auto offset = serialize::CreateCTypeStringDirect(builder, value.get<std::string>().c_str());
+            return ElementOffset(offset.Union(), serialize::all_types::all_types_CTypeString);
+        }
+        else if(ClazzObject<ReferenceObject<AsciiString>>::is_ref(object) ||
+                ClazzObject<ReferenceObject<const AsciiString>>::is_ref(object))
+        {
+            auto offset = serialize::CreateCTypeStringDirect(builder, value.get<AsciiString>().get_str().c_str());
+            return ElementOffset(offset.Union(), serialize::all_types::all_types_CTypeString);
+        }
+        else if(PyList_CheckExact(object) ||
+                ClazzObject<ReferenceObject<List>>::is_ref(object) ||
+                ClazzObject<ReferenceObject<const List>>::is_ref(object))
+        {
+            auto containerOffset = write(context, static_cast<const _Container&>(value.get<List>()));
+            auto offset = serialize::CreateList(builder, containerOffset);
+            return ElementOffset(offset.Union(), serialize::all_types::all_types_List);
+        }
+        else if(PyTuple_CheckExact(object) ||
+                ClazzObject<ReferenceObject<Tuple>>::is_ref(object) ||
+                ClazzObject<ReferenceObject<const Tuple>>::is_ref(object))
+        {
+            auto containerOffset = write(context, static_cast<const _Container&>(value.get<Tuple>()));
+            auto offset = serialize::CreateTuple(builder, containerOffset);
+            return ElementOffset(offset.Union(), serialize::all_types::all_types_Tuple);
+        }
+        else
+            throw core::Exception(__CORE_SOURCE, "Non supported types");
+    }
+    
+    void SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, const Dictionary& value) const
+    {
+        auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
+        flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
+        std::vector<flatbuffers::Offset<serialize::DictionaryPair>> params;
+        typedef SweetPickleImpl<SerializeType::FlatBuffers>::DictionaryElementOffset ElementOffset;
+        
+        auto storeElement = [this, &context, &params](Dictionary::const_iterator::reference kvp){
+            auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
+            flatbuffers::FlatBufferBuilder& builder = flatContext.get_builder();
+            
+            ElementOffset keyOffset = write(context, kvp.first);
+            ElementOffset valueOffset = write(context, kvp.second);
+            auto pairOffset = serialize::CreateDictionaryPair(builder, all_to_integral(keyOffset.second),
+                    keyOffset.first, valueOffset.second, valueOffset.first);
+            params.emplace_back(pairOffset);
+        };
+        std::for_each(value.begin(), value.end(), storeElement);
+        auto vecOffset = builder.CreateVector(params);
+        auto offset = serialize::CreateDictionary(builder, vecOffset);
+        flatContext.add_offset(serialize::all_types::all_types_Dictionary, offset.Union());
+    }
+    
     flatbuffers::Offset<serialize::Container> SweetPickleImpl<SerializeType::FlatBuffers>::write(SerializeContext& context, const _Container& value) const
     {
         auto& flatContext = static_cast<ConcreteSerializeContext<SerializeType::FlatBuffers>&>(context);
@@ -238,8 +345,8 @@ namespace sweetPy
             {
                 const auto& typedParam = static_cast<const core::TypedParam<char*>&>(param);
                 auto strOffset = builder.CreateString(typedParam.Get<char*>());
-                auto offset = serialize::CreateString(builder, strOffset);
-                params.emplace_back(serialize::CreateContainerParam(builder, serialize::all_types::all_types_String, offset.Union()));
+                auto offset = serialize::CreateCTypeString(builder, strOffset);
+                params.emplace_back(serialize::CreateContainerParam(builder, serialize::all_types::all_types_CTypeString, offset.Union()));
             }
             else if(param.IsString())
             {
@@ -276,7 +383,7 @@ namespace sweetPy
         }
         else if(object->ob_type == &PyUnicode_Type)
         {
-            write(context, Object<std::string>::from_python(object.get()));
+            write(context, Object<AsciiString>::from_python(object.get()).get_str().c_str());
         }
         else if(object->ob_type == &PyFloat_Type)
         {
@@ -297,6 +404,10 @@ namespace sweetPy
         else if(object->ob_type == &PyList_Type)
         {
             write(context, Object<sweetPy::List>::from_python(object.get()));
+        }
+        else if(object->ob_type == &PyDict_Type)
+        {
+            write(context, Object<sweetPy::Dictionary>::from_python(object.get()));
         }
         else
             throw core::Exception(__CORE_SOURCE, "Non supported type requested - %d", object->ob_type);
@@ -338,28 +449,97 @@ namespace sweetPy
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::read(std::string& value)
     {
-        value = (*m_it)->get<serialize::String>().value()->str();
+        if((*m_it)->get_type() == serialize::all_types_CTypeString)
+            value = (*m_it)->get<serialize::CTypeString>().value()->str();
+        else
+            value = (*m_it)->get<serialize::String>().value()->str();
         ++(*m_it);
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::read(Tuple& value)
     {
-        read(static_cast<_Container&>(value));
+        auto& offsets = *(*m_it)->get<serialize::Container>().params();
+        read(offsets, static_cast<_Container&>(value));
         ++(*m_it);
     }
     
     void SweetPickleImpl<SerializeType::FlatBuffers>::read(List& value)
     {
-        read(static_cast<_Container&>(value));
+        auto& offsets = *(*m_it)->get<serialize::Container>().params();
+        read(offsets, static_cast<_Container&>(value));
         ++(*m_it);
     }
     
-    void SweetPickleImpl<SerializeType::FlatBuffers>::read(_Container& value)
+    void SweetPickleImpl<SerializeType::FlatBuffers>::read(Dictionary& value)
     {
-        auto& offsets = *(*m_it)->get<serialize::Container>().params();
-        for(int idx = offsets.size() - 1; idx >= 0; idx--)
+        auto& offsets = *(*m_it)->get<serialize::Dictionary>().params();
+        for(const serialize::DictionaryPair* kvp: offsets)
         {
-           auto offset = offsets[idx];
+            ObjectPtr keyObject = read_dictionary_key(*kvp);
+            ObjectPtr valueObject = read_dictionary_value(*kvp);
+            value.add(keyObject, valueObject);
+        }
+        ++(*m_it);
+    }
+    
+    ObjectPtr SweetPickleImpl<SerializeType::FlatBuffers>::read_dictionary_key(const serialize::DictionaryPair& pair)
+    {
+        if(pair.key_type() == serialize::integral_types::integral_types_Bool)
+            return ObjectPtr(Object<bool>::to_python(pair.key_as_Bool()->value()), &Deleter::Owner);
+        else if(pair.key_type() == serialize::integral_types::integral_types_Short ||
+                pair.key_type() == serialize::integral_types::integral_types_Int)
+            return ObjectPtr(Object<int>::to_python(pair.key_as_Int()->value()), &Deleter::Owner);
+        else if(pair.key_type() == serialize::integral_types::integral_types_Double)
+            return ObjectPtr(Object<double>::to_python(pair.key_as_Double()->value()), &Deleter::Owner);
+        else if(pair.key_type() == serialize::integral_types::integral_types_CTypeString)
+            return ObjectPtr(Object<AsciiString>::to_python(AsciiString(
+                    pair.key_as_CTypeString()->value()->str())), &Deleter::Owner);
+        else if(pair.key_type() == serialize::integral_types::integral_types_String)
+            return ObjectPtr(Object<std::string>::to_python(std::string(
+                    pair.key_as_String()->value()->str())), &Deleter::Owner);
+        else
+            throw core::Exception(__CORE_SOURCE, "Non supported type was provided - %d", pair.key_type());
+    }
+    
+    ObjectPtr SweetPickleImpl<SerializeType::FlatBuffers>::read_dictionary_value(const serialize::DictionaryPair& pair)
+    {
+        if(pair.value_type() == serialize::all_types::all_types_Bool)
+            return ObjectPtr(Object<bool>::to_python(pair.value_as_Bool()->value()), &Deleter::Owner);
+        else if(pair.value_type() == serialize::all_types::all_types_Short ||
+                pair.value_type() == serialize::all_types::all_types_Int)
+            return ObjectPtr(Object<int>::to_python(pair.value_as_Int()->value()), &Deleter::Owner);
+        else if(pair.value_type() == serialize::all_types::all_types_Double)
+            return ObjectPtr(Object<double>::to_python(pair.value_as_Double()->value()), &Deleter::Owner);
+        else if(pair.value_type() == serialize::all_types::all_types_CTypeString)
+            return ObjectPtr(Object<AsciiString>::to_python(AsciiString(
+                    pair.value_as_CTypeString()->value()->str())), &Deleter::Owner);
+        else if(pair.value_type() == serialize::all_types::all_types_String)
+            return ObjectPtr(Object<std::string>::to_python(std::string(
+                    pair.value_as_String()->value()->str())), &Deleter::Owner);
+        else if(pair.value_type() == serialize::all_types::all_types_List)
+        {
+            List list;
+            auto offsets = pair.value_as_List()->value()->params();
+            read(*offsets, static_cast<_Container&>(list));
+            return ObjectPtr(Object<List>::to_python(list), &Deleter::Owner);
+        }
+        else if(pair.value_type() == serialize::all_types::all_types_Tuple)
+        {
+            Tuple tuple;
+            auto offsets = pair.value_as_Tuple()->value()->params();
+            read(*offsets, static_cast<_Container&>(tuple));
+            return ObjectPtr(Object<Tuple>::to_python(tuple), &Deleter::Owner);
+        }
+        else
+            throw core::Exception(__CORE_SOURCE, "Non supported type was provided - %d", pair.value_type());
+            
+    }
+    
+    void SweetPickleImpl<SerializeType::FlatBuffers>::read(const ContainerParams& params, _Container& value)
+    {
+        for(int idx = params.size() - 1; idx >= 0; idx--)
+        {
+           auto offset = params[idx];
             if(offset->param_type() == serialize::all_types::all_types_Bool)
                 value.add_element(offset->param_as_Bool()->value());
             else if(offset->param_type() == serialize::all_types::all_types_Double)
@@ -370,6 +550,32 @@ namespace sweetPy
                 value.add_element(offset->param_as_Int()->value());
             else if(offset->param_type() == serialize::all_types::all_types_String)
                 value.add_element(offset->param_as_String()->value()->str());
+            else if(offset->param_type() == serialize::all_types::all_types_CTypeString)
+                value.add_element(offset->param_as_CTypeString()->value()->str().c_str());
+            else
+                throw core::Exception(__CORE_SOURCE, "Non supported type was provided - %d", offset->param_type());
+        }
+    }
+    
+    serialize::integral_types
+    SweetPickleImpl<SerializeType::FlatBuffers>::all_to_integral(const serialize::all_types allTypes)
+    {
+        switch(allTypes)
+        {
+            case serialize::all_types::all_types_Int:
+                return serialize::integral_types::integral_types_Int;
+            case serialize::all_types::all_types_Short:
+                return serialize::integral_types::integral_types_Short;
+            case serialize::all_types::all_types_Double:
+                return serialize::integral_types::integral_types_Double;
+            case serialize::all_types::all_types_Bool:
+                return serialize::integral_types::integral_types_Bool;
+            case serialize::all_types::all_types_String:
+                return serialize::integral_types::integral_types_String;
+            case serialize::all_types::all_types_CTypeString:
+                return serialize::integral_types::integral_types_CTypeString;
+            default:
+                throw core::Exception(__CORE_SOURCE, "No conversion between all_types -{%d} to integral_types", allTypes);
         }
     }
     

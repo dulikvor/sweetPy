@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Python.h>
 #include <unordered_map>
 #include <type_traits>
@@ -7,6 +9,9 @@
 #include "../Core/Assert.h"
 #include "../Core/Exception.h"
 #include "../Core/Traits.h"
+#include "AsciiString.h"
+#include "List.h"
+#include "Tuple.h"
 
 namespace sweetPy{
     class Dictionary
@@ -48,6 +53,76 @@ namespace sweetPy{
             m_dict.reset(PyDict_Copy(rhs.m_dict.get()));
             CPYTHON_VERIFY_EXC(m_dict.get());
             return *this;
+        }
+        
+        bool operator==(const Dictionary& rhs) const
+        {
+            bool isEqual = true;
+            for(auto& kvp : rhs)
+            {
+                if(!isEqual)
+                    return isEqual;
+                auto key = kvp.first.get<PyObject*>();
+                if(PyDict_Contains(m_dict.get(), key) == false)
+                    return false;
+                auto value = get<PyObject*>(key);
+                auto rhsValue = kvp.second.get<PyObject*>();
+                if(value->ob_type != rhsValue->ob_type)
+                    return false;
+                
+    
+                if(PyLong_CheckExact(value) ||
+                   ClazzObject<ReferenceObject<int>>::is_ref(value) ||
+                   ClazzObject<ReferenceObject<const int>>::is_ref(value))
+                {
+                    isEqual =  Object<int>::from_python(value) == Object<int>::from_python(rhsValue);
+                }
+                else if(PyFloat_CheckExact(value) ||
+                        ClazzObject<ReferenceObject<double>>::is_ref(value) ||
+                        ClazzObject<ReferenceObject<const double>>::is_ref(value))
+                {
+                    isEqual = Object<double>::from_python(value) == Object<double>::from_python(rhsValue);
+                }
+                else if(PyBool_Check(value))
+                {
+                    isEqual = Object<bool>::from_python(value) == Object<bool>::from_python(rhsValue);
+                }
+                else if(PyBytes_CheckExact(value) ||
+                        ClazzObject<ReferenceObject<std::string>>::is_ref(value) ||
+                        ClazzObject<ReferenceObject<const std::string>>::is_ref(value))
+                {
+                    isEqual = Object<std::string>::from_python(value) == Object<std::string>::from_python(rhsValue);
+                }
+                else if(PyUnicode_CheckExact(value))
+                {
+                    isEqual = Object<std::string>::from_python(value) == Object<std::string>::from_python(rhsValue);
+                }
+                else if(ClazzObject<ReferenceObject<AsciiString>>::is_ref(value) ||
+                        ClazzObject<ReferenceObject<const AsciiString>>::is_ref(value))
+                {
+                    isEqual = Object<AsciiString>::from_python(value) == Object<AsciiString>::from_python(rhsValue);
+                }
+                else if(PyList_CheckExact(value) ||
+                        ClazzObject<ReferenceObject<List>>::is_ref(value) ||
+                        ClazzObject<ReferenceObject<const List>>::is_ref(value))
+                {
+                    isEqual = Object<List>::from_python(value) == Object<List>::from_python(rhsValue);
+                }
+                else if(PyTuple_CheckExact(value) ||
+                        ClazzObject<ReferenceObject<Tuple>>::is_ref(value) ||
+                        ClazzObject<ReferenceObject<const Tuple>>::is_ref(value))
+                {
+                    isEqual = Object<Tuple>::from_python(value) == Object<Tuple>::from_python(rhsValue);
+                }
+                else
+                    return false;
+            }
+            return isEqual;
+        }
+        
+        bool operator!=(const Dictionary& rhs) const
+        {
+            return operator==(rhs) == false;
         }
         
         template<typename Key, typename Value, typename KeyNoRef = remove_reference_t<Key>, typename ValueNoRef = remove_reference_t<Value>>
@@ -201,8 +276,49 @@ namespace sweetPy{
             KeyValuePair m_value;
         };
     
+        class const_iterator : public std::iterator<std::forward_iterator_tag, KeyValuePair, ptrdiff_t, KeyValuePair* const, const KeyValuePair&>
+        {
+        public:
+            const_iterator(PyObject* const dict, end_pos): m_dict(dict), m_pos(0)
+            {
+                CPYTHON_VERIFY(dict != nullptr, "Provided dictionary == null");
+                m_count = PyDict_Size(dict);
+                CPYTHON_VERIFY_EXC(m_count > -1);
+            }
+        
+            const_iterator(PyObject* const dict): m_dict(dict), m_pos(0), m_count(0)
+            {
+                CPYTHON_VERIFY(dict != nullptr, "Provided dictionary == null");
+                PyObject *key, *value;
+                PyDict_Next(const_cast<PyObject *>(m_dict), &m_pos, &key, &value);
+                m_value = std::make_pair(ObjectPtr(key, &Deleter::Borrow), ObjectPtr(value, &Deleter::Borrow));
+            }
+        
+            const_iterator& operator++()
+            {
+                PyObject *key, *value;
+                PyDict_Next(const_cast<PyObject *>(m_dict), &m_pos, &key, &value);
+                m_count++;
+                m_value = std::make_pair(ObjectPtr(key, &Deleter::Borrow), ObjectPtr(value, &Deleter::Borrow));
+                return *this;
+            }
+        
+            bool operator==(const const_iterator& other) const{return m_count == other.m_count;}
+            bool operator!=(const const_iterator& other) const{return m_count != other.m_count;}
+            reference operator*() {return m_value;}
+            pointer operator->() {return &m_value;}
+    
+        private:
+            PyObject* const m_dict;
+            Py_ssize_t m_pos;
+            Py_ssize_t m_count;
+            KeyValuePair m_value;
+        };
+    
         iterator begin(){return iterator(m_dict.get());}
         iterator end(){return iterator(m_dict.get(), end_pos{});}
+        const_iterator begin() const{return const_iterator(m_dict.get());}
+        const_iterator end() const{return const_iterator(m_dict.get(), end_pos{});}
     
     private:
         ObjectPtr m_dict;

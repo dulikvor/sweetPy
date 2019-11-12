@@ -21,8 +21,10 @@ namespace sweetPy
         template<> struct TypeToTypeId<serialize::Bool> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_Bool>{};
         template<> struct TypeToTypeId<serialize::Double> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_Double>{};
         template<> struct TypeToTypeId<serialize::String> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_String>{};
+        template<> struct TypeToTypeId<serialize::CTypeString> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_CTypeString>{};
         template<> struct TypeToTypeId<serialize::Tuple> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_Tuple>{};
         template<> struct TypeToTypeId<serialize::List> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_List>{};
+        template<> struct TypeToTypeId<serialize::Dictionary> : std::integral_constant<serialize::all_types, serialize::all_types::all_types_Dictionary>{};
     }
     
     class SerializeContext

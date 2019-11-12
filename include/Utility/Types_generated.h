@@ -11,6 +11,8 @@ namespace serialize {
 
 struct String;
 
+struct CTypeString;
+
 struct Short;
 
 struct Int;
@@ -27,9 +29,9 @@ struct Tuple;
 
 struct List;
 
-struct DictParam;
+struct DictionaryPair;
 
-struct Dict;
+struct Dictionary;
 
 struct Object;
 
@@ -38,18 +40,20 @@ struct Objects;
 enum integral_types {
   integral_types_NONE = 0,
   integral_types_String = 1,
-  integral_types_Int = 2,
-  integral_types_Short = 3,
-  integral_types_Double = 4,
-  integral_types_Bool = 5,
+  integral_types_CTypeString = 2,
+  integral_types_Int = 3,
+  integral_types_Short = 4,
+  integral_types_Double = 5,
+  integral_types_Bool = 6,
   integral_types_MIN = integral_types_NONE,
   integral_types_MAX = integral_types_Bool
 };
 
-inline const integral_types (&EnumValuesintegral_types())[6] {
+inline const integral_types (&EnumValuesintegral_types())[7] {
   static const integral_types values[] = {
     integral_types_NONE,
     integral_types_String,
+    integral_types_CTypeString,
     integral_types_Int,
     integral_types_Short,
     integral_types_Double,
@@ -62,6 +66,7 @@ inline const char * const *EnumNamesintegral_types() {
   static const char * const names[] = {
     "NONE",
     "String",
+    "CTypeString",
     "Int",
     "Short",
     "Double",
@@ -82,6 +87,10 @@ template<typename T> struct integral_typesTraits {
 
 template<> struct integral_typesTraits<String> {
   static const integral_types enum_value = integral_types_String;
+};
+
+template<> struct integral_typesTraits<CTypeString> {
+  static const integral_types enum_value = integral_types_CTypeString;
 };
 
 template<> struct integral_typesTraits<Int> {
@@ -106,22 +115,24 @@ bool Verifyintegral_typesVector(flatbuffers::Verifier &verifier, const flatbuffe
 enum all_types {
   all_types_NONE = 0,
   all_types_String = 1,
-  all_types_Int = 2,
-  all_types_Short = 3,
-  all_types_Double = 4,
-  all_types_Bool = 5,
-  all_types_Container = 6,
-  all_types_Tuple = 7,
-  all_types_List = 8,
-  all_types_Dict = 9,
+  all_types_CTypeString = 2,
+  all_types_Int = 3,
+  all_types_Short = 4,
+  all_types_Double = 5,
+  all_types_Bool = 6,
+  all_types_Container = 7,
+  all_types_Tuple = 8,
+  all_types_List = 9,
+  all_types_Dictionary = 10,
   all_types_MIN = all_types_NONE,
-  all_types_MAX = all_types_Dict
+  all_types_MAX = all_types_Dictionary
 };
 
-inline const all_types (&EnumValuesall_types())[10] {
+inline const all_types (&EnumValuesall_types())[11] {
   static const all_types values[] = {
     all_types_NONE,
     all_types_String,
+    all_types_CTypeString,
     all_types_Int,
     all_types_Short,
     all_types_Double,
@@ -129,7 +140,7 @@ inline const all_types (&EnumValuesall_types())[10] {
     all_types_Container,
     all_types_Tuple,
     all_types_List,
-    all_types_Dict
+    all_types_Dictionary
   };
   return values;
 }
@@ -138,6 +149,7 @@ inline const char * const *EnumNamesall_types() {
   static const char * const names[] = {
     "NONE",
     "String",
+    "CTypeString",
     "Int",
     "Short",
     "Double",
@@ -145,7 +157,7 @@ inline const char * const *EnumNamesall_types() {
     "Container",
     "Tuple",
     "List",
-    "Dict",
+    "Dictionary",
     nullptr
   };
   return names;
@@ -162,6 +174,10 @@ template<typename T> struct all_typesTraits {
 
 template<> struct all_typesTraits<String> {
   static const all_types enum_value = all_types_String;
+};
+
+template<> struct all_typesTraits<CTypeString> {
+  static const all_types enum_value = all_types_CTypeString;
 };
 
 template<> struct all_typesTraits<Int> {
@@ -192,8 +208,8 @@ template<> struct all_typesTraits<List> {
   static const all_types enum_value = all_types_List;
 };
 
-template<> struct all_typesTraits<Dict> {
-  static const all_types enum_value = all_types_Dict;
+template<> struct all_typesTraits<Dictionary> {
+  static const all_types enum_value = all_types_Dictionary;
 };
 
 bool Verifyall_types(flatbuffers::Verifier &verifier, const void *obj, all_types type);
@@ -244,6 +260,55 @@ inline flatbuffers::Offset<String> CreateStringDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
     const char *value = nullptr) {
   return sweetPy::serialize::CreateString(
+      _fbb,
+      value ? _fbb.CreateString(value) : 0);
+}
+
+struct CTypeString FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_VALUE = 4
+  };
+  const flatbuffers::String *value() const {
+    return GetPointer<const flatbuffers::String *>(VT_VALUE);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_VALUE) &&
+           verifier.VerifyString(value()) &&
+           verifier.EndTable();
+  }
+};
+
+struct CTypeStringBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_value(flatbuffers::Offset<flatbuffers::String> value) {
+    fbb_.AddOffset(CTypeString::VT_VALUE, value);
+  }
+  explicit CTypeStringBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  CTypeStringBuilder &operator=(const CTypeStringBuilder &);
+  flatbuffers::Offset<CTypeString> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<CTypeString>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<CTypeString> CreateCTypeString(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<flatbuffers::String> value = 0) {
+  CTypeStringBuilder builder_(_fbb);
+  builder_.add_value(value);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<CTypeString> CreateCTypeStringDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    const char *value = nullptr) {
+  return sweetPy::serialize::CreateCTypeString(
       _fbb,
       value ? _fbb.CreateString(value) : 0);
 }
@@ -423,6 +488,9 @@ struct ContainerParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const String *param_as_String() const {
     return param_type() == all_types_String ? static_cast<const String *>(param()) : nullptr;
   }
+  const CTypeString *param_as_CTypeString() const {
+    return param_type() == all_types_CTypeString ? static_cast<const CTypeString *>(param()) : nullptr;
+  }
   const Int *param_as_Int() const {
     return param_type() == all_types_Int ? static_cast<const Int *>(param()) : nullptr;
   }
@@ -444,8 +512,8 @@ struct ContainerParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const List *param_as_List() const {
     return param_type() == all_types_List ? static_cast<const List *>(param()) : nullptr;
   }
-  const Dict *param_as_Dict() const {
-    return param_type() == all_types_Dict ? static_cast<const Dict *>(param()) : nullptr;
+  const Dictionary *param_as_Dictionary() const {
+    return param_type() == all_types_Dictionary ? static_cast<const Dictionary *>(param()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -458,6 +526,10 @@ struct ContainerParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 template<> inline const String *ContainerParam::param_as<String>() const {
   return param_as_String();
+}
+
+template<> inline const CTypeString *ContainerParam::param_as<CTypeString>() const {
+  return param_as_CTypeString();
 }
 
 template<> inline const Int *ContainerParam::param_as<Int>() const {
@@ -488,8 +560,8 @@ template<> inline const List *ContainerParam::param_as<List>() const {
   return param_as_List();
 }
 
-template<> inline const Dict *ContainerParam::param_as<Dict>() const {
-  return param_as_Dict();
+template<> inline const Dictionary *ContainerParam::param_as<Dictionary>() const {
+  return param_as_Dictionary();
 }
 
 struct ContainerParamBuilder {
@@ -655,7 +727,7 @@ inline flatbuffers::Offset<List> CreateList(
   return builder_.Finish();
 }
 
-struct DictParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct DictionaryPair FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_KEY_TYPE = 4,
     VT_KEY = 6,
@@ -671,6 +743,9 @@ struct DictParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   template<typename T> const T *key_as() const;
   const String *key_as_String() const {
     return key_type() == integral_types_String ? static_cast<const String *>(key()) : nullptr;
+  }
+  const CTypeString *key_as_CTypeString() const {
+    return key_type() == integral_types_CTypeString ? static_cast<const CTypeString *>(key()) : nullptr;
   }
   const Int *key_as_Int() const {
     return key_type() == integral_types_Int ? static_cast<const Int *>(key()) : nullptr;
@@ -694,6 +769,9 @@ struct DictParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const String *value_as_String() const {
     return value_type() == all_types_String ? static_cast<const String *>(value()) : nullptr;
   }
+  const CTypeString *value_as_CTypeString() const {
+    return value_type() == all_types_CTypeString ? static_cast<const CTypeString *>(value()) : nullptr;
+  }
   const Int *value_as_Int() const {
     return value_type() == all_types_Int ? static_cast<const Int *>(value()) : nullptr;
   }
@@ -715,8 +793,8 @@ struct DictParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const List *value_as_List() const {
     return value_type() == all_types_List ? static_cast<const List *>(value()) : nullptr;
   }
-  const Dict *value_as_Dict() const {
-    return value_type() == all_types_Dict ? static_cast<const Dict *>(value()) : nullptr;
+  const Dictionary *value_as_Dictionary() const {
+    return value_type() == all_types_Dictionary ? static_cast<const Dictionary *>(value()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -730,96 +808,104 @@ struct DictParam FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-template<> inline const String *DictParam::key_as<String>() const {
+template<> inline const String *DictionaryPair::key_as<String>() const {
   return key_as_String();
 }
 
-template<> inline const Int *DictParam::key_as<Int>() const {
+template<> inline const CTypeString *DictionaryPair::key_as<CTypeString>() const {
+  return key_as_CTypeString();
+}
+
+template<> inline const Int *DictionaryPair::key_as<Int>() const {
   return key_as_Int();
 }
 
-template<> inline const Short *DictParam::key_as<Short>() const {
+template<> inline const Short *DictionaryPair::key_as<Short>() const {
   return key_as_Short();
 }
 
-template<> inline const Double *DictParam::key_as<Double>() const {
+template<> inline const Double *DictionaryPair::key_as<Double>() const {
   return key_as_Double();
 }
 
-template<> inline const Bool *DictParam::key_as<Bool>() const {
+template<> inline const Bool *DictionaryPair::key_as<Bool>() const {
   return key_as_Bool();
 }
 
-template<> inline const String *DictParam::value_as<String>() const {
+template<> inline const String *DictionaryPair::value_as<String>() const {
   return value_as_String();
 }
 
-template<> inline const Int *DictParam::value_as<Int>() const {
+template<> inline const CTypeString *DictionaryPair::value_as<CTypeString>() const {
+  return value_as_CTypeString();
+}
+
+template<> inline const Int *DictionaryPair::value_as<Int>() const {
   return value_as_Int();
 }
 
-template<> inline const Short *DictParam::value_as<Short>() const {
+template<> inline const Short *DictionaryPair::value_as<Short>() const {
   return value_as_Short();
 }
 
-template<> inline const Double *DictParam::value_as<Double>() const {
+template<> inline const Double *DictionaryPair::value_as<Double>() const {
   return value_as_Double();
 }
 
-template<> inline const Bool *DictParam::value_as<Bool>() const {
+template<> inline const Bool *DictionaryPair::value_as<Bool>() const {
   return value_as_Bool();
 }
 
-template<> inline const Container *DictParam::value_as<Container>() const {
+template<> inline const Container *DictionaryPair::value_as<Container>() const {
   return value_as_Container();
 }
 
-template<> inline const Tuple *DictParam::value_as<Tuple>() const {
+template<> inline const Tuple *DictionaryPair::value_as<Tuple>() const {
   return value_as_Tuple();
 }
 
-template<> inline const List *DictParam::value_as<List>() const {
+template<> inline const List *DictionaryPair::value_as<List>() const {
   return value_as_List();
 }
 
-template<> inline const Dict *DictParam::value_as<Dict>() const {
-  return value_as_Dict();
+template<> inline const Dictionary *DictionaryPair::value_as<Dictionary>() const {
+  return value_as_Dictionary();
 }
 
-struct DictParamBuilder {
+struct DictionaryPairBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
   void add_key_type(integral_types key_type) {
-    fbb_.AddElement<uint8_t>(DictParam::VT_KEY_TYPE, static_cast<uint8_t>(key_type), 0);
+    fbb_.AddElement<uint8_t>(DictionaryPair::VT_KEY_TYPE, static_cast<uint8_t>(key_type), 0);
   }
   void add_key(flatbuffers::Offset<void> key) {
-    fbb_.AddOffset(DictParam::VT_KEY, key);
+    fbb_.AddOffset(DictionaryPair::VT_KEY, key);
   }
   void add_value_type(all_types value_type) {
-    fbb_.AddElement<uint8_t>(DictParam::VT_VALUE_TYPE, static_cast<uint8_t>(value_type), 0);
+    fbb_.AddElement<uint8_t>(DictionaryPair::VT_VALUE_TYPE, static_cast<uint8_t>(value_type), 0);
   }
   void add_value(flatbuffers::Offset<void> value) {
-    fbb_.AddOffset(DictParam::VT_VALUE, value);
+    fbb_.AddOffset(DictionaryPair::VT_VALUE, value);
   }
-  explicit DictParamBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit DictionaryPairBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DictParamBuilder &operator=(const DictParamBuilder &);
-  flatbuffers::Offset<DictParam> Finish() {
+  DictionaryPairBuilder &operator=(const DictionaryPairBuilder &);
+  flatbuffers::Offset<DictionaryPair> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<DictParam>(end);
+    auto o = flatbuffers::Offset<DictionaryPair>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<DictParam> CreateDictParam(
+inline flatbuffers::Offset<DictionaryPair> CreateDictionaryPair(
     flatbuffers::FlatBufferBuilder &_fbb,
     integral_types key_type = integral_types_NONE,
     flatbuffers::Offset<void> key = 0,
     all_types value_type = all_types_NONE,
     flatbuffers::Offset<void> value = 0) {
-  DictParamBuilder builder_(_fbb);
+  DictionaryPairBuilder builder_(_fbb);
   builder_.add_value(value);
   builder_.add_key(key);
   builder_.add_value_type(value_type);
@@ -827,12 +913,12 @@ inline flatbuffers::Offset<DictParam> CreateDictParam(
   return builder_.Finish();
 }
 
-struct Dict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+struct Dictionary FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum {
     VT_PARAMS = 4
   };
-  const flatbuffers::Vector<flatbuffers::Offset<DictParam>> *params() const {
-    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DictParam>> *>(VT_PARAMS);
+  const flatbuffers::Vector<flatbuffers::Offset<DictionaryPair>> *params() const {
+    return GetPointer<const flatbuffers::Vector<flatbuffers::Offset<DictionaryPair>> *>(VT_PARAMS);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -843,38 +929,38 @@ struct Dict FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   }
 };
 
-struct DictBuilder {
+struct DictionaryBuilder {
   flatbuffers::FlatBufferBuilder &fbb_;
   flatbuffers::uoffset_t start_;
-  void add_params(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DictParam>>> params) {
-    fbb_.AddOffset(Dict::VT_PARAMS, params);
+  void add_params(flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DictionaryPair>>> params) {
+    fbb_.AddOffset(Dictionary::VT_PARAMS, params);
   }
-  explicit DictBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+  explicit DictionaryBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
     start_ = fbb_.StartTable();
   }
-  DictBuilder &operator=(const DictBuilder &);
-  flatbuffers::Offset<Dict> Finish() {
+  DictionaryBuilder &operator=(const DictionaryBuilder &);
+  flatbuffers::Offset<Dictionary> Finish() {
     const auto end = fbb_.EndTable(start_);
-    auto o = flatbuffers::Offset<Dict>(end);
+    auto o = flatbuffers::Offset<Dictionary>(end);
     return o;
   }
 };
 
-inline flatbuffers::Offset<Dict> CreateDict(
+inline flatbuffers::Offset<Dictionary> CreateDictionary(
     flatbuffers::FlatBufferBuilder &_fbb,
-    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DictParam>>> params = 0) {
-  DictBuilder builder_(_fbb);
+    flatbuffers::Offset<flatbuffers::Vector<flatbuffers::Offset<DictionaryPair>>> params = 0) {
+  DictionaryBuilder builder_(_fbb);
   builder_.add_params(params);
   return builder_.Finish();
 }
 
-inline flatbuffers::Offset<Dict> CreateDictDirect(
+inline flatbuffers::Offset<Dictionary> CreateDictionaryDirect(
     flatbuffers::FlatBufferBuilder &_fbb,
-    const std::vector<flatbuffers::Offset<DictParam>> *params = nullptr) {
-  return sweetPy::serialize::CreateDict(
+    const std::vector<flatbuffers::Offset<DictionaryPair>> *params = nullptr) {
+  return sweetPy::serialize::CreateDictionary(
       _fbb,
-      params ? _fbb.CreateVector<flatbuffers::Offset<DictParam>>(*params) : 0);
+      params ? _fbb.CreateVector<flatbuffers::Offset<DictionaryPair>>(*params) : 0);
 }
 
 struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
@@ -891,6 +977,9 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   template<typename T> const T *object_as() const;
   const String *object_as_String() const {
     return object_type() == all_types_String ? static_cast<const String *>(object()) : nullptr;
+  }
+  const CTypeString *object_as_CTypeString() const {
+    return object_type() == all_types_CTypeString ? static_cast<const CTypeString *>(object()) : nullptr;
   }
   const Int *object_as_Int() const {
     return object_type() == all_types_Int ? static_cast<const Int *>(object()) : nullptr;
@@ -913,8 +1002,8 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const List *object_as_List() const {
     return object_type() == all_types_List ? static_cast<const List *>(object()) : nullptr;
   }
-  const Dict *object_as_Dict() const {
-    return object_type() == all_types_Dict ? static_cast<const Dict *>(object()) : nullptr;
+  const Dictionary *object_as_Dictionary() const {
+    return object_type() == all_types_Dictionary ? static_cast<const Dictionary *>(object()) : nullptr;
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
@@ -927,6 +1016,10 @@ struct Object FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
 
 template<> inline const String *Object::object_as<String>() const {
   return object_as_String();
+}
+
+template<> inline const CTypeString *Object::object_as<CTypeString>() const {
+  return object_as_CTypeString();
 }
 
 template<> inline const Int *Object::object_as<Int>() const {
@@ -957,8 +1050,8 @@ template<> inline const List *Object::object_as<List>() const {
   return object_as_List();
 }
 
-template<> inline const Dict *Object::object_as<Dict>() const {
-  return object_as_Dict();
+template<> inline const Dictionary *Object::object_as<Dictionary>() const {
+  return object_as_Dictionary();
 }
 
 struct ObjectBuilder {
@@ -1051,6 +1144,10 @@ inline bool Verifyintegral_types(flatbuffers::Verifier &verifier, const void *ob
       auto ptr = reinterpret_cast<const String *>(obj);
       return verifier.VerifyTable(ptr);
     }
+    case integral_types_CTypeString: {
+      auto ptr = reinterpret_cast<const CTypeString *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
     case integral_types_Int: {
       auto ptr = reinterpret_cast<const Int *>(obj);
       return verifier.VerifyTable(ptr);
@@ -1092,6 +1189,10 @@ inline bool Verifyall_types(flatbuffers::Verifier &verifier, const void *obj, al
       auto ptr = reinterpret_cast<const String *>(obj);
       return verifier.VerifyTable(ptr);
     }
+    case all_types_CTypeString: {
+      auto ptr = reinterpret_cast<const CTypeString *>(obj);
+      return verifier.VerifyTable(ptr);
+    }
     case all_types_Int: {
       auto ptr = reinterpret_cast<const Int *>(obj);
       return verifier.VerifyTable(ptr);
@@ -1120,8 +1221,8 @@ inline bool Verifyall_types(flatbuffers::Verifier &verifier, const void *obj, al
       auto ptr = reinterpret_cast<const List *>(obj);
       return verifier.VerifyTable(ptr);
     }
-    case all_types_Dict: {
-      auto ptr = reinterpret_cast<const Dict *>(obj);
+    case all_types_Dictionary: {
+      auto ptr = reinterpret_cast<const Dictionary *>(obj);
       return verifier.VerifyTable(ptr);
     }
     default: return false;
