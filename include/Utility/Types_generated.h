@@ -37,6 +37,10 @@ struct Object;
 
 struct Objects;
 
+struct CodeObject;
+
+struct Function;
+
 enum integral_types {
   integral_types_NONE = 0,
   integral_types_String = 1,
@@ -1133,6 +1137,319 @@ inline flatbuffers::Offset<Objects> CreateObjectsDirect(
   return sweetPy::serialize::CreateObjects(
       _fbb,
       objects ? _fbb.CreateVector<flatbuffers::Offset<Object>>(*objects) : 0);
+}
+
+struct CodeObject FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_ARGCOUNT = 4,
+    VT_KWONLYARGCOUNT = 6,
+    VT_NLOCALS = 8,
+    VT_STACKSIZE = 10,
+    VT_FLAGS = 12,
+    VT_FIRSTLINENO = 14,
+    VT_CODE = 16,
+    VT_CONSTS = 18,
+    VT_NAMES = 20,
+    VT_VARNAMES = 22,
+    VT_FREEVARS = 24,
+    VT_CELLVARS = 26
+  };
+  int32_t argCount() const {
+    return GetField<int32_t>(VT_ARGCOUNT, 0);
+  }
+  int32_t kwOnlyArgCount() const {
+    return GetField<int32_t>(VT_KWONLYARGCOUNT, 0);
+  }
+  int32_t nLocals() const {
+    return GetField<int32_t>(VT_NLOCALS, 0);
+  }
+  int32_t stackSize() const {
+    return GetField<int32_t>(VT_STACKSIZE, 0);
+  }
+  int32_t flags() const {
+    return GetField<int32_t>(VT_FLAGS, 0);
+  }
+  int32_t firstLineno() const {
+    return GetField<int32_t>(VT_FIRSTLINENO, 0);
+  }
+  const flatbuffers::String *code() const {
+    return GetPointer<const flatbuffers::String *>(VT_CODE);
+  }
+  const List *consts() const {
+    return GetPointer<const List *>(VT_CONSTS);
+  }
+  const List *names() const {
+    return GetPointer<const List *>(VT_NAMES);
+  }
+  const Tuple *varNames() const {
+    return GetPointer<const Tuple *>(VT_VARNAMES);
+  }
+  const Tuple *freeVars() const {
+    return GetPointer<const Tuple *>(VT_FREEVARS);
+  }
+  const Tuple *cellVars() const {
+    return GetPointer<const Tuple *>(VT_CELLVARS);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyField<int32_t>(verifier, VT_ARGCOUNT) &&
+           VerifyField<int32_t>(verifier, VT_KWONLYARGCOUNT) &&
+           VerifyField<int32_t>(verifier, VT_NLOCALS) &&
+           VerifyField<int32_t>(verifier, VT_STACKSIZE) &&
+           VerifyField<int32_t>(verifier, VT_FLAGS) &&
+           VerifyField<int32_t>(verifier, VT_FIRSTLINENO) &&
+           VerifyOffset(verifier, VT_CODE) &&
+           verifier.VerifyString(code()) &&
+           VerifyOffset(verifier, VT_CONSTS) &&
+           verifier.VerifyTable(consts()) &&
+           VerifyOffset(verifier, VT_NAMES) &&
+           verifier.VerifyTable(names()) &&
+           VerifyOffset(verifier, VT_VARNAMES) &&
+           verifier.VerifyTable(varNames()) &&
+           VerifyOffset(verifier, VT_FREEVARS) &&
+           verifier.VerifyTable(freeVars()) &&
+           VerifyOffset(verifier, VT_CELLVARS) &&
+           verifier.VerifyTable(cellVars()) &&
+           verifier.EndTable();
+  }
+};
+
+struct CodeObjectBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_argCount(int32_t argCount) {
+    fbb_.AddElement<int32_t>(CodeObject::VT_ARGCOUNT, argCount, 0);
+  }
+  void add_kwOnlyArgCount(int32_t kwOnlyArgCount) {
+    fbb_.AddElement<int32_t>(CodeObject::VT_KWONLYARGCOUNT, kwOnlyArgCount, 0);
+  }
+  void add_nLocals(int32_t nLocals) {
+    fbb_.AddElement<int32_t>(CodeObject::VT_NLOCALS, nLocals, 0);
+  }
+  void add_stackSize(int32_t stackSize) {
+    fbb_.AddElement<int32_t>(CodeObject::VT_STACKSIZE, stackSize, 0);
+  }
+  void add_flags(int32_t flags) {
+    fbb_.AddElement<int32_t>(CodeObject::VT_FLAGS, flags, 0);
+  }
+  void add_firstLineno(int32_t firstLineno) {
+    fbb_.AddElement<int32_t>(CodeObject::VT_FIRSTLINENO, firstLineno, 0);
+  }
+  void add_code(flatbuffers::Offset<flatbuffers::String> code) {
+    fbb_.AddOffset(CodeObject::VT_CODE, code);
+  }
+  void add_consts(flatbuffers::Offset<List> consts) {
+    fbb_.AddOffset(CodeObject::VT_CONSTS, consts);
+  }
+  void add_names(flatbuffers::Offset<List> names) {
+    fbb_.AddOffset(CodeObject::VT_NAMES, names);
+  }
+  void add_varNames(flatbuffers::Offset<Tuple> varNames) {
+    fbb_.AddOffset(CodeObject::VT_VARNAMES, varNames);
+  }
+  void add_freeVars(flatbuffers::Offset<Tuple> freeVars) {
+    fbb_.AddOffset(CodeObject::VT_FREEVARS, freeVars);
+  }
+  void add_cellVars(flatbuffers::Offset<Tuple> cellVars) {
+    fbb_.AddOffset(CodeObject::VT_CELLVARS, cellVars);
+  }
+  explicit CodeObjectBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  CodeObjectBuilder &operator=(const CodeObjectBuilder &);
+  flatbuffers::Offset<CodeObject> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<CodeObject>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<CodeObject> CreateCodeObject(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t argCount = 0,
+    int32_t kwOnlyArgCount = 0,
+    int32_t nLocals = 0,
+    int32_t stackSize = 0,
+    int32_t flags = 0,
+    int32_t firstLineno = 0,
+    flatbuffers::Offset<flatbuffers::String> code = 0,
+    flatbuffers::Offset<List> consts = 0,
+    flatbuffers::Offset<List> names = 0,
+    flatbuffers::Offset<Tuple> varNames = 0,
+    flatbuffers::Offset<Tuple> freeVars = 0,
+    flatbuffers::Offset<Tuple> cellVars = 0) {
+  CodeObjectBuilder builder_(_fbb);
+  builder_.add_cellVars(cellVars);
+  builder_.add_freeVars(freeVars);
+  builder_.add_varNames(varNames);
+  builder_.add_names(names);
+  builder_.add_consts(consts);
+  builder_.add_code(code);
+  builder_.add_firstLineno(firstLineno);
+  builder_.add_flags(flags);
+  builder_.add_stackSize(stackSize);
+  builder_.add_nLocals(nLocals);
+  builder_.add_kwOnlyArgCount(kwOnlyArgCount);
+  builder_.add_argCount(argCount);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<CodeObject> CreateCodeObjectDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    int32_t argCount = 0,
+    int32_t kwOnlyArgCount = 0,
+    int32_t nLocals = 0,
+    int32_t stackSize = 0,
+    int32_t flags = 0,
+    int32_t firstLineno = 0,
+    const char *code = nullptr,
+    flatbuffers::Offset<List> consts = 0,
+    flatbuffers::Offset<List> names = 0,
+    flatbuffers::Offset<Tuple> varNames = 0,
+    flatbuffers::Offset<Tuple> freeVars = 0,
+    flatbuffers::Offset<Tuple> cellVars = 0) {
+  return sweetPy::serialize::CreateCodeObject(
+      _fbb,
+      argCount,
+      kwOnlyArgCount,
+      nLocals,
+      stackSize,
+      flags,
+      firstLineno,
+      code ? _fbb.CreateString(code) : 0,
+      consts,
+      names,
+      varNames,
+      freeVars,
+      cellVars);
+}
+
+struct Function FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
+  enum {
+    VT_CODEOBJECT = 4,
+    VT_GLOBALS = 6,
+    VT_DEFAULTS = 8,
+    VT_KWDEFAULTS = 10,
+    VT_CLOSURE = 12,
+    VT_DOC = 14,
+    VT_NAME = 16
+  };
+  const CodeObject *codeObject() const {
+    return GetPointer<const CodeObject *>(VT_CODEOBJECT);
+  }
+  const Dictionary *globals() const {
+    return GetPointer<const Dictionary *>(VT_GLOBALS);
+  }
+  const Tuple *defaults() const {
+    return GetPointer<const Tuple *>(VT_DEFAULTS);
+  }
+  const Dictionary *kwdefaults() const {
+    return GetPointer<const Dictionary *>(VT_KWDEFAULTS);
+  }
+  const Tuple *closure() const {
+    return GetPointer<const Tuple *>(VT_CLOSURE);
+  }
+  const flatbuffers::String *doc() const {
+    return GetPointer<const flatbuffers::String *>(VT_DOC);
+  }
+  const flatbuffers::String *name() const {
+    return GetPointer<const flatbuffers::String *>(VT_NAME);
+  }
+  bool Verify(flatbuffers::Verifier &verifier) const {
+    return VerifyTableStart(verifier) &&
+           VerifyOffset(verifier, VT_CODEOBJECT) &&
+           verifier.VerifyTable(codeObject()) &&
+           VerifyOffset(verifier, VT_GLOBALS) &&
+           verifier.VerifyTable(globals()) &&
+           VerifyOffset(verifier, VT_DEFAULTS) &&
+           verifier.VerifyTable(defaults()) &&
+           VerifyOffset(verifier, VT_KWDEFAULTS) &&
+           verifier.VerifyTable(kwdefaults()) &&
+           VerifyOffset(verifier, VT_CLOSURE) &&
+           verifier.VerifyTable(closure()) &&
+           VerifyOffset(verifier, VT_DOC) &&
+           verifier.VerifyString(doc()) &&
+           VerifyOffset(verifier, VT_NAME) &&
+           verifier.VerifyString(name()) &&
+           verifier.EndTable();
+  }
+};
+
+struct FunctionBuilder {
+  flatbuffers::FlatBufferBuilder &fbb_;
+  flatbuffers::uoffset_t start_;
+  void add_codeObject(flatbuffers::Offset<CodeObject> codeObject) {
+    fbb_.AddOffset(Function::VT_CODEOBJECT, codeObject);
+  }
+  void add_globals(flatbuffers::Offset<Dictionary> globals) {
+    fbb_.AddOffset(Function::VT_GLOBALS, globals);
+  }
+  void add_defaults(flatbuffers::Offset<Tuple> defaults) {
+    fbb_.AddOffset(Function::VT_DEFAULTS, defaults);
+  }
+  void add_kwdefaults(flatbuffers::Offset<Dictionary> kwdefaults) {
+    fbb_.AddOffset(Function::VT_KWDEFAULTS, kwdefaults);
+  }
+  void add_closure(flatbuffers::Offset<Tuple> closure) {
+    fbb_.AddOffset(Function::VT_CLOSURE, closure);
+  }
+  void add_doc(flatbuffers::Offset<flatbuffers::String> doc) {
+    fbb_.AddOffset(Function::VT_DOC, doc);
+  }
+  void add_name(flatbuffers::Offset<flatbuffers::String> name) {
+    fbb_.AddOffset(Function::VT_NAME, name);
+  }
+  explicit FunctionBuilder(flatbuffers::FlatBufferBuilder &_fbb)
+        : fbb_(_fbb) {
+    start_ = fbb_.StartTable();
+  }
+  FunctionBuilder &operator=(const FunctionBuilder &);
+  flatbuffers::Offset<Function> Finish() {
+    const auto end = fbb_.EndTable(start_);
+    auto o = flatbuffers::Offset<Function>(end);
+    return o;
+  }
+};
+
+inline flatbuffers::Offset<Function> CreateFunction(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<CodeObject> codeObject = 0,
+    flatbuffers::Offset<Dictionary> globals = 0,
+    flatbuffers::Offset<Tuple> defaults = 0,
+    flatbuffers::Offset<Dictionary> kwdefaults = 0,
+    flatbuffers::Offset<Tuple> closure = 0,
+    flatbuffers::Offset<flatbuffers::String> doc = 0,
+    flatbuffers::Offset<flatbuffers::String> name = 0) {
+  FunctionBuilder builder_(_fbb);
+  builder_.add_name(name);
+  builder_.add_doc(doc);
+  builder_.add_closure(closure);
+  builder_.add_kwdefaults(kwdefaults);
+  builder_.add_defaults(defaults);
+  builder_.add_globals(globals);
+  builder_.add_codeObject(codeObject);
+  return builder_.Finish();
+}
+
+inline flatbuffers::Offset<Function> CreateFunctionDirect(
+    flatbuffers::FlatBufferBuilder &_fbb,
+    flatbuffers::Offset<CodeObject> codeObject = 0,
+    flatbuffers::Offset<Dictionary> globals = 0,
+    flatbuffers::Offset<Tuple> defaults = 0,
+    flatbuffers::Offset<Dictionary> kwdefaults = 0,
+    flatbuffers::Offset<Tuple> closure = 0,
+    const char *doc = nullptr,
+    const char *name = nullptr) {
+  return sweetPy::serialize::CreateFunction(
+      _fbb,
+      codeObject,
+      globals,
+      defaults,
+      kwdefaults,
+      closure,
+      doc ? _fbb.CreateString(doc) : 0,
+      name ? _fbb.CreateString(name) : 0);
 }
 
 inline bool Verifyintegral_types(flatbuffers::Verifier &verifier, const void *obj, integral_types type) {

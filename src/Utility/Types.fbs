@@ -74,4 +74,31 @@ table Objects
     objects:[Object];
 }
 
+table CodeObject
+{
+    argCount:int;
+    kwOnlyArgCount:int;
+    nLocals:int;
+    stackSize:int;
+    flags:int;
+    firstLineno:int;
+    code:string;
+    consts:List;
+    names:List;
+    varNames:Tuple;
+    freeVars:Tuple;
+    cellVars:Tuple;
+}
+
+table Function
+{
+    codeObject:CodeObject;
+    globals:Dictionary;
+    defaults:Tuple;
+    kwdefaults:Dictionary;
+    closure:Tuple;
+    doc:string;
+    name:string;
+}
+
 root_type Objects;
