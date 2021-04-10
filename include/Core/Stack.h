@@ -12,7 +12,7 @@ namespace sweetPy {
         {
             PyThreadState* ts = PyThreadState_Get();
             ObjectPtr object(*(ts->frame->f_valuestack + index), &Deleter::Borrow);
-            return std::move(object);
+            return object;
         }
     };
 }

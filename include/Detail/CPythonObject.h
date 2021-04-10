@@ -7,7 +7,7 @@
 #include <vector>
 #include <type_traits>
 #include "core/Source.h"
-#include "../Core/Exception.h"
+#include "../Core/SPException.h"
 #include "../Core/Traits.h"
 #include "../Core/Lock.h"
 #include "../Core/Assert.h"

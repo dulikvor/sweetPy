@@ -10,7 +10,7 @@
 #include <structmember.h>
 #include "Core/Traits.h"
 #include "Core/Lock.h"
-#include "Core/Exception.h"
+#include "Core/SPException.h"
 #include "Core/Assert.h"
 #include "Types/ObjectPtr.h"
 #include "Detail/MetaClass.h"

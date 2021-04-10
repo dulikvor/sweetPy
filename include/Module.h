@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include "Core/Deleter.h"
 #include "Core/Traits.h"
-#include "Core/Exception.h"
+#include "Core/SPException.h"
 #include "Core/PythonAssist.h"
 #include "Core/Utils.h"
 #include "Types/ObjectPtr.h"

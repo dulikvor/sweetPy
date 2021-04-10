@@ -3,7 +3,7 @@
 #include <Python.h>
 #include <string>
 #include "../Core/Assert.h"
-#include "../Core/Exception.h"
+#include "../Core/SPException.h"
 #include "../Detail/CPythonObject.h"
 #include "ObjectPtr.h"
 
@@ -28,8 +28,8 @@ public:
     bool operator!=(const AsciiString& rhs){ return m_str != rhs.m_str; }
     
     const std::string& get_str() const { return m_str; }
-    operator const std::string&() const {return m_str;}
-    operator std::string() const {return m_str;}
+    explicit operator const std::string&() const {return m_str;}
+    explicit operator std::string() const {return m_str;}
     PyObject* to_python() const
     {
         return PyUnicode_FromString(m_str.c_str());

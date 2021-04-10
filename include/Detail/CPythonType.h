@@ -105,8 +105,8 @@ namespace sweetPy {
         void reset_gc_head()
         {
             auto& gc = static_cast<CPythonGCHead&>(*this);
-            gc.m_gc.gc.gc_next = &m_nextStub;
-            gc.m_gc.gc.gc_prev = &m_prevStub;
+            gc.m_gc._gc_next = (uintptr_t)&m_nextStub;
+            gc.m_gc._gc_prev = (uintptr_t)&m_prevStub;
         }
 
     protected:

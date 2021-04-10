@@ -3,7 +3,7 @@ if (NOT FLAT_BUFFERS_FOUND)
     ExternalProject_Add(FLAT_BUFFERS
             DOWNLOAD_NAME       flatbuffers-release-1.8.0.tar.gz
             URL                 https://github.com/google/flatbuffers/archive/v1.10.0.tar.gz
-            CONFIGURE_COMMAND   cd <SOURCE_DIR> && cmake -G "Unix Makefiles" -DFLATBUFFERS_BUILD_FLATC=ON -DFLATBUFFERS_BUILD_FLATHASH=OFF -DCMAKE_INSTALL_INCLUDEDIR=<INSTALL_DIR>/include -DCMAKE_INSTALL_BINDIR=<INSTALL_DIR>/bin -DCMAKE_INSTALL_LIBDIR=<INSTALL_DIR>/lib -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            CONFIGURE_COMMAND   cd <SOURCE_DIR> && cmake -DCMAKE_CXX_FLAGS="-Wno-class-memaccess " -G "Unix Makefiles" -DFLATBUFFERS_BUILD_FLATC=ON -DFLATBUFFERS_BUILD_FLATHASH=OFF -DCMAKE_INSTALL_INCLUDEDIR=<INSTALL_DIR>/include -DCMAKE_INSTALL_BINDIR=<INSTALL_DIR>/bin -DCMAKE_INSTALL_LIBDIR=<INSTALL_DIR>/lib -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             BUILD_COMMAND       cd <SOURCE_DIR> && make
             INSTALL_COMMAND     cd <SOURCE_DIR> && make install
             TEST_COMMAND        ""

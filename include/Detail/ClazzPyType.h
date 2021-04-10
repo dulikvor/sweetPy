@@ -2,7 +2,7 @@
 
 #include <Python.h>
 #include <string>
-#include "../Core/Exception.h"
+#include "../Core/SPException.h"
 #include "../Core/Assert.h"
 #include "../Core/Utils.h"
 #include "MetaClass.h"

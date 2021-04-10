@@ -2,7 +2,7 @@
 
 #include <Python.h>
 #include <unordered_map>
-#include "../Core/Exception.h"
+#include "../Core/SPException.h"
 #include "CPythonType.h"
 
 namespace sweetPy{

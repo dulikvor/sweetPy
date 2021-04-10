@@ -3,7 +3,7 @@
 #include <Python.h>
 #include "core/Source.h"
 #include "../Types/ObjectPtr.h"
-#include "Exception.h"
+#include "SPException.h"
 #include "Deleter.h"
 
 #define CPYTHON_VERIFY(expression, reason) do{ if(!(expression)) throw CPythonException(PyExc_Exception, __CORE_SOURCE, reason); }while(0)

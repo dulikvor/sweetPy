@@ -28,14 +28,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_BUILD_DIR}/bin)
 set(CMAKE_BINARY_DIR ${PROJECT_BUILD_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BUILD_DIR}/bin)
 
-include_directories(. ..  ${PROJECT_DIR}/include ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 link_directories(${sweetPy_3RD_PARTY_DIR}/lib ${PROJECT_DIR}/../bin)
 
 add_library(CPythonClassTestModule SHARED CPythonClassTestModule.cpp)
 target_link_libraries(CPythonClassTestModule sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CORE_DEBUG_POSTFIX}.so pthread )
 set_target_properties(CPythonClassTestModule PROPERTIES PREFIX "")
+target_include_directories(CPythonClassTestModule PRIVATE . .. ../include ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 
 add_executable(sweetPyTests Tests.cpp CPythonClassTestModule.h)
+target_include_directories(sweetPyTests PRIVATE . .. ../include ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 if(TEST_DEPENDECIES)
     add_dependencies(sweetPyTests ${TEST_DEPENDECIES})
 endif()
