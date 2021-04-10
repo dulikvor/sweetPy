@@ -17,8 +17,6 @@ if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     set(CMAKE_DEBUG_POSTFIX d)
 endif()
 
-set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_DIR}/bin)
@@ -26,8 +24,8 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_DIR}/bin)
 set(CMAKE_BINARY_DIR ${PROJECT_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_DIR}/bin)
-include_directories(. .. ${PROJECT_DIR} ${PYTHON_INCLUDE_DIRS})
 
 add_executable(example example.cpp)
+target_include_directories(example PRIVATE . .. ../include ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 set(TO_LINK_LIBS ${PYTHON_LIBRARIES} sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CMAKE_DEBUG_POSTFIX}.so util dl pthread)
 target_link_libraries(example ${TO_LINK_LIBS})

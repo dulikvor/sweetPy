@@ -97,7 +97,7 @@ namespace sweetPy
             }
             ObjectPtr returnValue(PyObject_CallObject(function.get(), tuple.get()), &Deleter::Owner);
             CPYTHON_VERIFY_EXC(returnValue.get() !=nullptr);
-            return std::move(returnValue);
+            return returnValue;
         }
     };
 }

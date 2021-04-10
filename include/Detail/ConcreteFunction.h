@@ -6,7 +6,7 @@
 #include <Python.h>
 #include "../Core/Lock.h"
 #include "../Core/Traits.h"
-#include "../Core/Exception.h"
+#include "../Core/SPException.h"
 #include "../Core/Stack.h"
 #include "../Core/Assert.h"
 #include "Function.h"

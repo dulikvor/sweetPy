@@ -14,6 +14,8 @@ if (NOT Core_FOUND)
 
     ExternalProject_Get_Property(Core INSTALL_DIR)
 
+    SET(DEPENDECIES ${DEPENDECIES} Core)
+
     set (Core_ROOT_DIR          ${INSTALL_DIR})
     set (Core_INCLUDE_DIR       ${Core_ROOT_DIR}/include)
     set (Core_LIBRARY_DIR       ${Core_ROOT_DIR}/lib)

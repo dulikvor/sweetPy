@@ -7,7 +7,7 @@
 #include "../Detail/DictionaryElement.h"
 #include "../Core/Deleter.h"
 #include "../Core/Assert.h"
-#include "../Core/Exception.h"
+#include "../Core/SPException.h"
 #include "../Core/Traits.h"
 #include "AsciiString.h"
 #include "List.h"
