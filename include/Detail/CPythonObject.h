@@ -872,7 +872,7 @@ namespace sweetPy{
         }
         static PyObject* to_python(const std::string& value)
         {
-            return PyBytes_FromString(value.c_str());
+            return PyBytes_FromStringAndSize(value.c_str(), value.size());
         }
     };
     //Providing lvalue string is not possible, due to transform between two types, so from_python is removed.
