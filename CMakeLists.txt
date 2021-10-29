@@ -1,7 +1,7 @@
 project(sweetPy CXX)
 cmake_minimum_required(VERSION 3.0)
 
-set (CMAKE_CXX_STANDARD 14)
+set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_COLOR_MAKEFILE ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
@@ -70,7 +70,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${PROJECT_BUILD_DIR}/bin)
 set(CMAKE_BINARY_DIR ${PROJECT_BUILD_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BUILD_DIR}/bin)
 #Pre build step
-add_library(sweetPy SHARED src/Detail/CPythonType.cpp src/Detail/MetaClass.cpp src/Core/Lock.cpp src/Types/Container.cpp src/Utility/Serialize.cpp src/Utility/SerializeTypes.cpp)
+add_library(sweetPy SHARED src/Detail/CPythonType.cpp src/Detail/MetaClass.cpp src/Core/Lock.cpp src/Types/Container.cpp src/Types/Tuple.cpp src/Types/List.cpp src/Utility/Serialize.cpp src/Utility/SerializeTypes.cpp)
 target_include_directories(sweetPy PRIVATE ${PROJECT_DIR}/include ${sweetPy_3RD_PARTY_DIR}/include ${PYTHON_INCLUDE_DIRS})
 target_link_libraries(sweetPy ${sweetPy_3RD_PARTY_DIR}/lib/libCore${CMAKE_DEBUG_POSTFIX}.so)
 if(sweetPy_PY_DEBUG)

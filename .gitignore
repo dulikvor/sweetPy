@@ -45,3 +45,4 @@ CTestTestfile.cmake
 .vs/
 out/
 example/bin/
+bin/sweetPyTests
