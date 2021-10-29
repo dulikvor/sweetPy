@@ -30,5 +30,39 @@ namespace sweetPy{
         else
             throw core::Exception(__CORE_SOURCE, "Non supported python object was provided");
     }
+
+    ObjectPtr _Container::get_element_objectptr(size_t index) const
+    {
+        PyObject* object = nullptr;
+        if(m_elements[index]->IsInt())
+            object = Object<int>::to_python(static_cast<core::TypedParam<int>&>(*m_elements[index]).Get<int>());
+        else if(m_elements[index]->IsString())
+            object = Object<std::string>::to_python(static_cast<core::TypedParam<std::string>&>(*m_elements[index]).Get<std::string>());
+        else if(m_elements[index]->IsCtypeS())
+            object = Object<const char*>::to_python(static_cast<core::TypedParam<char*>&>(*m_elements[index]).Get<char*>());
+        else if(m_elements[index]->IsDouble())
+            object = Object<double>::to_python(static_cast<core::TypedParam<double>&>(*m_elements[index]).Get<double>());
+        else if(m_elements[index]->IsBool())
+            object = Object<bool>::to_python(static_cast<core::TypedParam<bool>&>(*m_elements[index]).Get<bool>());
+        else if(m_elements[index]->GetTypeId() == core::TypeIdHelper<Tuple>::GenerateTypeId())
+            object = Object<Tuple>::to_python(static_cast<core::TypedParam<Tuple>&>(*m_elements[index]).Get<Tuple>());
+        else if(m_elements[index]->GetTypeId() == core::TypeIdHelper<List>::GenerateTypeId())
+            object = Object<List>::to_python(static_cast<core::TypedParam<List>&>(*m_elements[index]).Get<List>());
+        else
+        {
+            auto it = m_converters.find(index);
+            if(it != m_converters.end())
+            {
+                object = it->second(m_elements[index]->GetBuffer());
+            }
+            else
+            {
+                Py_XINCREF(Py_None);
+                object = Py_None;
+            }
+        }
+
+        return ObjectPtr(object, &Deleter::Owner);
+    }
 }
 

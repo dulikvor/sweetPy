@@ -1081,11 +1081,15 @@ namespace sweetPyTest {
          sweetPickleSend->write(*contextSend, true);
          sweetPickleSend->write(*contextSend, "its working");
          sweetPickleSend->write(*contextSend, std::string("yes it really works"));
+         sweetPy::Tuple innerTuple;
+         innerTuple.add_element("B");
+         innerTuple.add_element(7.5);
          sweetPy::Tuple tuple;
          tuple.add_element(5);
          tuple.add_element(5.5);
          tuple.add_element(true);
          tuple.add_element("A");
+         tuple.add_element(innerTuple);
          sweetPickleSend->write(*contextSend, tuple);
          sweetPy::List list;
          list.add_element(5);

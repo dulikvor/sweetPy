@@ -135,7 +135,8 @@ namespace sweetPy{
             return std::equal(begin(), end(), rhs.begin());
         }
         bool operator!=(const _Container& rhs) const{ return operator==(rhs) == false; }
-        
+        ObjectPtr get_element_objectptr(size_t index) const;
+    
     public:
         void clear()
         {
@@ -187,19 +188,22 @@ namespace sweetPy{
             m_elements.emplace_back(new core::TypedParam<void*>((void*)element));
         }
         void add_element(const ObjectPtr& element);
-        template<typename T, typename = typename std::enable_if<!std::is_pointer<T>::value>::type>
-        const T& get_element(size_t index) const
+        
+        template<typename T, typename ReturnT = std::conditional_t<std::is_same<T, ObjectPtr>::value || std::is_pointer<T>::value, T, const T&>>
+        const ReturnT get_element(size_t index) const
         {
             if(m_elements.size() < index)
                 throw core::Exception(__CORE_SOURCE, "index exceeds number of elements");
-            return static_cast<core::TypedParam<T>&>(*m_elements[index]).template Get<T>();
-        }
-        template<typename T, typename = typename std::enable_if<std::is_pointer<T>::value>::type>
-        T get_element(size_t index) const
-        {
-            if(m_elements.size() < index)
-                throw core::Exception(__CORE_SOURCE, "index exceeds number of elements");
-            return static_cast<core::TypedParam<T>&>(*m_elements[index]).template Get<T>();
+
+            if constexpr(std::is_same<T, ObjectPtr>::value)
+            {
+                return get_element_objectptr(index);
+            }
+            else
+            {
+                return static_cast<core::TypedParam<T>&>(*m_elements[index]).template Get<T>();
+            }
+            
         }
         
         class iterator : public std::iterator<std::forward_iterator_tag, core::Param* const, std::ptrdiff_t, core::Param* const, core::Param&>
