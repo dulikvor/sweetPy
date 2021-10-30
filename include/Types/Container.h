@@ -190,7 +190,7 @@ namespace sweetPy{
         void add_element(const ObjectPtr& element);
         
         template<typename T, typename ReturnT = std::conditional_t<std::is_same<T, ObjectPtr>::value || std::is_pointer<T>::value, T, const T&>>
-        const ReturnT get_element(size_t index) const
+        ReturnT get_element(size_t index) const
         {
             if(m_elements.size() < index)
                 throw core::Exception(__CORE_SOURCE, "index exceeds number of elements");
